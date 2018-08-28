@@ -1,0 +1,26 @@
+#ifndef __TBB_Atlas_h__
+#define __TBB_Atlas_h__
+
+#include "HoudiniAtlas.h"
+
+using namespace Mokko;
+
+struct executor
+{
+  executor(HoudiniAtlas &rasterizer, int w, int h, ParametersDeformablePatches params) : _rasterizer(rasterizer), _w(w), _h(h), _params(params)
+  {
+  }
+
+  void operator()(const tbb::blocked_range<size_t>& r) const
+  {
+    for (size_t i=r.begin();i!=r.end();++i)
+      _rasterizer.RasterizePrimitive(GA_Offset(i), _w, _h, _params);
+  }
+
+  HoudiniAtlas& _rasterizer;
+  int _w;
+  int _h;
+  ParametersDeformablePatches _params;
+};
+
+#endif
