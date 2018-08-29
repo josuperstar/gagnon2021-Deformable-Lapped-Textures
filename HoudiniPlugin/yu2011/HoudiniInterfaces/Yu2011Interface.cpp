@@ -122,57 +122,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     surfaceTree.clear();
     ray.clear();
 
-    if(params.computeAtlas == 0)
-        cout << "No atlas to compute" <<endl;
-    if (params.computeAtlas == 1)
-    {
-        //=========================== ATLAS ==============================
 
-        // Section 3.4 Blending and Continuity
-        HoudiniAtlas atlas;
-        atlas.SetFilename(params.trackersFilename+".png");
-        atlas.SetSurface(surfaceGdp);
-        if(useDeformableGrids)
-            atlas.SetDeformableGrids(gdp);
-        atlas.SetTrackers(trackersGdp);
-        atlas.SetTextureExemplar1(params.textureExemplar1Name);
-        atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
-        atlas.SetDisplacementMap1(params.displacementMap1Name);
-        if (params.useDeformableGrids)
-            atlas.UseDeformableGrids();
-        bool atlasBuilded = atlas.BuildAtlas(params.atlasWidth,params.atlasHeight,params.deletionLife);
-        if(!atlasBuilded)
-        {
-            cout << "cant build atlas" <<endl;
-            return;
-        }
-        GA_Primitive *prim;
-
-        bool usingTbb = true;
-        cout << "Rasterizing ..."<<endl;
-        if(!usingTbb)
-        {
-            GA_FOR_ALL_PRIMITIVES(surfaceGdp,prim)
-            {
-                GA_Offset primOffset = prim->getMapOffset();
-                atlas.RasterizePrimitive(primOffset, params.atlasWidth,params.atlasHeight, params);
-            }
-        }
-        else
-        {
-            int nbPrims = surfaceGdp->getNumPrimitives();
-
-            executor exec(atlas,params.atlasWidth,params.atlasHeight, params);
-            tbb::parallel_for(tbb::blocked_range<size_t>(0,nbPrims),exec);
-
-        }
-        atlas.SaveAtlas();
-
-        ImageCV dilated;
-        dilated.OpenImage(params.trackersFilename+".png",-1);
-        ImageCV::growRegions(dilated.image,dilated.image,3);
-        dilated.SaveImage();
-    }
 
     bool debug = false;
     if(!debug)

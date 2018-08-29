@@ -207,8 +207,8 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
             {
                 p.SetValid(1);
                 p.SetId(ppt+1);
-                p.SetLife(params.deletionLife);
-                p.SetSpawn(params.deletionLife);
+                p.SetLife(params.fadingTau);
+                p.SetSpawn(params.fadingTau);
                 p.SetDynamicTau(0.0f);
             }
             else
@@ -263,8 +263,8 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
         vector<PoissonDisk>::iterator itPoisson;
         for(itPoisson = PPoints.begin(); itPoisson != PPoints.end(); ++itPoisson)
         {
-            (*itPoisson).SetLife(params.deletionLife);
-            (*itPoisson).SetSpawn(params.deletionLife);
+            (*itPoisson).SetLife(params.fadingTau);
+            (*itPoisson).SetSpawn(params.fadingTau);
         }
     }
 

@@ -5,9 +5,10 @@
 #include "BlendingYu2011.h"
 #include "../HoudiniUtils.h"
 
-
+/*
 HoudiniAtlas::~HoudiniAtlas()
 {
+
     if (this->diffuseImageBlendingGagnon->IsValid())
         delete this->diffuseImageBlendingGagnon;
 
@@ -40,7 +41,7 @@ HoudiniAtlas::~HoudiniAtlas()
     trackerPosition.clear();
 
 }
-
+*/
 
 bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 {
@@ -76,7 +77,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     uvsAtt = surface->findFloatArray(GA_ATTRIB_POINT, uvname,-1, -1);
     if (!uvsAtt)
     {
-        cout << "[HoudiniAtlas::BuildAtlas] There is no uv array attribute"<<endl;
+        cout << "[HoudiniAtlas::BuildAtlas] There is no uvs array attribute"<<endl;
         return false;
     }
     uvsArray = uvsAtt->getAIFNumericArray();

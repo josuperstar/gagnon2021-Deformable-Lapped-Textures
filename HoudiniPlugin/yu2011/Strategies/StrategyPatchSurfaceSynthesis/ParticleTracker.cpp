@@ -164,7 +164,7 @@ vector<GA_Offset> ParticleTracker::CreateTrackers(GU_Detail *surface, GU_Detail 
         attId.add(newPoint,maxId);
         attId.add(tracker,maxId);
 
-        float life = params.deletionLife;
+        float life = params.fadingTau;
 
         attLife.set(newPoint,life);
         attLife.set(tracker,life);
@@ -218,7 +218,7 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
 
     //float maxDelta = 5.0f;
 
-    float tau = (float)params.deletionLife;
+    float tau = (float)params.fadingTau;
     float maxDelta = tau;
     float dynamicLifespaw = 2.0f;
 
@@ -333,17 +333,17 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
         }
         else
         {
-            if (active == 0 && currentSpawn >= params.deletionLife)
+            if (active == 0 && currentSpawn >= params.fadingTau)
             {
                 currentLife--;
             }
             //fade in
-            else if (currentSpawn < params.deletionLife)
+            else if (currentSpawn < params.fadingTau)
             {
                 currentLife++;
             }
-            if (currentLife > (float)params.deletionLife)
-                currentLife = (float)params.deletionLife;
+            if (currentLife > (float)params.fadingTau)
+                currentLife = (float)params.fadingTau;
             if (currentLife < 0)
                 currentLife = 0;
         }
@@ -391,7 +391,7 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
         attLife.set(newPoint,life);
         attLife.set(tracker,life);
 
-        float blending = ((float)life-1)/params.deletionLife;
+        float blending = ((float)life-1)/params.fadingTau;
 
         attBlend.set(newPoint,blending);
         attBlend.set(tracker,blending);
@@ -412,8 +412,8 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
 
         if (params.startFrame == params.frame)
         {
-            attFadeIn.set(newPoint,params.deletionLife);
-            attFadeIn.set(tracker,params.deletionLife);
+            attFadeIn.set(newPoint,params.fadingTau);
+            attFadeIn.set(tracker,params.fadingTau);
             blend.set(newPoint,1.0f);
             blend.set(tracker,1.0f);
         }
@@ -467,7 +467,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
     GA_RWHandleF blend = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"blend", 1));
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
-    float deletionLife = params.deletionLife;
+    float deletionLife = params.fadingTau;
 
 
     if (attV.isInvalid())

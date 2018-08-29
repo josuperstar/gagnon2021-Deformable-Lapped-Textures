@@ -9,7 +9,6 @@ version = "1.0.0"
 authors = [ "Jonathan Gagnon" ]
 
 variants = [
-             #["houdini-15"],
              ["houdini-16"]
             ]
 
@@ -18,7 +17,6 @@ variants = [
 
 def commands():
 
-    #setenv("HOUTOOLS_BASE_LOCATION" , root )
 
     env.HOUDINI_DSO_PATH.append("@/dso_^:@/dso:{root}/dso/")
     #we should move this to {root}/otl

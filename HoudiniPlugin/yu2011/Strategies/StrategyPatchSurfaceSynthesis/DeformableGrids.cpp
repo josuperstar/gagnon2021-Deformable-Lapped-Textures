@@ -265,10 +265,10 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 grpGrid->addOffset(newPoint);
 
                 attIsGrid.set(newPoint,1);
-                attAlpha.set(newPoint,(float)life/(float)params.deletionLife);
+                attAlpha.set(newPoint,(float)life/(float)params.fadingTau);
                 attVW.set(newPoint,0);
-                attAlpha0.set(newPoint,(float)life/(float)params.deletionLife);
-                attLife.set(newPoint,params.deletionLife);
+                attAlpha0.set(newPoint,(float)life/(float)params.fadingTau);
+                attLife.set(newPoint,params.fadingTau);
                 attV.set(newPoint,v);
                 attIsTreated.set(newPoint,0);
                 attCd.set(newPoint,UT_Vector3(1,1,1));
@@ -421,7 +421,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
             attW.set(prim_poly_ptr->getMapOffset(),0);
             attW0.set(prim_poly_ptr->getMapOffset(),0);
-            attPrimLife.set(prim_poly_ptr->getMapOffset(),(float)life/params.deletionLife);
+            attPrimLife.set(prim_poly_ptr->getMapOffset(),(float)life/params.fadingTau);
             attInitId.set(prim_poly_ptr->getMapOffset(),prim_poly_ptr->getMapOffset());
 
 
@@ -883,7 +883,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     distortionParams.dilatationMax              = params.dilatationMax;
     distortionParams.squeezeMin                 = params.squeezeMin;
     distortionParams.squeezeMax                 = params.squeezeMax;
-    distortionParams.deletionLife               = params.deletionLife;
+    distortionParams.deletionLife               = params.fadingTau;
     distortionParams.distortionRatioThreshold   = params.distortionRatioThreshold ;
     distortionParams.Yu2011DMax                 = params.Yu2011DMax ;
     distortionParams.QvMin                      = params.QvMin;
@@ -940,7 +940,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
 
         life = attLife.get(trackerPpt);
 
-        float gridAlpha = (float)life/(float)params.deletionLife;
+        float gridAlpha = (float)life/(float)params.fadingTau;
 
         UT_Vector3 trackerPosition = trackersGdp->getPos3(trackerPpt);
 
@@ -1164,8 +1164,8 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
             continue;
         averageDeltaOnD = averageDeltaOnD/(float)nbOfPoint;
 
-        if (averageDeltaOnD > params.deletionLife)
-            averageDeltaOnD = params.deletionLife;
+        if (averageDeltaOnD > params.fadingTau)
+            averageDeltaOnD = params.fadingTau;
         if (averageDeltaOnD < 0.0f )
             averageDeltaOnD = 0.0f;
 

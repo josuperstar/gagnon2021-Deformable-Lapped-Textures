@@ -1,7 +1,7 @@
 
 
-#ifndef __Yu2011Plugin_h__
-#define __Yu2011Plugin_h__
+#ifndef __AtlasPlugin_h__
+#define __AtlasPlugin_h__
 #include <vector>
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Image.h"
 #include "Set/SpatialGrid.h"
-#include "HoudiniInterfaces/Yu2011Interface.h"
+#include "HoudiniInterfaces/AtlasInterface.h"
 
 
 
@@ -23,11 +23,11 @@ using namespace Mokko;
 namespace Mokko {
 
 
-class Yu2011Plugin : public SOP_Node
+class AtlasPlugin : public SOP_Node
 {
 public:
-    Yu2011Plugin(OP_Network *net, const char *name, OP_Operator *op);
-    virtual ~Yu2011Plugin();
+    AtlasPlugin(OP_Network *net, const char *name, OP_Operator *op);
+    virtual ~AtlasPlugin();
 
 	/// This method is created so that it can be called by handles.  It only
 	/// cooks the input group of this SOP.  The geometry in this group is
@@ -37,24 +37,24 @@ public:
     static OP_Node		*myConstructor(OP_Network*, const char *,
                                 OP_Operator *);
     static PRM_Template		 myTemplateList[];
-    fpreal  PoissonDiskRadius() { return evalFloat("PoissonDiskRadius", 0, 0); }
-    fpreal  StartFrame() { return evalFloat("StartFrame", 0, 0); }
-    fpreal  UpdateDistribution() { return evalFloat("UpdateDistribution", 0, 0); }
-    fpreal  MinimumDistanceProjection() { return evalFloat("MinimumDistanceProjection", 0, 0); }
-    fpreal  ComputeDistortion() { return evalFloat("ComputeDistortion", 0, 0); }
-  
-    fpreal  FadingTau() { return evalFloat("FadingTau", 0, 0); }
-    fpreal  Yu2011DMax() { return evalFloat("Yu2011DMax", 0, 0); }
-    fpreal  QvMin() { return evalFloat("QvMin", 0, 0); } 
-    fpreal  TestPatch() { return evalFloat("TestPatch", 0, 0); }
-    fpreal  PatchNumber() { return evalFloat("PatchNumber", 0, 0); }
-    fpreal  UseDeformableGrids() { return evalFloat("UseDeformableGrids", 0, 0); }
-    //fpreal  TrackersFilename() { return evalString(trackersFilename,"TrackersFilename", 0, 0); }
-    void  TrackersFilename(UT_String &str, fpreal t)
-    { STR_PARM("TrackersFilename",  0, t) }
     void  DeformableGridsFilename(UT_String &str, fpreal t)
     { STR_PARM("DeformableGridsFilename",  0, t) }
+    void  TrackersFilename(UT_String &str, fpreal t)
+    { STR_PARM("TrackersFilename",  0, t) }
+    void  TextureExemplar1(UT_String &str, fpreal t)
+    { STR_PARM("TextureExemplar1",  0, t) }
+    void  TextureExemplarMask1(UT_String &str, fpreal t)
+    { STR_PARM("TextureExemplarMask1",  0, t) }
+    void  DisplacementMap1(UT_String &str, fpreal t)
+    { STR_PARM("DisplacementMap1",  0, t) }
+    void  OutputName(UT_String &str, fpreal t)
+    { STR_PARM("OutputName",  0, t) }
 
+    fpreal  TextureAtlasHeight() { return evalFloat("TextureAtlasHeight", 0, 0); }
+    fpreal  TextureAtlasWidth() { return evalFloat("TextureAtlasWidth", 0, 0); }
+    fpreal  UseDeformableGrids() { return evalFloat("UseDeformableGrids", 0, 0); }
+    fpreal  RenderColoredPatches() { return evalFloat("RenderColoredPatches", 0, 0); }
+    fpreal  PoissonDiskRadius() { return evalFloat("PoissonDiskRadius", 0, 0); }
 
 
 protected:
@@ -78,14 +78,14 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    Yu2011Interface interface;
+    AtlasInterface interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;
     UT_String textureExemplar1Name;
     UT_String textureExemplar1MaskName;
     UT_String displacementMap1Name;
-
+    UT_String outputName;
 
 	//Util util;
 	

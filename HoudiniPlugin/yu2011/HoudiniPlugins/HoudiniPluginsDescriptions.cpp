@@ -7,6 +7,7 @@
 
 
 #include "Yu2011Plugin.h"
+#include "AtlasPlugin.h"
 
 
 #define HOUDINI_VERSION 16
@@ -16,10 +17,6 @@
 // -----------------------------------------------------------------------------
 void newSopOperator(OP_OperatorTable *table)
 {
-
-
-
-
      table->addOperator(new OP_Operator("hdk_Yu2011",
                                         "Yu2011",
                                         Yu2011Plugin::myConstructor,
@@ -28,9 +25,11 @@ void newSopOperator(OP_OperatorTable *table)
                                         4,
                                         0));
 
-
-
-
-
-
+    table->addOperator(new OP_Operator("hdk_AtlasYu2011",
+                                       "AtlasYu2011",
+                                       AtlasPlugin::myConstructor,
+                                       AtlasPlugin::myTemplateList,
+                                       3,
+                                       3,
+                                       0));
 }
