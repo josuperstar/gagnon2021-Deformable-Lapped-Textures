@@ -10,9 +10,8 @@
 #include <Math/Vec3.h>
 #include "Image.h"
 #include "Set/SpatialGrid.h"
-#include "Core/GaussianPyramidMesh.h"
 
-#include "Core/BestMatchFunctions.h"
+
 #include <GU/GU_Flatten.h>
 #include <Core/Deformations/ParametersDeformablePatches.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>

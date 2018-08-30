@@ -10,9 +10,9 @@
 #include "Image.h"
 #include "Set/SpatialGrid.h"
 //#include "HoudiniInterfaces/TextureSynthesis.h"
-#include "Core/GaussianPyramidMesh.h"
 
-#include "Core/BestMatchFunctions.h"
+
+
 #include <GU/GU_Flatten.h>
 #include "../HoudiniUtils.h"
 #include "DistortionUtils.h"

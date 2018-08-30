@@ -2,9 +2,7 @@
 #define __ParticleTracker_h__
 
 #include <Math/Vec3.h>
-#include <Core/GaussianPyramidMesh.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
-#include "Core/KwatraSurfaceTextureSynthesisParams.h"
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 #include <PoissonDisk/PoissonDisk.h>

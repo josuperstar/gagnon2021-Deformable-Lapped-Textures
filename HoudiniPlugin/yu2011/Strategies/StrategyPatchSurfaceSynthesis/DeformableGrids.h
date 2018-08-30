@@ -2,9 +2,7 @@
 #define __DeformableGrid_h__
 
 #include <Math/Vec3.h>
-#include <Core/GaussianPyramidMesh.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis/ParticleTracker.h>
-#include "Core/KwatraSurfaceTextureSynthesisParams.h"
 #include "Core/Deformations/Yu2011Distortion.h"
 #include "Core/Deformations/LocalDeformationDistortion.h"
 #include <GEO/GEO_PointTree.h>

@@ -28,7 +28,6 @@
 #include <GU/GU_RayIntersect.h>
 #include <GU/GU_Flatten.h>
 
-#include <Strategies/StrategySurfaceTextureSynthesis.h>
 #include <Core/HoudiniUtils.h>
 
 

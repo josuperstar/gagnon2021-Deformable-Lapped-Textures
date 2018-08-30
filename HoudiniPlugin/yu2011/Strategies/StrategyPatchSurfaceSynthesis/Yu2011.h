@@ -2,7 +2,6 @@
 #define __Yu2011_h__
 
 #include <Math/Vec3.h>
-#include <Core/GaussianPyramidMesh.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis/DeformableGrids.h>
 #include "Core/KwatraSurfaceTextureSynthesisParams.h"
 #include <GEO/GEO_PointTree.h>

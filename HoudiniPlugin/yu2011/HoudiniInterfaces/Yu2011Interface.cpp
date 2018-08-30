@@ -26,7 +26,6 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Strategies/StrategySurfaceTextureSynthesis.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis/Yu2011.h>
 
 #include <Core/Atlas/HoudiniAtlas.h>

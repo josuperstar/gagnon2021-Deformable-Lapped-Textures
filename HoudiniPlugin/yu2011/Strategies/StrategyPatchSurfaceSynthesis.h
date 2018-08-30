@@ -2,15 +2,13 @@
 #define __STRATEGYPATCHSURFACE_h__
 
 #include <Math/Vec3.h>
-#include <Core/GaussianPyramidMesh.h>
+
 #include <GaussianPyramid.h>
 
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
 
-#include <Core/WeyAndLevoyStructure.h>
-#include <Core/BestMatchFunctions.h>
-#include <Core/BuildingNeighborhoodFunctions.h>
+
 #include <Core/Deformations/ParametersDeformablePatches.h>
 
 using namespace std;
