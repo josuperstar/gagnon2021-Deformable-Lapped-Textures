@@ -1,0 +1,93 @@
+{
+    "default_patch_lock": "no_lock",
+    "rez_version": "2.13.0",
+    "package_requests": [
+        "houdini-16"
+    ],
+    "serialize_version": "4.3",
+    "resolved_packages": [
+        {
+            "variables": {
+                "index": null,
+                "version": "linux",
+                "repository_type": "filesystem",
+                "location": "/prod/tools/rez/packages/int",
+                "name": "platform"
+            },
+            "key": "filesystem.variant"
+        },
+        {
+            "variables": {
+                "index": null,
+                "version": "x86_64",
+                "repository_type": "filesystem",
+                "location": "/prod/tools/rez/packages/int",
+                "name": "arch"
+            },
+            "key": "filesystem.variant"
+        },
+        {
+            "variables": {
+                "index": 0,
+                "version": "2.8.12.2.1",
+                "repository_type": "filesystem",
+                "location": "/prod/tools/rez/packages/int",
+                "name": "cmake"
+            },
+            "key": "filesystem.variant"
+        },
+        {
+            "variables": {
+                "index": null,
+                "version": "1.1.0",
+                "repository_type": "filesystem",
+                "location": "/prod/tools/rez/packages/int",
+                "name": "ddcmake"
+            },
+            "key": "filesystem.variant"
+        },
+        {
+            "variables": {
+                "index": 0,
+                "version": "16.5.439.7",
+                "repository_type": "filesystem",
+                "location": "/prod/tools/rez/packages/int",
+                "name": "houdini"
+            },
+            "key": "filesystem.variant"
+        }
+    ],
+    "num_loaded_packages": 22,
+    "requested_timestamp": null,
+    "host": "prod-002.mokkostudio.net",
+    "user": "jgagnon",
+    "package_filter": [],
+    "arch": "x86_64",
+    "solve_time": 0.03795218467712402,
+    "building": true,
+    "implicit_packages": [
+        "~platform==linux",
+        "~arch==x86_64",
+        "~os==CentOS-7.3.1611"
+    ],
+    "parent_suite_path": null,
+    "suite_context_name": null,
+    "created": 1535738824,
+    "graph": "{'nodes': [((('fillcolor', '#AAFFAA'), ('fontsize', 10), ('style', 'filled')), [('_9', 'houdini-16.5.439.7[0]'), ('_8', 'ddcmake-1.1.0[]'), ('_7', 'cmake-2.8.12.2.1[0]'), ('_6', 'arch-x86_64[]'), ('_5', 'platform-linux[]')]), ((('fillcolor', '#F6F6F6'), ('fontsize', 10), ('style', 'filled,dashed')), [('_13', 'ddcmake'), ('_12', 'cmake'), ('_11', 'arch-x86_64'), ('_10', 'platform-linux')]), ((('fillcolor', '#FFFFAA'), ('fontsize', 10), ('style', 'filled,dashed')), [('_4', '~os==CentOS-7.3.1611'), ('_3', '~arch==x86_64'), ('_2', '~platform==linux'), ('_1', 'houdini-16')])], 'edges': [((('arrowsize', '0.5'),), [('_9', '_10'), ('_9', '_11'), ('_9', '_13'), ('_8', '_12'), ('_7', '_11'), ('_7', '_10'), ('_3', '_6'), ('_2', '_5'), ('_1', '_9'), ('_13', '_8'), ('_12', '_7'), ('_11', '_6'), ('_10', '_5')])]}",
+    "failure_description": null,
+    "package_orderers": null,
+    "package_paths": [
+        "/home/jgagnon/packages",
+        "/prod/tools/rez/packages/int",
+        "/prod/tools/rez/packages/ext"
+    ],
+    "platform": "linux",
+    "rez_path": "/automount/sun-01/tools/rez/rez/lib/python2.7/site-packages/rez-2.13.0-py2.7.egg/rez",
+    "status": "solved",
+    "from_cache": false,
+    "timestamp": 1535738824,
+    "caching": true,
+    "load_time": 0.0,
+    "os": "CentOS-7.3.1611",
+    "patch_locks": {}
+}

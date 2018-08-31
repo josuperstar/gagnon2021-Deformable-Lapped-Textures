@@ -58,6 +58,9 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     vector<GA_Offset> trackers;
     cout << "reference gdp created"<<endl;
 
+    const GA_SaveOptions *options;
+    UT_StringArray *errors;
+
 
     GA_PointGroup *surfaceGroup = (GA_PointGroup *)surfaceGdp->pointGroups().find(strategy.surfaceGroupName.c_str());
     if (surfaceGroup == 0x0)
@@ -82,6 +85,12 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     //section 3.3.1 Particle Distribution
     vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
     trackers = strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
+
+    //---- for visualisation purpose
+    string beforeUpdateString = params.trackersFilename + "beforeupdate.bgeo";
+    const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
+    trackersGdp->save(filename,options,errors);
+    //----------------------------------
 
     //section 3.3.2 Particle Delition
     newPatchesPoints = strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
@@ -128,9 +137,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     {
         cout << strategy.approachName<< " saving grids data"<<endl;
 
-        const GA_SaveOptions *options;
 
-        UT_StringArray *errors;
 
         const char* filename = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
         try
