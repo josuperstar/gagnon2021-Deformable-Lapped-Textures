@@ -31,3 +31,24 @@ rez_install_files(
 )
 
 
+#============================= OTL =============================
+set(directory_otl ${PROJECT_BINARY_DIR}/otl/)
+set(source_dir_otl ${CMAKE_CURRENT_SOURCE_DIR}/HoudiniPlugin/otl)
+set(otl_file "yu2011.hda")
+
+MESSAGE('make directory '+"${directory_otl}")
+file(MAKE_DIRECTORY "${directory_otl}")
+
+MESSAGE('copy ')
+MESSAGE(${source_dir_otl}/${otl_file})
+MESSAGE('to')
+MESSAGE(${PROJECT_BINARY_DIR}/dso/${otl_file})
+execute_process(COMMAND "cp" "-R" "${source_dir_otl}/${otl_file}" "${PROJECT_BINARY_DIR}/otl/${otl_file}")
+
+file(GLOB_RECURSE plugin_files "${PROJECT_BINARY_DIR}/otl/*.hda" )
+
+rez_install_files(
+	${plugin_files}
+	RELATIVE "build/houdini-15/"
+	DESTINATION .
+)
