@@ -35,20 +35,16 @@
 
 Yu2011Interface::Yu2011Interface()
 {
-
 }
 
 Yu2011Interface::~Yu2011Interface()
 {
-
 }
 
 void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
     Yu2011 strategy(gdp,surfaceGdp,trackersGdp);
-
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
-
     params.useDynamicTau = false;
 
     std::clock_t start;
@@ -57,10 +53,8 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     vector<GA_Offset> newPatchesPoints;
     vector<GA_Offset> trackers;
     cout << "reference gdp created"<<endl;
-
     const GA_SaveOptions *options;
     UT_StringArray *errors;
-
 
     GA_PointGroup *surfaceGroup = (GA_PointGroup *)surfaceGdp->pointGroups().find(strategy.surfaceGroupName.c_str());
     if (surfaceGroup == 0x0)
@@ -68,11 +62,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
         cout << "There is no surface group to synthesis"<<endl;
         return;
     }
-
     //=======================================================
-
-    bool useDeformableGrids = params.useDeformableGrids;
-
     GA_PointGroup *grp = (GA_PointGroup *)gdp->pointGroups().find(strategy.markerGroupName.c_str());
 
     GU_RayIntersect ray(gdp);
@@ -81,7 +71,6 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     surfaceTree.build(surfaceGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
-
     //section 3.3.1 Particle Distribution
     vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
     trackers = strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
@@ -102,78 +91,36 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     {
         //section 3.3.2 Grid Advection
         strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,newPatchesPoints,surfaceGdp);
-
         //section 3.3.3 Estimating the Grid Distortion
         strategy.UpdateDistributionUsingBridson2012PoissonDisk(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
-
     }
-
     //3.4 Blending and Continuity
     //For the blending computation, we create uv array per vertex that we called patch
     strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree,ray);
 
-
-    //----------------------------------------------------------------------------------------------------
-    //section 3.3.1 Particle Distribution
-    //PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
-    //strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
-    //----------------------------------------------------------------------------------------------------
-
     //=======================================================================
 
-
-
-
     cout << strategy.approachName<<" Done"<<endl;
-
     cout << "Clear surface tree"<<endl;
     surfaceTree.clear();
     ray.clear();
 
+    cout << strategy.approachName<< " saving grids data"<<endl;
+    const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
+    gdp->save(filenameGrids,options,errors);
 
-
-    bool debug = false;
-    if(!debug)
-    {
-        cout << strategy.approachName<< " saving grids data"<<endl;
-
-
-
-        const char* filename = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
-        try
-        {
-            gdp->save(filename,options,errors);
-        }
-        catch(int e)
-        {
-            cout << "An exception occurred. Exception Nr. " << e << '\n';
-        }
-
-        cout << strategy.approachName<< " saving trackers data"<<endl;
-        filename = params.trackersFilename.c_str();//"dlttest.bgeo";
-        try
-        {
-            trackersGdp->save(filename,options,errors);
-        }
-        catch(int e)
-        {
-            cout << "An exception occurred. Exception Nr. " << e << '\n';
-        }
-    }
+    cout << strategy.approachName<< " saving trackers data"<<endl;
+    const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
+    trackersGdp->save(filenameTrackers,options,errors);
 
     //================================================================
-
     std::clock_t cleaningStart;
     cleaningStart = std::clock();
     cout<< "Clear, Destroy and merge"<<endl;
     gdp->clearAndDestroy();
-    //gdp->merge(surfaceGdp);
-
     gdp->copy(*surfaceGdp);
 
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
-
-
     cout << "--------------------------------------------------------------------------------"<<endl;
     cout << strategy.approachName<<" Poisson Disk Sampling "<<strategy.poissondisk<<endl;
     cout << strategy.approachName<<" Grid mesh creation time "<<strategy.gridMeshCreation<<endl;
@@ -187,7 +134,5 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout << strategy.approachName<< " TOTAL: "<<total<<endl;
     cout << "--------------------------------------------------------------------------------"<<endl;
-
-
 }
 

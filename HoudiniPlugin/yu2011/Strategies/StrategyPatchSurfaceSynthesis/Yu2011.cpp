@@ -1,5 +1,4 @@
 #include "Yu2011.h"
-
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
@@ -33,7 +32,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-Yu2011::Yu2011(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackers) : DeformableGrids(gdp,surface,trackers)
+Yu2011::Yu2011(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackers) : DeformableGrids()
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -135,7 +134,6 @@ Yu2011::Yu2011(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackers) : Deform
     }
     alphaArrayAtt->clearDataId();
 
-
     this->uvFlatteningTime = 0;
     this->gridMeshCreation = 0;
     this->gridAdvectionTime = 0;
@@ -146,7 +144,6 @@ Yu2011::Yu2011(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackers) : Deform
     this->numberOfConcealedPatches = 0;
     this->numberOfNewPatches = 0;
     this->numberOfDetachedPatches = 0;
-
 }
 
 Yu2011::~Yu2011()
@@ -157,7 +154,6 @@ Yu2011::~Yu2011()
 bool Yu2011::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params)
 {
     return true;
-
 }
 
 //================================================================================================
@@ -188,7 +184,6 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     vector<PoissonDisk> oldPoints;
     vector<GA_Offset> newPatchesPoints;
     //newPatchesPoints.clear();
-
 
     if(params.startFrame == params.frame)
     {
@@ -258,7 +253,6 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
 
     if(params.startFrame == params.frame)
     {
-
         //all PPpoints have to have a full life
         vector<PoissonDisk>::iterator itPoisson;
         for(itPoisson = PPoints.begin(); itPoisson != PPoints.end(); ++itPoisson)
@@ -267,9 +261,6 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
             (*itPoisson).SetSpawn(params.fadingTau);
         }
     }
-
-
-
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 

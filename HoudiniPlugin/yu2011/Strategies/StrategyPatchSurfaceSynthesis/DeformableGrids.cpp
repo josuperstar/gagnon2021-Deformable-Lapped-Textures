@@ -31,15 +31,11 @@
 #include <Core/HoudiniUtils.h>
 
 
-DeformableGrids::DeformableGrids(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackers)
+DeformableGrids::DeformableGrids()
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
     this->gridCenterPosition.clear();
-
-
-
-
 
     this->uvFlatteningTime = 0;
     this->gridMeshCreation = 0;
@@ -52,20 +48,12 @@ DeformableGrids::DeformableGrids(GU_Detail *gdp, GU_Detail* surface, GU_Detail *
     this->numberOfNewPatches = 0;
     this->numberOfDetachedPatches = 0;
 
-
-
-
-
 }
 
 bool DeformableGrids::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params)
 {
     return true;
-
 }
-
-
-
 
 //================================================================================================
 
@@ -76,9 +64,6 @@ bool DeformableGrids::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatch
 void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree)
 {
     //cout << "Yu 2011 Create grids"<<endl;
-
-
-
 
     //Yu2011 Section 3.3.1
     //For each particle, we create a regular grid (see Fig. 2, left), centered on it, of width larger than 2d. Combined
@@ -99,29 +84,29 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     //cout << "gridwidth "<<gridwidth<<endl;
 
 
-    GA_RWHandleI attM(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"M",1));
-    GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI attFlattening(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"flattening",1));
-    GA_RWHandleF attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI    attM(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"M",1));
+    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleI    attFlattening(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"flattening",1));
+    GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
 
-    GA_RWHandleV3 attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
-    GA_RWHandleF attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
-    GA_RWHandleI attIsGrid(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isGrid",1));
-    GA_RWHandleF attInitArea(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"initArea",1));
-    GA_RWHandleI attInitId(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"initId",1));
-    GA_RWHandleI attIsTreated(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isTreated",1));
-    GA_RWHandleV3 attV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3   attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
+    GA_RWHandleF    attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
+    GA_RWHandleI    attIsGrid(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isGrid",1));
+    GA_RWHandleF    attInitArea(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"initArea",1));
+    GA_RWHandleI    attInitId(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"initId",1));
+    GA_RWHandleI    attIsTreated(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isTreated",1));
+    GA_RWHandleV3   attV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   attCd(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
     GA_RWHandleI    attGridId(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
 
-    GA_RWHandleF attAlpha0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,alpha0Name,1));
-    GA_RWHandleF attVW(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,vertexWeightName,1));
-    GA_RWHandleF attW(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeightName,1));
-    GA_RWHandleF attW0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeight0Name,1));
+    GA_RWHandleF    attAlpha0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,alpha0Name,1));
+    GA_RWHandleF    attVW(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,vertexWeightName,1));
+    GA_RWHandleF    attW(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeightName,1));
+    GA_RWHandleF    attW0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeight0Name,1));
 
-    GA_RWHandleV3    attSs(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Ss",3));
-    GA_RWHandleV3    attSt(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"St",3));
+    GA_RWHandleV3   attSs(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Ss",3));
+    GA_RWHandleV3   attSt(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"St",3));
     GA_RWHandleF    attDMax(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dmax",1));
     GA_RWHandleF    attDMin(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dmin",1));
     GA_RWHandleF    attDistortion(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"distortion",1));
@@ -134,14 +119,12 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
     GA_RWHandleF    attDP0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
 
-
     GA_RWHandleV3 attRP(deformableGridsGdp->addFloatTuple(GA_ATTRIB_VERTEX,"refPosition",3));
     GA_RWHandleF attVA(deformableGridsGdp->addFloatTuple(GA_ATTRIB_VERTEX,initialVertexAngle,1));
     GA_RWHandleF attLife(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI attPrimLife(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"life",1));
     //GA_RWHandleF attTMin(gdp->addFloatTuple(GA_ATTRIB_POINT,disrortionMinThreshold,1));
     //GA_RWHandleF attTMax(gdp->addFloatTuple(GA_ATTRIB_POINT,distortionMaxThreshold,1));
-
 
     GA_RWHandleV3 attNSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3 attVSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
@@ -155,13 +138,10 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     UT_Vector3Array         triangleArrayData;
     float life = 1;
 
-
     string groupName = "grids";
     GA_PointGroup *grpGrid = deformableGridsGdp->newPointGroup(groupName.c_str());
 
-    //float scaling = (params.poissondiskradius/2);
     float scaling = gridwidth;
-
 
     //cout << "go through all trackers"<<endl;
     vector<GA_Offset>::iterator it;
@@ -178,7 +158,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             continue;
 
         life = attTrackerLife.get(ppt);
-
         GU_Detail tempGdp;
         set<GA_Offset> tempGdpListOffset;
         GA_Offset tempNewPoint;
@@ -243,15 +222,12 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 }
                 //--------create new points ------------
                 newPoint = deformableGridsGdp->appendPointOffset();
-
-
                 tempNewPoint = tempGdp.appendPointOffset();
                 tempGdpListOffset.insert(tempNewPoint);
 
                 if (surfaceClosestPoint == neighbor)
                 {
                     closestPoint = tempNewPoint;
-
                 }
 
                 UT_Vector3 pos = surfaceGdp->getPos3(neighbor);
@@ -273,12 +249,10 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 attCd.set(newPoint,UT_Vector3(1,1,1));
                 attGridId.set(newPoint,id);
 
-
                 pointList.push_back(newPoint);
                 tempPointList.push_back(tempNewPoint);
                 pointsLink[neighbor] = newPoint;
                 tempPointsLink[neighbor] = tempNewPoint;
-                //------------------------------------
 
                 //------------- UV Orthogonal Projection ---------------
 
@@ -288,7 +262,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 triangleSpacePos.x() = relativePosistion.dot(S);
                 triangleSpacePos.y() = relativePosistion.dot(T);
                 triangleSpacePos.z() = relativePosistion.dot(TrackerN);
-
 
                 UT_Vector3 uv;
                 uv.x() = triangleSpacePos.x();
@@ -301,16 +274,11 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 if (attUV.isValid())
                     attUV.set(newPoint,uv);
 
-                //------------------------------------------------------
-
                 //----------------- Dynamic Tau ------------------------
                 float dP0 = distance3d(p,pos);
                 attDP0.set(newPoint,dP0);
                 //------------------------------------------------------
-
-
             }
-
 
             set<GA_Offset> neighborPrims;
             for(int j=0; j<close_particles_count;j++ )
@@ -349,19 +317,15 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             }
         }
 
-
         //cout << "Create primitives"<<endl;
         //cout << "There is "<<primList.size() <<" primitives"<<endl;
         set<GA_Offset>::iterator itPrim;
         for(itPrim = primList.begin(); itPrim != primList.end(); ++itPrim)
         {
             //primGroup->addOffset(*itPrim);
-
             vector<UT_Vector3> trianglePoints;
-
             GEO_PrimPoly *prim_poly_ptr = (GEO_PrimPoly *)deformableGridsGdp->appendPrimitive(GA_PRIMPOLY);
             prim_poly_ptr->setSize(0);
-
 
             GEO_PrimPoly *temp_prim_poly_ptr = (GEO_PrimPoly *)tempGdp.appendPrimitive(GA_PRIMPOLY);
             temp_prim_poly_ptr->setSize(0);
@@ -373,7 +337,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             for(int i = 0; i < nbVertex; i++)
             {
                 GA_Offset vertex = prim->getVertexOffset(i);
-
                 GA_Offset point = surfaceGdp->vertexPoint(vertex);
 
                 trianglePoints.push_back(surfaceGdp->getPos3(point));
@@ -396,8 +359,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 AB.normalize();
                 AC.normalize();
                 float angle = dot(AB,AC);
-
-
                 //-------------------------------------------
 
                 //cout <<"append vertex "<<point<<endl;
@@ -417,21 +378,17 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                     cout << "there is no point "<<point<<endl;
                 }
             }
-
             attW.set(prim_poly_ptr->getMapOffset(),0);
             attW0.set(prim_poly_ptr->getMapOffset(),0);
             attPrimLife.set(prim_poly_ptr->getMapOffset(),(float)life/params.fadingTau);
             attInitId.set(prim_poly_ptr->getMapOffset(),prim_poly_ptr->getMapOffset());
-
 
             //================================= REF POSITION ========================================
             //compute triangle reference for section 3.3.3
             UT_Vector3 A = trianglePoints[0];
             UT_Vector3 B = trianglePoints[1];
             UT_Vector3 C = trianglePoints[2];
-
             UT_Vector3 p = (A+B+C)/3;
-
 
             UT_Vector3 i = B-A;
             i.normalize();
@@ -498,9 +455,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             UT_Vector3 q2 = trianglePoints[1];
             UT_Vector3 q3 = trianglePoints[2];
 
-
-
-
             float area = ((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f;
             attArea.set(prim_poly_ptr->getMapOffset(),area);
 
@@ -538,7 +492,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
             //=====================================================================================
 
-            //if (nbVertex > 2)
             primGroup->addOffset(prim_poly_ptr->getMapOffset());
         }
 
@@ -549,12 +502,11 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         if (close_particles_count == 0)
             continue;
 
-
         GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
         //if ( (float)nbDistorted/(float)close_particles_count > 0.2)
         //if ( nbDistorted > 1)
         //=====================================================================================
-        //                  --------------------- UV FLATENING-------------------
+        //--------------------- UV FLATENING-------------------
         if(useUvFlattening)
         {
             attFlattening.set(ppt,1);
@@ -691,7 +643,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                     attIsTreated.set(point,1);
                     //UT_Vector3 uv = attVertexUV.get(vertex);
                     attUV.set(point,uv);
-
                 }
             }
 
@@ -895,10 +846,8 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     distortionParams.distortionWeightName = distortionWeightName;
     distortionParams.primLifeName = "life";
 
-
     GA_PointGroup * grpToDestroy;
     grpToDestroy = (GA_PointGroup *)deformableGridsgdp->newPointGroup("GridPointToDelete");
-
 
     GU_MinInfo mininfo;
     GU_RayIntersect ray(surfaceGdp);
@@ -911,18 +860,13 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
 
     GA_PointGroup* pointGrp;
     vector<GA_Offset>::iterator it;
-
     UT_Vector3 N;
     GA_Offset ppt;
     GA_Offset trackerPpt;
     int id;
     float life;
-
     set<int> toDelete;
     set<int> patchAdvected;
-
-
-
 
     for(it = trackers.begin(); it != trackers.end(); ++it)
     {
@@ -931,8 +875,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
 
         if (params.testPatch == 1 && params.patchNumber != id)
             continue;
-
-
 
         float randT = attRandT.get(trackerPpt);
         distortionParams.randT = randT;
@@ -1000,36 +942,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                         deformableGridsgdp->setPos3(ppt,p1);
 
                         attGridId.set(ppt,id);
-
-                        //----------------------------------------------------------------------
-                        /*
-                        //delete vertices which are very close to be transparent
-                        // does not work: it will create distorted uv transfer
-                        float alpha = attAlpha.get(ppt);
-                        if (alpha < minimumAlpha)
-                        {
-                            //check all neighbours
-                            bool allTransparent = true;
-                            set<GA_Offset> neighbors = HoudiniUtils::GetNeighbors(deformableGridsgdp,ppt);
-                            set<GA_Offset>::iterator itNeighbor;
-                            for(itNeighbor = neighbors.begin(); itNeighbor != neighbors.end(); itNeighbor++)
-                            {
-                                float alphaN = attAlpha.get(*itNeighbor);
-                                if (alphaN >= minimumAlpha)
-                                {
-                                    allTransparent = false;
-                                    break;
-                                }
-                            }
-
-                            if (allTransparent)
-                            {
-                                grpToDestroy->addOffset(ppt);
-                                continue;
-                            }
-                        }
-                        */
-                        // need more validation
                         //------------------------------------------------------------------------
 
                         bool projection = true;
@@ -1137,24 +1049,9 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                         this->gridCenterPosition[id] = averagePosition;
                     }
                 }
-                {
-                    //------------------------- Compute distortion ------------------------
-                    if(params.computeDistortion == 1)
-                    {
-                        Yu2011Distortion distortionComputer;
-                        distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
-                    }
-                    else
-                    {
-                        distortionParams.computeDilatation = true;
-                        distortionParams.computeSqueeze = true;
-                        //distortionParams.computeShearing = true;
-                        LocalDeformationDistortion distortionComputer;
-                        distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
-                    }
-                }
 
-
+                Yu2011Distortion distortionComputer;
+                distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
             }
             //---------------------------------------------------------------------
         }
@@ -1171,7 +1068,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         //attMaxDeltaOnD.set(trackerPpt,maxDeltaOnD);
         attMaxDeltaOnD.set(trackerPpt,averageDeltaOnD);
         //cout << "Max Delta on D "<<maxDeltaOnD<<endl;
-
     }
 
 
@@ -1225,8 +1121,11 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 }
 
+//================================================================================================
 
+//                                      CONNECTIVITY TEST
 
+//================================================================================================
 
 void DeformableGrids::ConnectivityTest(const GU_Detail *gdp, GA_Offset point,GA_PointGroup *grp,  set<GA_Offset> &pointsAround,set<GA_Offset> &group)
 {

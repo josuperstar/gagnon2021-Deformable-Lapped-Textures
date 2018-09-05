@@ -24,10 +24,6 @@
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 #include "AtlasPlugin.h"
 
-
-
-
-
 #include <omp.h>
 
 //#include "vector.h"
@@ -40,19 +36,12 @@
 #define DEBUG 0
 
 using namespace std;
-
 using namespace Mokko;
 
 
-
-
 //===================================================================================================================
 //===================================================================================================================
 //===================================================================================================================
-
-
-
-
 
 
 static PRM_Name        names[] = {
@@ -246,7 +235,6 @@ AtlasPlugin::cookMySop(OP_Context &context)
 
     const GU_Detail * surface = inputGeo(1);
     surface = inputGeo(1);
-
 
     GU_Detail *surfaceCopy = new GU_Detail();
     surfaceCopy->clearAndDestroy();

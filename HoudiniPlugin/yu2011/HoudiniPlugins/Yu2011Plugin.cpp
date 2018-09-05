@@ -221,22 +221,14 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     params.startFrame = startFrame;
     params.startNumber = startNumber;
     params.poissondiskradius = PoissonDiskRadius();
-
     params.updateDistribution = UpdateDistribution();
-
     params.minimumDistanceProjection = MinimumDistanceProjection();
-
     params.computeDistortion = ComputeDistortion();
-
-
-
     params.fadingTau = FadingTau();
     params.Yu2011DMax = Yu2011DMax();
     params.QvMin = QvMin();
-
     params.testPatch = TestPatch();
     params.patchNumber = PatchNumber();
-
     params.useDeformableGrids = UseDeformableGrids();
 
     TrackersFilename(trackersFilename,now);
@@ -245,18 +237,11 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     DeformableGridsFilename(deformableGridsFilename,now);
     params.deformableGridsFilename = deformableGridsFilename;
 
-    /*
-    setVariableOrder(3, 2, 0, 1);
-    setCurGdh(1, myGdpHandle);
-    setupLocalVars();
-    */
-
     const GU_Detail * surface = inputGeo(1);
     surface = inputGeo(1);
     GU_Detail *surfaceCopy = new GU_Detail();
     surfaceCopy->clearAndDestroy();
     surfaceCopy->copy(*surface);
-
 
     const GU_Detail *trackersGdp = inputGeo(2);
     GU_Detail *trackersCopy = new GU_Detail();
@@ -268,25 +253,19 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     levelSet->clearAndDestroy();
     levelSet->copy(*levelSetRef);
 
-
     Yu2011Interface interface;
     //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
     interface.Synthesis(gdp,surfaceCopy,trackersCopy,levelSet, params);
-
 
     delete trackersCopy;
     delete surfaceCopy;
     delete levelSet;
 
-
     unlockInputs();
     resetLocalVarRefs();
-
     cout << "=============================== END ===================================="<<endl;
     return error();
 }
-
-
 
 const char *
 Yu2011Plugin::inputLabel(unsigned) const

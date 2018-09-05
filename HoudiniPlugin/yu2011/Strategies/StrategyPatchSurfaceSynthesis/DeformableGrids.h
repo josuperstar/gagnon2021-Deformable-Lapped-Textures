@@ -4,7 +4,6 @@
 #include <Math/Vec3.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis/ParticleTracker.h>
 #include "Core/Deformations/Yu2011Distortion.h"
-#include "Core/Deformations/LocalDeformationDistortion.h"
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
@@ -17,7 +16,7 @@ class DeformableGrids : public ParticleTracker
 {
 public:
 
-    DeformableGrids(GU_Detail *gdp,GU_Detail *surface, GU_Detail *trackers);
+    DeformableGrids();
     bool SynthesisSurface( GU_Detail *gdp, ParametersDeformablePatches params);
 
     void CreateGridBasedOnMesh(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree);
@@ -44,31 +43,22 @@ protected :
     const string alphaArrayName = "alphas";
     const string patchIdsName = "patchIds";
 
-
     const char*    alpha0Name      = "alpha0";
-    //const string    alphaLifeNumberName   = "L";
     const char*    distortionWeightName  = "w";
     const char*    vertexWeightName  = "vw";
     const char*    distortionWeight0Name  = "w0";
     const char*    disrortionMinThreshold = "t_min";
     const char*    distortionMaxThreshold = "t_max";
     const char*    initialVertexAngle = "v_a0";
-
     const char*    uvName = "uvw";
 
     const string triangleArrayName = "triangleRef";
     GA_Attribute        *triangleRefAtt;
     const GA_AIFNumericArray *triangleArray;
 
-
-
     vector<set<map<GA_Offset, UT_Vector3> > > uvs;
     map<int,UT_Vector3> gridCenterPosition;
-
-
     set<int> patchesUsed;
-
-
     bool useUvFlattening = true;
 
 

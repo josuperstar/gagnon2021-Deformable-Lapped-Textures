@@ -1,7 +1,7 @@
 #include "HoudiniAtlas.h"
 #include <GU/GU_PrimPoly.h>
 //#include "TBBAtlas.h"
-#include "BlendingGagnon2016.h"
+
 #include "BlendingYu2011.h"
 #include "../HoudiniUtils.h"
 
