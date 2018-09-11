@@ -85,35 +85,18 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 
     //---------------------------------------------------------------
 
-    /*
-    GA_ROHandleS texture(trackers->findStringTuple(GA_ATTRIB_POINT, "texture", 1));
-    if (texture.isInvalid())
-    {
-        cout << "There is no texture attribute on trackers"<<endl;
-    }
-    */
-
-
     surfaceTree.build(surface, NULL);
-
-
-    //attLife = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"life", 1));
     attLife = life;
     attFadeIn = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"fadeIn", 1));
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"blend", 1));
-    //attLife = GA_RWHandleF(trackers->findIntTuple(GA_ATTRIB_POINT,"life", 1));
 
     if(useDeformableGrids)
     {
         gridTree.build(deformableGrids,NULL);
-
-        //attGridUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uv", 3));
         attPointUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
         attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
-
         pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
         primGroupTable = deformableGrids->getGroupTable(primGroupType);
-
         cout << "[HoudiniAtlas::BuildAtlas] Atlas uses deformable grids"<<endl;
 
     }
@@ -121,7 +104,6 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     {
         attPointUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
         attAlpha = GA_ROHandleF(surface->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
-
         pointGroupTable = surface->getGroupTable(pointGroupType);
         primGroupTable = surface->getGroupTable(primGroupType);
     }
@@ -144,7 +126,6 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         return false;
     }
 
-
     diffuseImageBlendingGagnon = new ImageCV();
     diffuseImageBlendingGagnon->CreateImage(w,h,-1);
 
@@ -153,7 +134,6 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 
     diffuseImageBlendingYu2011Equation4 = new ImageCV();
     diffuseImageBlendingYu2011Equation4->CreateImage(w,h,-1);
-
 
     textureExemplar1Image = new ImageCV();
     cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplar1Name<<endl;
@@ -168,7 +148,6 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     cout << "RM = ";
     RM.Print();
     cout<<endl;
-
 
     textureExemplar1ImageMask = new ImageCV();
     cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
@@ -244,16 +223,6 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         if (isinf(blend))
             blend = 1.0f;
         patchBlend[patchId] = blend;
-
-        //cout << "patch "<<patchId<<" : "<<blend<<endl;
-
-        //if (patchId == 6655)
-        {
-            //cout << "========================================="<<endl;
-            //cout << "patch "<<patchId << " = "<< blend<<endl;
-            //cout << "========================================="<<endl;
-        }
-
     }
 
     if(renderColoredPatches)
@@ -266,7 +235,6 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         for(int j =0; j < h; j++)
         {
             line.push_back(false);
-            //this->colors[i][j] = false;
         }
         this->pixelUsed.push_back(line);
     }
@@ -334,10 +302,9 @@ void HoudiniAtlas::CreateListGUDetails()
         //cout << "Creating temp geo "<<name<<endl;
         patchesGeo[name] = geoGdp;
         GU_RayIntersect *ray = new GU_RayIntersect(geoGdp);
-        //GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
         ray->init();
         rays[name] = ray;
-        //cout << "Created ray "<<name<<endl;
+
     }
 }
 
@@ -345,10 +312,6 @@ void HoudiniAtlas::CreateListGUDetails()
 
 void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,ParametersDeformablePatches params)
 {
-    //rasterize primitive
-
-    float thresholdDistance = 0.5;
-
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
         return;
@@ -367,12 +330,9 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
     vector<UT_Vector3> surfacePosition;
     vector<int> sortedPatches;
 
-
-
     map<int,int> numberOfLinkedPatch;
     map<int, vector<UT_Vector3> > patchUvs;
     map<int, vector<float> > alphasMap;
-
 
     //-------------initializinb maps------------------
     for(int i = 0; i < vertexCount; i++)
@@ -383,7 +343,6 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
         UT_IntArray         patchesData;
         patchArray->get(patchIds, pointOffset, patchesData);
 
-
         vector<UT_Vector3> uvTemp;
         uvTemp.resize(3);
         vector<float> alphaTemp;
@@ -393,8 +352,6 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
         {
             int index = patchesData.array()[k];
             numberOfLinkedPatch[index] = 0;
-            //patchUvs[index]            = uvTemp;
-            //alphasMap[index]           = alphaTemp;
         }
     }
 
@@ -413,7 +370,6 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
         surfacePosition.push_back(surface->getPos3(pointOffset));
 
         //put this in another function
-
         UT_IntArray         patchesData;
         patchArray->get(patchIds, pointOffset, patchesData);
 
@@ -440,14 +396,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                 //cout << "w00t !"<<endl;
                 sortedPatches.push_back(patchId);
             }
-
-            //int uvIndex = patchIndex*3;
-            //UT_Vector3 uvPatch = UT_Vector3(uvsData.array()[uvIndex],uvsData.array()[uvIndex+1],uvsData.array()[uvIndex+2]);
-            //patchUvs[patchId][vertexIt] = uvPatch;
-            //alphasMap[patchId][vertexIt] = alphasData.array()[patchIndex];
         }
-
-        //sortedPatches.push_back(patchList);
     }
     //-------------------------------------------------------------------
 
@@ -459,8 +408,6 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
     Pixel displacement;
     Pixel alphaColor;
     UT_Vector3 point;
-
-    bool debug = false;
 
     //-----------------------------------------------------------------
     for(int i =min.x()-pixelCellSize; i < max.x()+pixelCellSize; i++)
@@ -484,9 +431,6 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             Pixel colorSum2 = Pixel(0,0,0);
             colorSum2.A = 1;
 
-            float sumW2 = 0;
-            float sumW = 0;
-
             color = Pixel(0,0,0);
             color.A = 1;
 
@@ -509,51 +453,12 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             while (pixelPositionY < 0)
                 pixelPositionY += h;
 
-            /*
-            if((pixelPositionX == 500) && pixelPositionY == 500)
-                debug = true;
-            else
-                debug = false;
-
-            */
-            //cout << "Is "<<point<<" inside "<<uvs[0]<< " "<<uvs[1]<< " "<<uvs[2]<<endl;
-            //remove this line to be able to add pixel around the triangle to remove border artifact?
             if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]) || !this->pixelUsed[pixelPositionX][pixelPositionY]  )
             {
                 //test color
                 color.R = 1;
                 color.G = 1;
                 color.B = 1;
-                /*
-                //======================== Test encapsulated function =====================
-                Pixel Cf = BlendingGagnon2016::Blend(trackers,deformableGrids,i,j,w,h,
-                                          pixelPositionX,pixelPositionY,
-                                          sortedPatches,
-                                          surfaceUv,
-                                          surfacePosition,
-                                          useDeformableGrids,
-                                          rays,
-                                          patchColors,
-                                          alphaColor,
-                                          RM,
-                                          attAlpha,
-                                          attPointUV,
-                                          attLife,
-                                          patchBlend,
-                                          patchUvs,
-                                          alphasMap,
-                                          textureExemplar1Image,
-                                          textureExemplar1ImageMask,
-                                          displacementMapImage,
-                                          computeDisplacement,
-                                          renderColoredPatches,
-                                          R1,
-                                          displacementSum);
-
-                //cout << "Color : "<< Cf.R << " " << Cf.G << " " << Cf.B << " " << Cf.A << endl;
-                diffuseImageBlendingGagnon->SetColor(pixelPositionX,h-pixelPositionY,0,Cf);
-                */
-                //======================== End Test encapsulated function =====================
                 //======================== Yu2011  function =====================
                 Pixel R_eq4 = BlendingYu2011::Blend(trackers,deformableGrids,i,j,w,h,
                                           pixelPositionX,pixelPositionY,
@@ -581,28 +486,18 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                                           displacementSum,
                                           params);
 
-                //cout << "Color : "<< Cf.R << " " << Cf.G << " " << Cf.B << " " << Cf.A << endl;
-
-                //Cf2.A = 0.3f;
-                //R1.A = 0.3f;
-
                 diffuseImageBlendingYu2011Equation4->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq4);
                 diffuseImageBlendingYu2011Equation3->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq3);
                 //======================== End Test encapsulated function =====================
-
-
                 if (computeDisplacement)
                     displacementMap->SetColor(pixelPositionX,h-pixelPositionY,0,displacementSum);
 
-
                 if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]))
                     this->pixelUsed[pixelPositionX][pixelPositionY] = true;
-
             }
         }
     }//------------------------ FIN RASTERISATION ---------------------
 }
-
 
 
 void HoudiniAtlas::SaveAtlas()
@@ -717,16 +612,12 @@ Pixel HoudiniAtlas::SetRandomColor(int patchNumber)
 void HoudiniAtlas::initPatchColors(GU_Detail *trackersGdp)
 {
 
-    GA_RWHandleI    attM(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"M",0));
     GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        if (attM.get(ppt) == 1)
-        {
-            int patchId = attId.get(ppt);
-            patchColors[patchId] = SetRandomColor(patchId);
-        }
+        int patchId = attId.get(ppt);
+        patchColors[patchId] = SetRandomColor(patchId);
     }
 
 }

@@ -65,6 +65,7 @@ static PRM_Name        names[] = {
     PRM_Name("PatchNumber",	"PatchNumber"),//10
     PRM_Name("TrackersFilename",	"Trackers Filename"),
     PRM_Name("DeformableGridsFilename",	"Deformable Grids Filename"),
+    PRM_Name("AngleNormalThreshold",	"Angle Normal Threshold"),
 
 
 };
@@ -75,6 +76,7 @@ static PRM_Default MinimumDistanceProjectionDefault(0.01f);
 static PRM_Default FadingTauDefault(48);
 static PRM_Default Yu2011DMaxDefault(2.0f);
 static PRM_Default QvMinDefault(0.5f);
+static PRM_Default AngleNormalThresholdDefault(0.5f);
 
 
 PRM_Template
@@ -92,6 +94,7 @@ Yu2011Plugin::myTemplateList[] = {
     PRM_Template(PRM_INT, 1, &names[10]),
     PRM_Template(PRM_GEOFILE, 1, &names[11]),
     PRM_Template(PRM_GEOFILE, 1, &names[12]),
+    PRM_Template(PRM_FLT, 1, &names[13]),
     PRM_Template(),
 
 };
@@ -115,18 +118,6 @@ Yu2011Plugin::~Yu2011Plugin()
     cout << "Destroying DeformablePatches"<<endl;
     //this->interface.~UnitTestInterface();
 }
-/*
-unsigned
-SurfaceTextureSynthesisUnitTest::disableParms()
-{
-    unsigned changed = 0;
-
-    changed  = enableParm(3, !DIRPOP());
-    changed += enableParm(4,  DIRPOP());
-
-    return changed;
-}
-*/
 
 OP_ERROR
 Yu2011Plugin::cookInputGroups(OP_Context &context, int alone)
@@ -204,7 +195,6 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     //float cellSize = 2;
     fpreal now = context.getTime();
     int frame = context.getFrame();
-    //int numberOfGaussianLevel = 2;
 
     cout << "======================== YU 2011 Lagrangian Texture, frame  "<<frame<< "============================="<<endl;
 
@@ -230,7 +220,7 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     params.testPatch = TestPatch();
     params.patchNumber = PatchNumber();
     params.useDeformableGrids = UseDeformableGrids();
-
+    params.angleNormalThreshold = AngleNormalThreshold();
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
 

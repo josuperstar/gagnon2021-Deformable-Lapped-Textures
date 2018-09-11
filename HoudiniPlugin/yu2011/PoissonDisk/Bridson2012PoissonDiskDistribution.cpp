@@ -123,6 +123,9 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
     //                         OPEN VDB ACCESSORS
     //=================================================================
 
+
+    //openvdb::tools::PointSampler
+
     // Create the gradient field
     openvdb::tools::Gradient<openvdb::FloatGrid> gradientOperator(*gridSurface);
     openvdb::VectorGrid::ConstPtr gridGradient = gradientOperator.process();
@@ -174,6 +177,7 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
         */
 
         float boundaryDist = samplerSurface.wsSample(worldCellPos);
+
         //openvdb::Vec3f p    = it.getCoord();
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
@@ -209,7 +213,6 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 //hack test
                 //openvdb::Vec3f p(0,0,0);
 
-
                 float newPointDistance = samplerSurface.wsSample(p);
                 if (abs(newPointDistance) > r*2)
                 {
@@ -225,6 +228,9 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 if (grad.length() < 0.0001)
                     continue;
                 PoissonDisk poissonDisk = projectPointOnLevelSet(p,newPointDistance,grad);
+                UT_Vector3 gradH = UT_Vector3(grad.x(),grad.y(),grad.z());
+                gradH /= grad.length();
+                poissonDisk.SetNormal(gradH);
                 //UT_Vector3 oldpos(p.x(),p.y(),p.z());
                 //points.push_back(oldpos);
                 //cout << "new p "<<p<<endl;

@@ -27,89 +27,6 @@ std::vector<PoissonDisk> PoissonDiskDistribution::PoissonDiskSampling(GU_Detail 
 }
 
 
-//================================================================================================
-
-//                                      POISSON DISK DISTRIBUTION
-
-//================================================================================================
-
-std::vector<GA_Offset> PoissonDiskDistribution::PoissonDiskCreateDistribution(GU_Detail *gdp, float diskRadius, GA_PointGroup *surfaceGroup )
-{
-
-
-    cout << "[PoissonDiskDistribution] PoissonDiskCreateDistribution with radius "<<diskRadius<<endl;
-
-    std::vector<GA_Offset> points;
-    GA_GroupType groupType = GA_GROUP_POINT;
-    const GA_GroupTable *gtable = gdp->getGroupTable(groupType);
-    //GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find("surface");
-    //if (!pointGrp)
-    //    return points;
-
-    /*
-    GA_PrimitiveGroup group = gdp->newPrimitiveGroup("scatter");
-
-    int numberOfPoints = 1000;
-    UT_FloatArray probability;
-    GU_RandomPoint::generatePoints(gdp,numberOfPoints,0,probability,group);
-    */
-    GA_Offset ppt;
-    std::cout << "Scatter points and fuse with radius "<<diskRadius<<std::endl;
-
-    //GA_PointGroup* markerGrp = gdp->newPointGroup(markerGroupName.c_str());
-
-    GU_Detail *referenceGdp = new GU_Detail();
-    referenceGdp->clear();
-    referenceGdp->copy(*gdp);
-
-    GA_RWHandleI attOffset(referenceGdp->addIntTuple(GA_ATTRIB_POINT,"offset", 1));
-    //GA_RWHandleI attActive(referenceGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
-    //GA_RWHandleI attPoissonDisk(referenceGdp->addIntTuple(GA_ATTRIB_POINT,"poissondisk", 1));
-
-    {
-        GA_FOR_ALL_PTOFF(referenceGdp,ppt)
-        {
-            attOffset.set(ppt,ppt);
-            //attActive.set(ppt,1);
-            //attPoissonDisk.set(ppt,1);
-        }
-    }
-    cout << "ConsoloditaPoints"<<endl;
-    int nbIteration = 1;
-    bool forceConsAll = false;
-    bool mark = true;
-    bool accurate = false;
-    int numberOfPoint = referenceGdp->getNumPoints();
-    if (numberOfPoint > 0)
-    {
-        for(int i =0;i<nbIteration;i++)
-            referenceGdp->consolidatePoints(diskRadius/2.0f,0,forceConsAll,mark,accurate);
-    }
-
-    //vector<UT_Vector3> points;
-
-    GEO_Primitive *prim;
-    GA_FOR_ALL_PRIMITIVES(referenceGdp, prim)
-    {
-        referenceGdp->deletePrimitive(*prim);
-    }
-
-    GA_Offset ppt2;
-    {
-        GA_FOR_ALL_PTOFF(referenceGdp,ppt)
-        {
-
-            ppt2 = attOffset.get(ppt);
-            if (!surfaceGroup->containsOffset(ppt2))
-                continue;
-            //if (pointGrp->containsOffset(ppt2))
-            points.push_back(ppt2);
-        }
-    }
-
-    delete referenceGdp;
-    return points;
-}
 
 
 //================================================================================================
@@ -185,7 +102,6 @@ vector<GA_Offset> PoissonDiskDistribution::PoissonDiskUpdate(GU_Detail *trackers
                                     //mark as inactive to delete the point
 
                                     hasPointInside = true;
-
                                 }
                             }
                         }

@@ -3,7 +3,6 @@
 
 #include <Math/Vec3.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis/DeformableGrids.h>
-#include "Core/KwatraSurfaceTextureSynthesisParams.h"
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
@@ -16,7 +15,7 @@ class Yu2011 : public DeformableGrids
 {
 public:
 
-    Yu2011(GU_Detail *gdp,GU_Detail *surface, GU_Detail *trackers);
+    Yu2011(GU_Detail *surface);
     ~Yu2011();
     bool SynthesisSurface( GU_Detail *gdp, ParametersDeformablePatches params);
 

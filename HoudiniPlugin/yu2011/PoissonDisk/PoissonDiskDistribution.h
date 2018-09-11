@@ -25,8 +25,6 @@ public:
     //If an existing point is too close to a neighbor, it will be flagged as invalid.
     std::vector<PoissonDisk> PoissonDiskSampling(GU_Detail *gdp, float diskRadius);
 
-
-    static std::vector<GA_Offset> PoissonDiskCreateDistribution(GU_Detail *gdp, float diskRadius, GA_PointGroup *surfaceGroup);
     static std::vector<GA_Offset> PoissonDiskUpdate(GU_Detail *trackers,GU_Detail *surface, GEO_PointTreeGAOffset &tree,float diskRadius, GA_PointGroup *surfaceGroup);
 
     void SetMaxId(long data){maxId = data;}

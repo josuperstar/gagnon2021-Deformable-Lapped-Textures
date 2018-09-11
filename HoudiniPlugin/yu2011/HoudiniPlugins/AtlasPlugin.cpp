@@ -95,18 +95,6 @@ AtlasPlugin::~AtlasPlugin()
     cout << "Destroying DeformablePatches"<<endl;
     //this->interface.~UnitTestInterface();
 }
-/*
-unsigned
-SurfaceTextureSynthesisUnitTest::disableParms()
-{
-    unsigned changed = 0;
-
-    changed  = enableParm(3, !DIRPOP());
-    changed += enableParm(4,  DIRPOP());
-
-    return changed;
-}
-*/
 
 OP_ERROR
 AtlasPlugin::cookInputGroups(OP_Context &context, int alone)
@@ -213,7 +201,6 @@ AtlasPlugin::cookMySop(OP_Context &context)
     {
         params.atlasWidth = 100;
     }
-
 
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;

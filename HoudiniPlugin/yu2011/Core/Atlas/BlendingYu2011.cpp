@@ -1,35 +1,6 @@
 #include "BlendingYu2011.h"
 #include "../HoudiniUtils.h"
 
-
-
-/* how it should be called:
- *
-                Pixel Cf = BlendingGagnon2016::Blend(trackersGdp,deformableGrids,i,j,w,h,
-                                          pixelPositionX,pixelPositionY,
-                                          sortedPatches,
-                                          surfaceUv,
-                                          surfacePosition,
-                                          useDeformableGrids,
-                                          rays,
-                                          patchColors,
-                                          alphaColor,
-                                          RM,
-                                          attAlpha,
-                                          attPointUV,
-                                          life,
-                                          patchBlend,
-                                          patchUvs,
-                                          alphasMap,
-                                          textureExemplar1Image,
-                                          textureExemplar1ImageMask,
-                                          displacementMapImage,
-                                          computeDisplacement,
-                                          renderColoredPatches,
-                                          displacementSum);
-
- */
-
 //================================= RASTERIZE PRIMITIVE =================================
 
 Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, int i, int j, float w, float h,
@@ -38,19 +9,12 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
                                 vector<UT_Vector3> &surfaceUv,
                                 vector<UT_Vector3> &surfacePosition,
                                 map<int,UT_Vector3> &trackersPosition,
-                                //bool useDeformableGrids,
                                 map<string,GU_RayIntersect*> &rays,
                                 map<int,Pixel> &patchColors,
-                                //Pixel falloff,
                                 Pixel RM,           //Mean Value
-                                //GA_ROHandleF &attAlpha,
                                 GA_RWHandleV3 &attPointUV,
-                                //int life,
                                 map<int,float> &fading,
-                                //map<int, vector<UT_Vector3> > &patchUvs,
-                                //map<int, vector<float> > &alphasMap,
                                 ImageCV *textureExemplar1Image,
-                                //ImageCV *textureExemplar1ImageMask,
                                 ImageCV *displacementMapImage,
                                 bool computeDisplacement,
                                 bool renderColoredPatches,

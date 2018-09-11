@@ -43,7 +43,7 @@ Yu2011Interface::~Yu2011Interface()
 
 void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
-    Yu2011 strategy(gdp,surfaceGdp,trackersGdp);
+    Yu2011 strategy(surfaceGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     params.useDynamicTau = false;
 
@@ -76,7 +76,8 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     trackers = strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
 
     //---- for visualisation purpose
-    string beforeUpdateString = params.trackersFilename + "beforeupdate.bgeo";
+
+    string beforeUpdateString = params.trackersFilename + "beforeAdvection.bgeo";
     const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
     trackersGdp->save(filename,options,errors);
     //----------------------------------
@@ -91,6 +92,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     {
         //section 3.3.2 Grid Advection
         strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,newPatchesPoints,surfaceGdp);
+
         //section 3.3.3 Estimating the Grid Distortion
         strategy.UpdateDistributionUsingBridson2012PoissonDisk(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
     }

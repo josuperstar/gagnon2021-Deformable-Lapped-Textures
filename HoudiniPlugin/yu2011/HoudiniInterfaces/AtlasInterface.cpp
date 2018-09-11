@@ -32,17 +32,14 @@
 
 AtlasInterface::AtlasInterface()
 {
-
 }
 
 AtlasInterface::~AtlasInterface()
 {
-
 }
 
 bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
-
     cout << "[AtlasInterface::Synthesis] "<<params.frame<<endl;
 
     HoudiniAtlas atlas;
@@ -57,8 +54,6 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     atlas.SetDisplacementMap1(params.displacementMap1Name);
     atlas.RenderColoredPatches(params.coloredPatches);
 
-
-    GA_RWHandleI attM(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"M",1));
     GA_RWHandleI attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     map<int,UT_Vector3> trackerPositions;
     {
@@ -66,11 +61,7 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
             int id = attId.get(ppt);
-            int m = attM.get(ppt);
-            if (m == 1)
-            {
-                trackerPositions[id] = trackersGdp->getPos3(ppt);
-            }
+            trackerPositions[id] = trackersGdp->getPos3(ppt);
         }
     }
     atlas.SetTrackersPosition(trackerPositions);
@@ -108,16 +99,11 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
 
         executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
         tbb::parallel_for(tbb::blocked_range<size_t>(0,nbPrims),exec);
-
     }
     atlas.SaveAtlas();
 
     return true;
 
-
-
-    //does not do anything for now ....
-    //strategy.SynthesisSurface(gdp,params);
 }
 
 

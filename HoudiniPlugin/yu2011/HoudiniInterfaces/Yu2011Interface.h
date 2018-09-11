@@ -9,7 +9,7 @@
 #include "Image.h"
 #include "Set/SpatialGrid.h"
 #include <GU/GU_Flatten.h>
-#include <Core/Deformations/DistortionManager.h>
+#include <Core/Deformations/Yu2011Distortion.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 
 #include <tbb/parallel_for.h>

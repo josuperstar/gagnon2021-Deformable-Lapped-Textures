@@ -36,22 +36,21 @@ bool TreeDGrid::IsInNeighbourhood( PoissonDisk Point, float MinDist, float CellS
     {
         PoissonDisk P = *it;
 
-        //It is not on the same plane ?
-        //if (dot(P.GetNormal(), Point.GetNormal()) < 0)
-        //    return true;
-
-        //It is too close to the current point ?
-        if(distance3d( P.GetPosition(), Point.GetPosition() ) < MinDist )
+        //is it on the same plane ?
+        float dotP = dot(P.GetNormal(), Point.GetNormal());
+        if (dotP > 0.5f)
         {
-            return true;
-        }
-        //if (distance3d(P.GetPosition(), Point.GetPosition() ) < MinDist*2)
-        {
-            neighbors.push_back(P);
+            //It is too close to the current point ?
+            if(distance3d( P.GetPosition(), Point.GetPosition() ) < MinDist )
+            {
+                return true;
+            }
+            else // then it is on the same plane, but not too close
+            {
+                neighbors.push_back(P);
+            }
         }
     }
-
-
     return false;
 }
 
