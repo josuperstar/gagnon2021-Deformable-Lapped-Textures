@@ -238,9 +238,9 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
 
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     poissonDiskDistribution.SetNumberOfPoint(numberOfPoints);
-    poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius);
+    poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius/2);
 
-    vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius);
+    vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius/2);
 
     if(params.startFrame == params.frame)
     {

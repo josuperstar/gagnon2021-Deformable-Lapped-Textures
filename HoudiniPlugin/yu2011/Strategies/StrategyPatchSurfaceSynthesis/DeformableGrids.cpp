@@ -245,7 +245,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 tempPointsLink[neighbor] = tempNewPoint;
 
                 //------------- UV Orthogonal Projection ---------------
-                /*
+
                 // Transform into local patch space (where STN is aligned with XYZ at the origin)
                 const UT_Vector3 relativePosistion = pos-p;
                 UT_Vector3 triangleSpacePos;
@@ -263,7 +263,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 uv += mid;
                 if (attUV.isValid())
                     attUV.set(newPoint,uv);
-                */
+
                 //----------------- Dynamic Tau ------------------------
                 float dP0 = distance3d(p,pos);
                 attDP0.set(newPoint,dP0);
@@ -493,6 +493,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         //if ( nbDistorted > 1)
         //=====================================================================================
         //--------------------- UV FLATENING-------------------
+        bool computeFlattening = false;
+        if (computeFlattening)
         {
             attFlattening.set(ppt,1);
 
@@ -561,8 +563,9 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             UT_Vector3 uvCenter(0.5,0.5,0);
             int nbUv = 0;
             float ratioUv = 0;
-            float ratioAverage = 0;
             /*
+            float ratioAverage = 0;
+
             bool ratioComputed = false;
             {
                 GA_FOR_ALL_PRIMITIVES(&tempGdp,prim)

@@ -6,7 +6,6 @@
 #include <GEO/GEO_PointTree.h>
 //#include <GA_ElementGroup.h>
 #include <vector>
-#include "PoissonDisk/PoissonDiskDistribution.h"
 #include "TreeDGrid.h"
 
 #include <openvdb/openvdb.h>
@@ -29,7 +28,7 @@ as the limit of samples to choose before rejection in the algorithm
 (typically k = 30).
 */
 
-class Bridson2012PoissonDiskDistribution : public PoissonDiskDistribution
+class Bridson2012PoissonDiskDistribution
 {
 
 public:
@@ -97,7 +96,8 @@ private:
     DefaultPRNG Generator;
     bool Circle = true;
 
-
+    std::vector<PoissonDisk> allpoints;
+    int maxId = 0;
 
 
 };
