@@ -1037,7 +1037,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                         this->gridCenterPosition[id] = averagePosition;
                     }
                 }
-                if (active == 1)
+                //if (active == 1)
                 {
                     //cout << "Point "<<id<< " is active"<<endl;
                     Yu2011Distortion distortionComputer;
