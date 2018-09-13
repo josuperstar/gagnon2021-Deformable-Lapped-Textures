@@ -15,7 +15,7 @@ using namespace std;
 
 std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail *gdp, float diskRadius)
 {
-    cout << "[Bridson2012PoissonDiskDistribution]"<<endl;
+    cout << "[Bridson2012PoissonDiskDistribution] on level set"<<endl;
 
     //hardcode life:
     //We start with a very small life to avoid popping artifact.
@@ -209,7 +209,7 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
 
                 randomPosition *= r;
 
-                openvdb::Vec3f p = worldCellPos;//+randomPosition;
+                openvdb::Vec3f p = worldCellPos+randomPosition;
                 //hack test
                 //openvdb::Vec3f p(0,0,0);
 
@@ -219,7 +219,6 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                     //cout << "random point is outside of range"<<endl;
                     continue;
                 }
-
 
                 //=================================================================
                 //4:      Project p to surface of φ
@@ -231,16 +230,6 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 UT_Vector3 gradH = UT_Vector3(grad.x(),grad.y(),grad.z());
                 gradH /= grad.length();
                 poissonDisk.SetNormal(gradH);
-                //UT_Vector3 oldpos(p.x(),p.y(),p.z());
-                //points.push_back(oldpos);
-                //cout << "new p "<<p<<endl;
-                //useJustOnePoint = true;
-
-                //PoissonDisk poissonDisktest(p);
-                //backgroundGrid.Insert( poissonDisk, r );
-                //points.push_back(poissonDisk);
-                //continue;
-
 
                 //=================================================================
                 //5:      if p meets the Poisson Disk criterion in S then
@@ -252,25 +241,9 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                     //=================================================================
                     //6:          S ← S ∪ {p}
                     //=================================================================
-                    backgroundGrid.Insert( poissonDisk, r );
-                    //points.push_back(poissonDisk);
+                    this->InsertPoissonDisk(poissonDisk,r, false);
                     if (poissonDisk.IsValid())
                     {
-                        //new point !
-                        poissonDisk.SetLife(life);
-                        poissonDisk.SetSpawn(life);
-                        poissonDisk.SetDynamicTau(0.0f);
-                        poissonDisk.SetMature(0); //new points are not mature.
-                        //cout <<"Inserting new point";
-                        //poissonDisk.Print();
-                        allpoints.push_back(poissonDisk);
-                        this->maxId = poissonDisk.GetId();
-
-                        //=================================================================
-                        //7:          Break
-                        //=================================================================
-                        //cout <<"after "<<i<<" attempts, break"<<endl;
-                        ableToInsertPoint = true;
                         break;
                     }
                     //cout << "meet poisson disk criterion but can't insert point because it is not valid ..."<<endl;
@@ -339,18 +312,7 @@ void Bridson2012PoissonDiskDistribution::initializeGrid(std::vector<PoissonDisk>
     std::vector<PoissonDisk>::iterator it;
     for(it =  existingPoints.begin(); it != existingPoints.end(); it++)
     {
-        PoissonDisk p = *it;
-        if (p.IsValid())
-        {
-            backgroundGrid.Insert(p,kd);
-        }
-
-        if (p.GetId() > this->maxId)
-        {
-            this->maxId = p.GetId();
-        }
-        //valid and invalid point all together
-        allpoints.push_back(p);
+        this->InsertPoissonDisk(*it,kd, true);
     }
 }
 
@@ -375,8 +337,40 @@ PoissonDisk Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvdb::
     UT_Vector3 normal(UT_Vector3(gradNorm.x(),gradNorm.y(),gradNorm.z()));
 
     newPoint.SetNormal(normal);
-    int numberOfPoints = this->maxId+1;
-    newPoint.SetId(numberOfPoints);
+
     return newPoint;
+}
+
+void Bridson2012PoissonDiskDistribution::InsertPoissonDisk(PoissonDisk p, float diskRadius, bool existingPoint)
+{
+
+    //get next available id
+    long numberOfPoints = this->maxId+1;
+
+    //try to insert the poisson disk on the level set
+    backgroundGrid.Insert(p,diskRadius);
+
+    if (p.GetId() > this->maxId) //existing points
+    {
+        this->maxId = p.GetId();
+    }
+    if (!existingPoint && p.IsValid()) // if it is a new point and it is valid
+    {
+        float life = 0.01f;
+        //new point !
+
+        p.SetLife(life);
+        p.SetSpawn(life);
+        p.SetDynamicTau(0.0f);
+        p.SetMature(0); //new points are not mature.
+        p.SetId(numberOfPoints);
+        allpoints.push_back(p);
+        this->maxId = numberOfPoints;
+    }
+
+    //if it is an existing point, we want to had it anyway because we will delete it temporaly if it is non valid.
+    if(existingPoint)
+        allpoints.push_back(p);
+
 }
 

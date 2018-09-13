@@ -187,9 +187,9 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
         GA_Offset ppt;
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
+
             PoissonDisk p(trackersGdp->getPos3(ppt));
             p.SetId(attId.get(ppt));
-
             p.SetLife(attExistingLife.get(ppt));
             p.SetSpawn(attExistingSpawn.get(ppt));
             p.SetDynamicTau(0.0f);
@@ -217,7 +217,9 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
         {
 
             PoissonDisk p(trackersGdp->getPos3(ppt));
+
             int id = attId.get(ppt);
+            //cout << "Existing Poisson "<<id<<endl;
             p.SetId(id);
             p.SetLife(attExistingLife.get(ppt));
             p.SetSpawn(attExistingSpawn.get(ppt));
@@ -241,6 +243,8 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius);
 
     vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius);
+
+    cout << "[Yu2011] poisson disk sample "<<PPoints.size()<< " point(s)"<<endl;
 
     if(params.startFrame == params.frame)
     {

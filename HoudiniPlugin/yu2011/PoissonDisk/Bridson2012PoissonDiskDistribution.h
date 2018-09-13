@@ -6,7 +6,7 @@
 #include <GEO/GEO_PointTree.h>
 //#include <GA_ElementGroup.h>
 #include <vector>
-#include "PoissonDisk/PoissonDiskDistribution.h"
+
 #include "TreeDGrid.h"
 
 #include <openvdb/openvdb.h>
@@ -29,15 +29,12 @@ as the limit of samples to choose before rejection in the algorithm
 (typically k = 30).
 */
 
-class Bridson2012PoissonDiskDistribution : public PoissonDiskDistribution
+class Bridson2012PoissonDiskDistribution
 {
 
 public:
 
     //Bridson2012PoissonDiskDistribution(){}
-    std::vector<PoissonDisk> PoissonDiskSampling(GU_Detail *gdp, float diskRadius);
-    void SetNumberOfPoint(int data){this->numberOfPoints = data;}
-    void initializeGrid(std::vector<PoissonDisk> existingPoints,float diskRadius);
     ~Bridson2012PoissonDiskDistribution()
     {
         cout << "[Bridson2012PoissonDiskDistribution] destrotying grid"<<endl;
@@ -46,6 +43,12 @@ public:
         ProcessList.clear();
         SamplePoints.clear();
     }
+    std::vector<PoissonDisk> PoissonDiskSampling(GU_Detail *gdp, float diskRadius);
+    void SetNumberOfPoint(int data){this->numberOfPoints = data;}
+    void initializeGrid(std::vector<PoissonDisk> existingPoints,float diskRadius);
+    void InsertPoissonDisk(PoissonDisk disk, float diskRadius, bool existingPoint);
+
+    void SetMaxId(long data){maxId = data;}
 
 private:
 
@@ -98,6 +101,8 @@ private:
     bool Circle = true;
 
 
+    std::vector<PoissonDisk> allpoints;
+    long maxId = 0;
 
 
 };

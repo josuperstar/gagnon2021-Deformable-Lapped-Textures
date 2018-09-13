@@ -78,7 +78,7 @@ void ParticleTracker::DeleteTracker(GU_Detail* trackers,int trackerId)
 //================================================================================================
 
 
-vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params, vector<PoissonDisk> existingPoissonDisks)
+vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params, vector<PoissonDisk> &existingPoissonDisks)
 {
 
     bool useDynamicTau = params.useDynamicTau;
@@ -205,6 +205,7 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
         T.normalize();
         //-------------------------------------------------
 
+        cout << "[ParticleTracker] creating tracker "<<currentPoissonDisk.GetId()<<endl;
 
         attId.add(newPoint,currentPoissonDisk.GetId());
         float life = currentLife;
