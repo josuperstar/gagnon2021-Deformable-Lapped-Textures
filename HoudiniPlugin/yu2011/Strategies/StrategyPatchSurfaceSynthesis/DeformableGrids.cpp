@@ -245,7 +245,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 tempPointsLink[neighbor] = tempNewPoint;
 
                 //------------- UV Orthogonal Projection ---------------
-                /*
+
                 // Transform into local patch space (where STN is aligned with XYZ at the origin)
                 const UT_Vector3 relativePosistion = pos-p;
                 UT_Vector3 triangleSpacePos;
@@ -263,7 +263,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 uv += mid;
                 if (attUV.isValid())
                     attUV.set(newPoint,uv);
-                */
+
                 //----------------- Dynamic Tau ------------------------
                 float dP0 = distance3d(p,pos);
                 attDP0.set(newPoint,dP0);
@@ -493,6 +493,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         //if ( nbDistorted > 1)
         //=====================================================================================
         //--------------------- UV FLATENING-------------------
+        bool flattening = false;
+        if (flattening)
         {
             attFlattening.set(ppt,1);
 
@@ -787,8 +789,9 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_RWHandleF    attAlpha(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
     GA_RWHandleI    attGridId(deformableGridsgdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
 
-    GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
+    GA_RWHandleF    attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleF    attRandT(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
 
@@ -849,9 +852,11 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_Offset ppt;
     GA_Offset trackerPpt;
     int id;
+    int active;
     float life;
     set<int> toDelete;
     set<int> patchAdvected;
+
 
     for(it = trackers.begin(); it != trackers.end(); ++it)
     {
@@ -861,10 +866,12 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         if (params.testPatch == 1 && params.patchNumber != id)
             continue;
 
+        active = attActive.get(trackerPpt);
         float randT = attRandT.get(trackerPpt);
         distortionParams.randT = randT;
 
         life = attLife.get(trackerPpt);
+
 
         float gridAlpha = (float)life/(float)params.fadingTau;
 
@@ -1030,9 +1037,12 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                         this->gridCenterPosition[id] = averagePosition;
                     }
                 }
-
-                Yu2011Distortion distortionComputer;
-                distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
+                if (active == 1)
+                {
+                    //cout << "Point "<<id<< " is active"<<endl;
+                    Yu2011Distortion distortionComputer;
+                    distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
+                }
             }
             //---------------------------------------------------------------------
         }
@@ -1099,6 +1109,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
             deformableGridsgdp->destroyPrimitiveGroup(primitiveGrp);
         }
     }
+
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 }
 

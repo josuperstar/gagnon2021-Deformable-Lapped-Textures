@@ -205,7 +205,7 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
         T.normalize();
         //-------------------------------------------------
 
-        cout << "[ParticleTracker] creating tracker "<<currentPoissonDisk.GetId()<<endl;
+        //cout << "[ParticleTracker] creating tracker "<<currentPoissonDisk.GetId()<<endl;
 
         attId.add(newPoint,currentPoissonDisk.GetId());
         float life = currentLife;
@@ -216,6 +216,7 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
         attBlend.set(newPoint,blending);
         attSpawn.set(newPoint,currentSpawn);
         attMaxDeltaOnD.set(newPoint,dynamicTau);
+        //cout << "Point "<<id<< " active == "<<active<<endl;
         attActive.set(newPoint,active);
         attIsMature.set(newPoint,isMature);
         attPoissonDisk.set(newPoint,1);
@@ -315,7 +316,6 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
         float currentLife = 0;
         GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGrp,ppt)
         {
-
             toAdd = true;
             v = attV.get(ppt);
             N = attN.get(ppt);
@@ -397,7 +397,6 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
                 UT_Vector3 v1 = refAttV.get(pointOffset1);
                 //UT_Vector3 v1 = attUV.get(vertexOffset1);
 
-
                 GA_Offset vertexOffset2 = prim->getVertexOffset(2);
                 GA_Offset pointOffset2  = surfaceGdp->vertexPoint(vertexOffset2);
                 UT_Vector3 n2 = refAttN.get(pointOffset2);//gdp->getPos3(pointOffset3);
@@ -451,7 +450,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     trackersGdp->deletePoints(*grpToDestroy,mode);
     trackersGdp->destroyPointGroup(grpToDestroy);
 
-    cout << this->approachName<< " There are "<<trackers.size()/2 << " trackers after advection"<<endl;
+    cout << this->approachName<< " There are "<<trackers.size() << " trackers after advection"<<endl;
     cout << this->approachName<< " There are "<<numberOfDetachedPatches<< " detached trackers"<<endl;
     cout << this->approachName<< " There are "<<numberOfPatches << " number of patches"<<endl;
 

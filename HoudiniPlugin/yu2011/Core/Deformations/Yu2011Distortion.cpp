@@ -123,6 +123,7 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
         //if (attSpawn.get(trackerPpt) >= params.deletionLife)
         if (attActive.get(trackerPpt) == 1)
         {
+            cout << "Flag patch "<<attId.get(trackerPpt)<< " to be inactive because too distorted."<<endl;
             attActive.set(trackerPpt,0);
         }
         /*

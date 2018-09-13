@@ -225,6 +225,7 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
             p.SetSpawn(attExistingSpawn.get(ppt));
             p.SetDynamicTau(attMaxDeltaOnD.get(ppt));
             p.SetNormal(attN.get(ppt));
+            //cout << "existing point "<<id<<" valid "<<attExistingActive.get(ppt)<<endl;
             p.SetValid(attExistingActive.get(ppt));
             p.SetMature(attExistingMature.get(ppt));
             p.SetVelocity((attV.get(ppt)));
@@ -238,6 +239,7 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     cout << "[Yu2011] deleting other groups for surface"<<endl;
     int numberOfPoints = newPatchesPoints.size();
 
+    cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     poissonDiskDistribution.SetNumberOfPoint(numberOfPoints);
     poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius);
@@ -547,12 +549,13 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
     int beforeAddingNumber = numberOfPatches;
     patchesUsed.clear();
     {
+
         GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
         {
-            //--------------------------- ADDING A NEW PATCH ! --------------------------------------------
+            //--------------------------- ADDING A NEW PATCH ON NEWLY ADDED POISSON DISK --------------------------------------------
             int spawn = attSpawn.get(ppt);
             int active = attActive.get(ppt);
-            if (active == 1 && spawn == 2) //to investigate why spawn has to be 2
+            if (active == 1 && spawn == 1) //to investigate why spawn has to be 2
             {
                 vector<GA_Offset> newPatchPoints;
                 vector<GA_Offset> newTrackers;
@@ -566,6 +569,7 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
             startUpdatePatches = std::clock();
             this->updatePatchesTime += (std::clock() - startUpdatePatches) / (double) CLOCKS_PER_SEC;
         }
+
     }
 
     GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");

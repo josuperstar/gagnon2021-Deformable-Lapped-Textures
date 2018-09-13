@@ -1,4 +1,4 @@
-#include "Yu2011Interface.h"
+#include "PoissonDiskInterface.h"
 
 #include <vector>
 #include <algorithm>
@@ -33,15 +33,15 @@
 #include <PoissonDisk/PoissonDiskDistribution.h>
 #include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
 
-Yu2011Interface::Yu2011Interface()
+PoissonDiskInterface::PoissonDiskInterface()
 {
 }
 
-Yu2011Interface::~Yu2011Interface()
+PoissonDiskInterface::~PoissonDiskInterface()
 {
 }
 
-void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
+void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
     Yu2011 strategy(surfaceGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
@@ -84,21 +84,14 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
 
     //section 3.3.2 Particle Delition
     newPatchesPoints = strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
-    if(params.startFrame == params.frame)
-    {
-        strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
-    }
-    else
-    {
-        //section 3.3.2 Grid Advection and estimate distortion
-        strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,newPatchesPoints,surfaceGdp);
 
-        //section 3.3.3 Estimating the Grid Distortion
-        strategy.UpdateDistributionUsingBridson2012PoissonDisk(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
+    {
+        GA_Offset ppt;
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+        {
+
+        }
     }
-    //3.4 Blending and Continuity
-    //For the blending computation, we create uv array per vertex that we called patch
-    strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree,ray);
 
     //=======================================================================
 
@@ -106,10 +99,6 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     cout << "Clear surface tree"<<endl;
     surfaceTree.clear();
     ray.clear();
-
-    cout << strategy.approachName<< " saving grids data"<<endl;
-    const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
-    gdp->save(filenameGrids,options,errors);
 
     cout << strategy.approachName<< " saving trackers data"<<endl;
     const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
@@ -125,13 +114,6 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
     cout << "--------------------------------------------------------------------------------"<<endl;
     cout << strategy.approachName<<" Poisson Disk Sampling "<<strategy.poissondisk<<endl;
-    cout << strategy.approachName<<" Grid mesh on time "<<strategy.gridMeshCreation<<endl;
-    cout << strategy.approachName<<" Uv flattening time "<<strategy.uvFlatteningTime<<" for "<<strategy.nbOfFlattenedPatch<<" patches"<<endl;
-    cout << strategy.approachName<<" Tracker advection time "<<strategy.markerAdvectionTime<<endl;
-    cout << strategy.approachName<<" Grid advection time "<<strategy.gridAdvectionTime<<endl;
-    cout << strategy.approachName<<" Patch creation time "<<strategy.patchCreationTime<<endl;
-    cout << strategy.approachName<<" Clear and Destroy "<<cleaningSurface<<endl;
-    cout << strategy.approachName<<" Update distribution "<<strategy.updatePatchesTime<<endl;
 
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout << strategy.approachName<< " TOTAL: "<<total<<endl;

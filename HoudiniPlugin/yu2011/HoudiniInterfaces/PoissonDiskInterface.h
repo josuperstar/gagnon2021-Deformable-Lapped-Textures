@@ -1,5 +1,5 @@
-#ifndef __Yu2011ExtentionInterface_h__
-#define __Yu2011ExtentionInterface_h__
+#ifndef __PoissonDiskInterface_h__
+#define __PoissonDiskInterface_h__
 #include <cassert>
 #include <cmath>
 #include <vector>
@@ -20,14 +20,14 @@ namespace Mokko {
 
 
 
-class Yu2011Interface
+class PoissonDiskInterface
 {
 
 public:
 
     //=========================== BUILD ======================================
-    Yu2011Interface();
-    ~Yu2011Interface();
+    PoissonDiskInterface();
+    ~PoissonDiskInterface();
 
     //==========================================================================
     void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet,ParametersDeformablePatches params);
