@@ -1132,9 +1132,6 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
 
             UT_Vector3 uv = attUV.get(point);
 
-            //uv /= 1/ratioUv;
-            //uv /= scaling;
-
             uvCenter += uv;
             nbUv++;
             //UT_Vector3 uv = attVertexUV.get(vertex);
