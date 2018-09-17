@@ -30,7 +30,6 @@
 
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
-#include <PoissonDisk/PoissonDiskDistribution.h>
 #include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
 
 PoissonDiskInterface::PoissonDiskInterface()

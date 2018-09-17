@@ -285,7 +285,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     UT_Vector3 p;
     UT_Vector3 p1;
     float dt = 1.0f/24.0f;
-    float thresholdDistance = params.minimumDistanceProjection;
+    float thresholdDistance = params.maximumProjectionDistance;
 
     GA_PointGroup * grpToDestroy;
     //============================================================

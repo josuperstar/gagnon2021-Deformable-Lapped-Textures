@@ -13,6 +13,13 @@ using namespace Mokko;
 using namespace std;
 
 
+//================================================================================================
+
+//                                      POISSON DISK SAMPLING
+
+//================================================================================================
+
+
 std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail *gdp, float diskRadius)
 {
     cout << "[Bridson2012PoissonDiskDistribution] on level set"<<endl;
@@ -243,6 +250,14 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
 }
 
 
+
+
+//================================================================================================
+
+//                                      INITIALIZE GRID
+
+//================================================================================================
+
 //Step 0
 
 /*
@@ -293,6 +308,13 @@ void Bridson2012PoissonDiskDistribution::initializeGrid(std::vector<PoissonDisk>
 }
 
 
+//================================================================================================
+
+//                                 PROJECT POINT ON LEVEL SET
+
+//================================================================================================
+
+
 PoissonDisk Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad)
 {
     //get the norm of the gradient
@@ -313,6 +335,14 @@ PoissonDisk Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvdb::
 
     return newPoint;
 }
+
+
+//================================================================================================
+
+//                                      INSERT POISSON DISK
+
+//================================================================================================
+
 
 void Bridson2012PoissonDiskDistribution::InsertPoissonDisk(PoissonDisk p, float diskRadius, bool existingPoint)
 {
