@@ -291,7 +291,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
 
-    fpreal patchRadius = (fpreal)radius*5.0f; // ??????????????????
+    //fpreal patchRadius = (fpreal)radius*5.0f; // ??????????????????
+    fpreal patchRadius = (fpreal)radius;
 
     GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -299,7 +300,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     GA_RWHandleF attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
     GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
-    float thresholdDistance = params.minimumDistanceProjection;
+    float thresholdDistance = params.maximumProjectionDistance;
 
     GA_Offset ppt;
     UT_Vector3 N;
@@ -382,7 +383,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             float u = mininfo.u1;
             float v = mininfo.v1;
 
-
             //------------------------------PARAMETRIC COORDINATE -----------------------------------
             GA_Offset primOffset = mininfo.prim->getMapOffset();
             GEO_Primitive *prim = deformableGridsGdp->getGEOPrimitive(primOffset);
@@ -390,32 +390,31 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 continue;
 
             GA_Offset vertexOffset0 = prim->getVertexOffset(0);
-            //UT_Vector3 v0 = attUV.get(vertexOffset0);
-            GA_Offset pointOffset0  = deformableGridsGdp->vertexPoint(vertexOffset0);
-            UT_Vector3 v0 = attUV.get(pointOffset0);//gdp->getPos3(pointOffset1);
-            float a0 = attAlpha.get(pointOffset0);
-
             GA_Offset vertexOffset1 = prim->getVertexOffset(1);
-            GA_Offset pointOffset1  = deformableGridsGdp->vertexPoint(vertexOffset1);
-            UT_Vector3 v1 = attUV.get(pointOffset1);;//gdp->getPos3(pointOffset2);
-            //UT_Vector3 v1 = attUV.get(vertexOffset1);
-            float a1 = attAlpha.get(pointOffset1);
-
             GA_Offset vertexOffset2 = prim->getVertexOffset(2);
+
+            GA_Offset pointOffset0  = deformableGridsGdp->vertexPoint(vertexOffset0);
+            GA_Offset pointOffset1  = deformableGridsGdp->vertexPoint(vertexOffset1);
             GA_Offset pointOffset2  = deformableGridsGdp->vertexPoint(vertexOffset2);
-            UT_Vector3 v2 = attUV.get(pointOffset2);//gdp->getPos3(pointOffset3);
-            //UT_Vector3 v2 = attUV.get(vertexOffset2);
-            float a2 = attAlpha.get(pointOffset2);
+
+            UT_Vector3 v0   = attUV.get(pointOffset0);
+            UT_Vector3 v1   = attUV.get(pointOffset1);
+            UT_Vector3 v2   = attUV.get(pointOffset2);
+
+            float a0        = attAlpha.get(pointOffset0);
+            float a1        = attAlpha.get(pointOffset1);
+            float a2        = attAlpha.get(pointOffset2);
 
             UT_Vector3 uvPatch = v0+u*(v1-v0)+v*(v2-v0);
             float   alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
+
             if (alphaPatch > 1)
                 alphaPatch = 1;
             else if (alphaPatch < 0)
                 alphaPatch = 0; //this is weird, should not happen
 
-
             //============================= SMOOTH ALPHA ===========================
+            //Why am I doing this ????
             float alpha_W_k = 0.0f;
             float alpha_sumW_k = 0.0f;
 
@@ -433,7 +432,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             {
                 if (closeEnough)
                     break;
-
                 gridP = deformableGridsGdp->getPos3(pptGrid);
                 alphaGrid = attAlpha.get(pptGrid);
                 distance = distance3d(gridP,patchP);
@@ -489,7 +487,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             uvArrayData.append(uvPatch.z());
             // Write back
             uvsArray->set(uvsAtt, surfacePointOffset, uvArrayData);
-
             //---------------------------------------------------------------------------------
         }
         neighborhood.clear();
@@ -555,7 +552,7 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
             //--------------------------- ADDING A NEW PATCH ON NEWLY ADDED POISSON DISK --------------------------------------------
             int spawn = attSpawn.get(ppt);
             int active = attActive.get(ppt);
-            if (active == 1 && spawn == 1) //to investigate why spawn has to be 2
+            if (active == 1 && spawn == 1)
             {
                 vector<GA_Offset> newPatchPoints;
                 vector<GA_Offset> newTrackers;
@@ -569,7 +566,6 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
             startUpdatePatches = std::clock();
             this->updatePatchesTime += (std::clock() - startUpdatePatches) / (double) CLOCKS_PER_SEC;
         }
-
     }
 
     GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");

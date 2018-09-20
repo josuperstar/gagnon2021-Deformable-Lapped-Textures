@@ -274,7 +274,6 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
     float deletionLife = params.fadingTau;
 
-
     if (attV.isInvalid())
     {
         cout << "Markers have no velocity";
@@ -294,12 +293,9 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3 AttCd(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
 
-
     GA_PointGroup *markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
 
-
     //===============================================================================
-
     {
         grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");
         GU_MinInfo mininfo;
@@ -375,7 +371,6 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
             {
                 p1 = hitPos;
                 trackersGdp->setPos3(ppt,p1);
-                //cout << "new new position "<<p1<<endl;
                 AttCd.set(ppt,UT_Vector3(0,1,0));
 
                 //------------------------------PARAMETRIC COORDINATE -----------------------------------
@@ -385,29 +380,25 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
                 GEO_Primitive *prim = surfaceGdp->getGEOPrimitive(primOffset);
 
                 GA_Offset vertexOffset0 = prim->getVertexOffset(0);
-                //UT_Vector3 v0 = attUV.get(vertexOffset0);
+
                 GA_Offset pointOffset0  = surfaceGdp->vertexPoint(vertexOffset0);
                 UT_Vector3 n0 = refAttN.get(pointOffset0);
                 UT_Vector3 v0 = refAttV.get(pointOffset0);
-
 
                 GA_Offset vertexOffset1 = prim->getVertexOffset(1);
                 GA_Offset pointOffset1  = surfaceGdp->vertexPoint(vertexOffset1);
                 UT_Vector3 n1 = refAttN.get(pointOffset1);
                 UT_Vector3 v1 = refAttV.get(pointOffset1);
-                //UT_Vector3 v1 = attUV.get(vertexOffset1);
 
                 GA_Offset vertexOffset2 = prim->getVertexOffset(2);
                 GA_Offset pointOffset2  = surfaceGdp->vertexPoint(vertexOffset2);
-                UT_Vector3 n2 = refAttN.get(pointOffset2);//gdp->getPos3(pointOffset3);
-                UT_Vector3 v2 = refAttV.get(pointOffset2);;//gdp->getPos3(pointOffset2);
-                //UT_Vector3 v2 = attUV.get(vertexOffset2);
+                UT_Vector3 n2 = refAttN.get(pointOffset2);
+                UT_Vector3 v2 = refAttV.get(pointOffset2);
 
                 N                   = n0+u*(n1-n0)+v*(n2-n0);
                 UT_Vector3 velocity = v0+u*(v1-v0)+v*(v2-v0);
                 attV.set(ppt,velocity);
-                //cout << "Assigning velocity " <<velocity<<" on ppt "<<ppt<<endl;
-                //cout << "Assigning normal " <<N<<" on ppt "<<ppt<<endl;
+
                 attN.set(ppt,N);
                 //------------------------------------------------------------------------------------
                 numberOfPatches++;
@@ -457,7 +448,6 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     this->markerAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 
     return trackers;
-
 }
 
 

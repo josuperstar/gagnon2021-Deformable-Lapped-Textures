@@ -605,7 +605,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     UT_Vector3 p;
     UT_Vector3 p1;
     float dt = 1.0f/24.0f;
-    float thresholdDistance = params.minimumDistanceProjection;
+    float thresholdDistance = params.maximumProjectionDistance;
     float poissonDiskD = params.poissondiskradius;
 
     ParametersDistortion distortionParams;
@@ -663,7 +663,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         distortionParams.randT = randT;
 
         life = attLife.get(trackerPpt);
-
 
         float gridAlpha = (float)life/(float)params.fadingTau;
 
@@ -947,6 +946,11 @@ void DeformableGrids::ConnectivityTest(const GU_Detail *gdp, GA_Offset point,GA_
 }
 
 
+//================================================================================================
+
+//                                      UV FLATTENING
+
+//================================================================================================
 void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
                                    GA_Offset tracker, GA_Offset closestPoint,
                                    GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
