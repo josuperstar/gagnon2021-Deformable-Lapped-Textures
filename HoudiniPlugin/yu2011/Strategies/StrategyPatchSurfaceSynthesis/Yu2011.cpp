@@ -166,6 +166,10 @@ bool Yu2011::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params
 vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *trackersGdp, GA_PointGroup *markerGroup ,ParametersDeformablePatches params)
 {
 
+    //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
+    //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
+    //It basically take the points from Houdini and fill it to the approach.
+
     std::clock_t addPoissonDisk;
     addPoissonDisk = std::clock();
 
@@ -242,9 +246,9 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     poissonDiskDistribution.SetNumberOfPoint(numberOfPoints);
-    poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius);
+    poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius, params.angleNormalThreshold);
 
-    vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius);
+    vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius, params.angleNormalThreshold);
 
     cout << "[Yu2011] poisson disk sample "<<PPoints.size()<< " point(s)"<<endl;
 
@@ -277,7 +281,12 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     std::clock_t addPatchesStart;
     addPatchesStart = std::clock();
 
-    float radius = params.poissondiskradius;
+
+    float beta = 0.6f;
+    float d = params.poissondiskradius;
+    float gridwidth = (2+beta)*d; //same formula used in DeformableGrids.cpp
+    fpreal patchRadius = (fpreal)gridwidth;
+
     //================================ CREATE PATCH GROUPS ==============================
     GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
     if (grpMarker->entries() == 0)
@@ -286,13 +295,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         return;
     }
 
-    GA_GroupType pointGroupType = GA_GROUP_POINT;
-    const GA_GroupTable *pointGTable = deformableGridsGdp->getGroupTable(pointGroupType);
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
-
-    //fpreal patchRadius = (fpreal)radius*5.0f; // ??????????????????
-    fpreal patchRadius = (fpreal)radius;
 
     GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -306,7 +310,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     UT_Vector3 N;
     UT_Vector3 NN;
     UT_Vector3 position;
-    UT_Vector3 gridP;
     UT_Vector3 patchP;
 
     GA_Offset surfacePointOffset;
@@ -316,17 +319,14 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     {
         ppt = *it;
         patchNumber = attId.get(ppt);
-
         if (params.testPatch == 1 && params.patchNumber != patchNumber)
             continue;
         N = attN.get(ppt);
-
         position = trackersGdp->getPos3(ppt);
 
         UT_IntArray         patchArrayData;
         UT_FloatArray         alphaArrayData;
         UT_FloatArray         uvArrayData;
-
         //getting neigborhood
         // Close particles indices
         GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
@@ -341,7 +341,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
 
         UT_String gridGroupName("grid"+str);
-        GA_PointGroup*      gridPointGroup      = (GA_PointGroup*)pointGTable->find(gridGroupName);
         GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
         if (gridPrimitiveGroup == 0x0)
             continue;
@@ -364,7 +363,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             if (dotP < params.angleNormalThreshold)
                 continue;
             patchP = surfaceGdp->getPos3(surfacePointOffset);
-
             //------------------------------------ RAY -----------------------------------------
             //project patchP on trackers set
             GU_MinInfo mininfo;
@@ -413,61 +411,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             else if (alphaPatch < 0)
                 alphaPatch = 0; //this is weird, should not happen
 
-            //============================= SMOOTH ALPHA ===========================
-            //Why am I doing this ????
-            float alpha_W_k = 0.0f;
-            float alpha_sumW_k = 0.0f;
-
-            float distance = 0;
-            bool firstTime = true;
-            float alphaGrid = 0;
-            alphaPatch = 0;
-            //transfert uv from grids
-            GA_Offset pptGrid;
-            bool closeEnough = false;
-
-            //--------------------- ATTRIB TRANSFER----------------------------
-            //for each point of the deformable grid group
-            GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,gridPointGroup,pptGrid)
-            {
-                if (closeEnough)
-                    break;
-                gridP = deformableGridsGdp->getPos3(pptGrid);
-                alphaGrid = attAlpha.get(pptGrid);
-                distance = distance3d(gridP,patchP);
-                if (distance < epsilon && distance > -epsilon) //very close to 0
-                {
-                    alpha_W_k = 1;
-                    alpha_sumW_k = 1;
-                    alphaPatch = alphaGrid;
-                    closeEnough = true;
-                }
-                if (distance >= epsilon && distance <= params.alphaTransfertRadius)
-                {
-                    alpha_W_k = 1.f / (distance);
-                    if (firstTime)
-                    {
-                        alphaPatch = alphaGrid * alpha_W_k;
-                        firstTime = false;
-                    }
-                    else
-                    {
-                        alphaPatch += alphaGrid * alpha_W_k;
-                    }
-                    alpha_sumW_k += alpha_W_k;
-                }
-                if (closeEnough)
-                    break;
-            }
-            //-----------------------------------------------------------
-
-            if (alpha_sumW_k <= epsilon)
-                alpha_sumW_k = 1;
-
-            alphaPatch /= alpha_sumW_k;
-            if (alphaPatch < 0)
-                alphaPatch = 0;
-
             //------------------------------- SAVE TO VERTEX ----------------------------------------
             patchGroup->addOffset(surfacePointOffset);
             // Fetch array value
@@ -503,7 +446,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
         string str = std::to_string(patchNumber);
         UT_String pointGroupName("patch"+str);
-        //cout << "creating primitive group "<<pointGroupName<<endl;
         GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(pointGroupName);
         GA_GroupType groupType = GA_GROUP_POINT;
         const GA_GroupTable *gtable = surfaceGdp->getGroupTable(groupType);
@@ -544,12 +486,10 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
 
     GA_Offset ppt;
     int beforeAddingNumber = numberOfPatches;
-    patchesUsed.clear();
+    //--------------------------- ADDING A NEW PATCH ON NEWLY ADDED POISSON DISK --------------------------------------------
     {
-
         GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
-        {
-            //--------------------------- ADDING A NEW PATCH ON NEWLY ADDED POISSON DISK --------------------------------------------
+        {   
             int spawn = attSpawn.get(ppt);
             int active = attActive.get(ppt);
             if (active == 1 && spawn == 1)
@@ -570,7 +510,7 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
 
     GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");
     set<int> toDelete;
-    //delete consealed patches
+    //--------------------------- DELETE DEAD PATCH --------------------------------------------
     {
         GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
         {

@@ -134,7 +134,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     UT_Vector3 trackerPositition;
     GA_Offset newPoint;
     UT_Vector3Array         triangleArrayData;
-    float life = 1;
+    float life = 1.0f;
 
     string groupName = "grids";
     GA_PointGroup *grpGrid = deformableGridsGdp->newPointGroup(groupName.c_str());

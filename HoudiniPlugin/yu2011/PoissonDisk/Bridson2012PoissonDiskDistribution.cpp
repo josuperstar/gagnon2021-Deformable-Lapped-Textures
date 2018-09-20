@@ -20,7 +20,7 @@ using namespace std;
 //================================================================================================
 
 
-std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail *gdp, float diskRadius)
+std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail *gdp, float diskRadius, float angleNormalThreshold)
 {
     cout << "[Bridson2012PoissonDiskDistribution] on level set"<<endl;
 
@@ -222,13 +222,13 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 //5:      if p meets the Poisson Disk criterion in S then
                 //=================================================================
                 std::vector<PoissonDisk> neighbors;
-                bool meetPoissonDiskCriterion = !backgroundGrid.IsInNeighbourhood( poissonDisk, r, cellSize, neighbors);
+                bool meetPoissonDiskCriterion = !backgroundGrid.IsInNeighbourhood( poissonDisk, r, cellSize, neighbors, angleNormalThreshold);
                 if (meetPoissonDiskCriterion)
                 {
                     //=================================================================
                     //6:          S ← S ∪ {p}
                     //=================================================================
-                    this->InsertPoissonDisk(poissonDisk,r, false);
+                    this->InsertPoissonDisk(poissonDisk,r, false, angleNormalThreshold);
                     if (poissonDisk.IsValid())
                     {
                         break;
@@ -270,7 +270,7 @@ array of integers: the default −1 indicates no sample, a
 non-negative integer gives the index of the sample located in a cell.
 */
 
-void Bridson2012PoissonDiskDistribution::initializeGrid(std::vector<PoissonDisk> existingPoints, float diskRadius)
+void Bridson2012PoissonDiskDistribution::initializeGrid(std::vector<PoissonDisk> existingPoints, float diskRadius, float angleNormalThreshold)
 {
     cout << "[Bridson2012PoissonDiskDistribution] Step 0: initialize the grid"<<endl;
     cout << "[Bridson2012PoissonDiskDistribution] We have "<<existingPoints.size()<<" existing points"<<endl;
@@ -303,7 +303,7 @@ void Bridson2012PoissonDiskDistribution::initializeGrid(std::vector<PoissonDisk>
     std::vector<PoissonDisk>::iterator it;
     for(it =  existingPoints.begin(); it != existingPoints.end(); it++)
     {
-        this->InsertPoissonDisk(*it,kd, true);
+        this->InsertPoissonDisk(*it,kd, true, angleNormalThreshold);
     }
 }
 
@@ -344,7 +344,7 @@ PoissonDisk Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvdb::
 //================================================================================================
 
 
-void Bridson2012PoissonDiskDistribution::InsertPoissonDisk(PoissonDisk p, float diskRadius, bool existingPoint)
+void Bridson2012PoissonDiskDistribution::InsertPoissonDisk(PoissonDisk p, float diskRadius, bool existingPoint, float angleNormalThreshold)
 {
 
     //get next available id
@@ -353,7 +353,7 @@ void Bridson2012PoissonDiskDistribution::InsertPoissonDisk(PoissonDisk p, float 
     //try to insert the poisson disk on the level set
     if(!existingPoint || (existingPoint && p.IsValid()))
     {
-        backgroundGrid.Insert(p,diskRadius);
+        backgroundGrid.Insert(p,diskRadius, angleNormalThreshold);
     }
     if (p.GetId() > this->maxId) //existing points
     {

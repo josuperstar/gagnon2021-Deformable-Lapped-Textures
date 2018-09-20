@@ -15,7 +15,7 @@ struct ParametersDeformablePatches
     float tangentTrackerLenght;
     int updateDistribution;
     float alphaThreshold;
-    float minimumDistanceProjection;
+    float maximumProjectionDistance;
     int connectivityTest;
     int testPatch;
     int patchNumber;

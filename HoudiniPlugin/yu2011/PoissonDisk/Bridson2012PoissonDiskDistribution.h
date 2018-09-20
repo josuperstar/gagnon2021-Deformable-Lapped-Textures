@@ -43,10 +43,10 @@ public:
         ProcessList.clear();
         SamplePoints.clear();
     }
-    std::vector<PoissonDisk> PoissonDiskSampling(GU_Detail *gdp, float diskRadius);
+    std::vector<PoissonDisk> PoissonDiskSampling(GU_Detail *gdp, float diskRadius, float angleNormalThreshold);
     void SetNumberOfPoint(int data){this->numberOfPoints = data;}
-    void initializeGrid(std::vector<PoissonDisk> existingPoints,float diskRadius);
-    void InsertPoissonDisk(PoissonDisk disk, float diskRadius, bool existingPoint);
+    void initializeGrid(std::vector<PoissonDisk> existingPoints,float diskRadius,  float angleNormalThreshold);
+    void InsertPoissonDisk(PoissonDisk disk, float diskRadius, bool existingPoint, float angleNormalThreshold);
 
     void SetMaxId(long data){maxId = data;}
 

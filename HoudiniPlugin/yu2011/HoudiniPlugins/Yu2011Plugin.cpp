@@ -212,7 +212,7 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     params.startNumber = startNumber;
     params.poissondiskradius = PoissonDiskRadius();
     params.updateDistribution = UpdateDistribution();
-    params.minimumDistanceProjection = MinimumDistanceProjection();
+    params.maximumProjectionDistance = MinimumDistanceProjection();
     params.computeDistortion = ComputeDistortion();
     params.fadingTau = FadingTau();
     params.Yu2011DMax = Yu2011DMax();

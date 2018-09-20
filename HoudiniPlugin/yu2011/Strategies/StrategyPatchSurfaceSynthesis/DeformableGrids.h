@@ -63,7 +63,6 @@ protected :
 
     vector<set<map<GA_Offset, UT_Vector3> > > uvs;
     map<int,UT_Vector3> gridCenterPosition;
-    set<int> patchesUsed;
     bool useUvFlattening = true;
 
 

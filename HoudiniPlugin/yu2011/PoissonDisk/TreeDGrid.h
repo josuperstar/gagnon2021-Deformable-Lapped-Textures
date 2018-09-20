@@ -114,7 +114,7 @@ public:
         }
         */
     }
-    void Insert( PoissonDisk& P, float MinDist)
+    void Insert( PoissonDisk& P, float MinDist, float angleNormalThreshold)
     {
         int x = P.GetPosition().x() / m_CellSize ;
         int y = P.GetPosition().y() / m_CellSize ;
@@ -125,7 +125,7 @@ public:
 
         std::vector<PoissonDisk> neighbors;
 
-        if (IsInNeighbourhood(P,MinDist,m_CellSize,neighbors))
+        if (IsInNeighbourhood(P,MinDist,m_CellSize,neighbors, angleNormalThreshold))
             P.SetValid(false);
         else
         {
@@ -134,7 +134,7 @@ public:
         }
     }
 
-    bool IsInNeighbourhood( PoissonDisk Point, float MinDist, float CellSize, std::vector<PoissonDisk> &neighbors );
+    bool IsInNeighbourhood( PoissonDisk Point, float MinDist, float CellSize, std::vector<PoissonDisk> &neighbors ,float angleNormalThreshold);
     int GetNumberOfPoissonDisk(){return this->gridPoints.size();}
 
 private:
@@ -145,6 +145,7 @@ private:
 
     std::vector<  std::vector< std::vector< PoissonDisk > > > m_Grid;
     std::vector< PoissonDisk > gridPoints;
+
 };
 
 
