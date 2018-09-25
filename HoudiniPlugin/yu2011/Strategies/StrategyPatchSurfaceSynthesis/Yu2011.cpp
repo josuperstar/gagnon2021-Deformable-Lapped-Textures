@@ -246,9 +246,9 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     poissonDiskDistribution.SetNumberOfPoint(numberOfPoints);
-    poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius, params.angleNormalThreshold);
+    poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius, params.poissonAngleNormalThreshold);
 
-    vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius, params.angleNormalThreshold);
+    vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
 
     cout << "[Yu2011] poisson disk sample "<<PPoints.size()<< " point(s)"<<endl;
 

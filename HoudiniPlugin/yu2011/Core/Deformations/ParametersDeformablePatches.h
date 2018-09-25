@@ -32,6 +32,7 @@ struct ParametersDeformablePatches
     float squeezeMax;
     float distortionRatioThreshold; //the amount of distorted vertex allow per grid
     float angleNormalThreshold;     //the angle (dot product) with the normal of the tracker below which the vertex is considered as distorted
+    float poissonAngleNormalThreshold;
     string trackersFilename;
     string deformableGridsFilename;
     bool computeAtlas;

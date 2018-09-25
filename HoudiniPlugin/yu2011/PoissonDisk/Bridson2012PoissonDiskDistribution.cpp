@@ -22,7 +22,7 @@ using namespace std;
 
 std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail *gdp, float diskRadius, float angleNormalThreshold)
 {
-    cout << "[Bridson2012PoissonDiskDistribution] on level set"<<endl;
+    cout << "[Bridson2012PoissonDiskDistribution] on level set using a threshold of "<<angleNormalThreshold<<endl;
 
     // Find first vdb primitive of input 0
     GEO_Primitive* prim;
@@ -222,7 +222,7 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 //5:      if p meets the Poisson Disk criterion in S then
                 //=================================================================
                 std::vector<PoissonDisk> neighbors;
-                bool meetPoissonDiskCriterion = !backgroundGrid.IsInNeighbourhood( poissonDisk, r, cellSize, neighbors, angleNormalThreshold);
+                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion( poissonDisk, r, cellSize, neighbors, angleNormalThreshold);
                 if (meetPoissonDiskCriterion)
                 {
                     //=================================================================

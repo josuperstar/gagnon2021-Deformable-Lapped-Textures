@@ -125,7 +125,7 @@ public:
 
         std::vector<PoissonDisk> neighbors;
 
-        if (IsInNeighbourhood(P,MinDist,m_CellSize,neighbors, angleNormalThreshold))
+        if (!RespectCriterion(P,MinDist,m_CellSize,neighbors, angleNormalThreshold))
             P.SetValid(false);
         else
         {
@@ -134,7 +134,7 @@ public:
         }
     }
 
-    bool IsInNeighbourhood( PoissonDisk Point, float MinDist, float CellSize, std::vector<PoissonDisk> &neighbors ,float angleNormalThreshold);
+    bool RespectCriterion( PoissonDisk Point, float MinDist, float CellSize, std::vector<PoissonDisk> &neighbors ,float angleNormalThreshold);
     int GetNumberOfPoissonDisk(){return this->gridPoints.size();}
 
 private:

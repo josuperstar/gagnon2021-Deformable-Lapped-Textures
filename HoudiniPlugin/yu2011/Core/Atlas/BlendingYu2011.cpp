@@ -3,7 +3,7 @@
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, int i, int j, float w, float h,
+Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, float h,
                                 int pixelPositionX, int pixelPositionY,
                                 vector<int> &sortedPatches,
                                 vector<UT_Vector3> &surfaceUv,
@@ -24,9 +24,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
 {
 
     float d = params.poissondiskradius;
-
     Pixel displaceMean;
-
     if(computeDisplacement)
     {
         displaceMean = displacementMapImage->MeanValue();
@@ -34,8 +32,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
 
     int tw = textureExemplar1Image->GetWidth();
     int th = textureExemplar1Image->GetHeight();
-    //int wm = textureExemplar1ImageMask->GetWidth();
-    //int hm = textureExemplar1ImageMask->GetHeight();
 
     Pixel R_eq4 = Pixel(0,0,0);
     R_eq4.A = 1;
@@ -99,21 +95,21 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
         //------------------------------PARAMETRIC COORDINATE -----------------------------------
         float u = mininfo.u1;
         float v = mininfo.v1;
+
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
-        GA_Offset pointOffset0;
-        GA_Offset vertexOffset1 = prim->getVertexOffset(1);
-        GA_Offset pointOffset1;
+        GA_Offset vertexOffset1 = prim->getVertexOffset(1);  
         GA_Offset vertexOffset2 = prim->getVertexOffset(2);
-        GA_Offset pointOffset2;
 
         //------------------- secion 3.3.3 Estimating Grid Distortion --------------
 
         //------- position in polygon of the deformable grid --------
         if (attPointUV.isInvalid())
             continue;
-        pointOffset0  = deformableGrids->vertexPoint(vertexOffset0);
-        pointOffset1  = deformableGrids->vertexPoint(vertexOffset1);
-        pointOffset2  = deformableGrids->vertexPoint(vertexOffset2);
+
+        GA_Offset pointOffset0  = deformableGrids->vertexPoint(vertexOffset0);
+        GA_Offset pointOffset1  = deformableGrids->vertexPoint(vertexOffset1);
+        GA_Offset pointOffset2  = deformableGrids->vertexPoint(vertexOffset2);
+
         UT_Vector3 v0 = attPointUV.get(pointOffset0);
         UT_Vector3 v1 = attPointUV.get(pointOffset1);
         UT_Vector3 v2 = attPointUV.get(pointOffset2);
@@ -124,30 +120,17 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
         //Q_v quality of the vertex, value from 0 to 1
         float   Q_V = attQt.get(prim->getMapOffset());
 
-        //we don't want to have a black spot so we put a minimum value
-        //we should add a new Poisson disk when we have a black pixel
-        //if (Qv <=0 )
-        //    Qv = 0.001;
         //-----------------------------------------------------------------
         //getting the color from the texture exemplar
-
-
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
 
         //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
         if (renderColoredPatches)
-        {
             //set random colors per patch
-            color.R = 1;
-            color.G = 1;
-            color.B = 1;
             color = patchColors[patchId];
-        }
         else
-        {
             textureExemplar1Image->GetColor(i2,j2,0,color);
-        }
 
         if (computeDisplacement)
             displacementMapImage->GetColor(i2,j2,0,displacement);
@@ -199,9 +182,9 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
         //of grids whose distortion would stop increasing. And if τ is longer than the particles
         //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
 
-
         //The temporal component is simply a linear fade-in at the beginning of the life of a particle and a linear fade-out
-        //after the particle has been killed:
+        //after the particle has been killed.
+        //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
         float K_t = fading[patchId];
 
         //--------------------------Equation 5--------------------
@@ -234,7 +217,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
 
         if (computeDisplacement)
         {
-
             displacementSum.R += w_v*(displacement.R - displaceMean.R);
             displacementSum.G += w_v*(displacement.G - displaceMean.G);
             displacementSum.B += w_v*(displacement.B - displaceMean.B);
@@ -290,14 +272,11 @@ Pixel BlendingYu2011::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrids, i
         displacementSum.B = (displacementSum.B)/sqw    + displaceMean.B;
 
         Clamp(displacementSum);
-
     }
 
-    //affect by the alpha ???
     float Af = sumW;
     if (Af > 1)
         Af = 1;
-
     //If we don't use the alpha, we are having black spot where sumW is 0
     //R2.A = Af;
     //R1.A = Af;

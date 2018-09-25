@@ -379,7 +379,6 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
         UT_FloatArray         alphasData;
         alphaArray->get(alphas, pointOffset, alphasData);
 
-
         //for this vertex, we go through all patches
         //we are trying to keep only patches that are on the three vertices
         //vector<UT_Vector3> sortedUVs;
@@ -460,7 +459,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                 color.G = 1;
                 color.B = 1;
                 //======================== Yu2011  function =====================
-                Pixel R_eq4 = BlendingYu2011::Blend(trackers,deformableGrids,i,j,w,h,
+                Pixel R_eq4 = BlendingYu2011::Blend(deformableGrids,i,j,w,h,
                                           pixelPositionX,pixelPositionY,
                                           sortedPatches,
                                           surfaceUv,
