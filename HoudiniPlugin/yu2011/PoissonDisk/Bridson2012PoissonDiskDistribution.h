@@ -46,14 +46,14 @@ public:
     std::vector<PoissonDisk> PoissonDiskSampling(GU_Detail *gdp, float diskRadius, float angleNormalThreshold);
     void SetNumberOfPoint(int data){this->numberOfPoints = data;}
     void initializeGrid(std::vector<PoissonDisk> existingPoints,float diskRadius,  float angleNormalThreshold);
-    void InsertPoissonDisk(PoissonDisk disk, float diskRadius, bool existingPoint, float angleNormalThreshold);
+
 
     void SetMaxId(long data){maxId = data;}
 
 private:
 
     PoissonDisk projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad );
-
+    void InsertPoissonDisk(PoissonDisk disk, float diskRadius, bool existingPoint, float angleNormalThreshold);
 
     template <typename PRNG>
     PoissonDisk PopRandom( std::vector<PoissonDisk>& Points, PRNG& Generator )
