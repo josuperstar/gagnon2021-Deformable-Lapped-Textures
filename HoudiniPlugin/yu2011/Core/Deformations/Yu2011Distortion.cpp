@@ -90,7 +90,10 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
 
                 //Yu 2011 Equation 2
                 //We then define the quality of a triangle as the ratio of its distortion with the maximum acceptable distortion,
-                //δmax is then supposed to be greater than 1:
+                //δmax is then supposed to be greater than 1.
+                //acording to the thesis https://tel.archives-ouvertes.fr/tel-00528781/document, page 74:
+                //To limit the maximum distortion of an
+                //advected texture, we kill a particle when D > δkill. We use δkill = 2.5 in our implementation.
                 float Qt = std::max((dmax-dt)/(dmax-1.0f),0.0f);
 
                 //Qt is equal to 1 for an un-distorted triangle, and is equal to 0 for a triangle where the distortion is larger

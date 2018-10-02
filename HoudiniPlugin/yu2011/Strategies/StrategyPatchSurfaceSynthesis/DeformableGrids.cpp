@@ -508,26 +508,24 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         int seed = id;
         float offset = 0.5;
+        float randomScale = 1.0;
         srand(seed);
-        float tx = (((double) rand()/(RAND_MAX)-offset));
+        float tx = (((double) rand()/(RAND_MAX)))*randomScale;
         srand(seed+1);
-        float ty = (((double) rand()/(RAND_MAX)-offset));
+        float ty = (((double) rand()/(RAND_MAX)))*randomScale;
         srand(seed+2);
-        float tz = (((double) rand()/(RAND_MAX)-offset));
+        float tz = (((double) rand()/(RAND_MAX)))*randomScale;
 
         float scaleup = 2.0;
 
         GA_Offset ppt;
         GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,ppt)
         {
-
             UT_Vector3 uv = attUV.get(ppt);
             uv += UT_Vector3(tx,ty,tz);
             uv /= scaleup;
             attUV.set(ppt,uv);
-
         }
-
 
         //-----------------------------------------------------
         GEO_Primitive *prim;
@@ -957,7 +955,6 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
                                    set<GA_Offset> &pointsAround,
                                    float scaling)
 {
-
     GA_RWHandleI    attFlattening(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"flattening",1));
     GA_RWHandleI    attInitVertexId(tempGdp.addIntTuple(GA_ATTRIB_VERTEX,"initVerterxId",1));
     GA_RWHandleV3   attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
@@ -965,9 +962,7 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
     GA_RWHandleI    attIsTreated(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isTreated",1));
 
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-
     attFlattening.set(tracker,1);
-
     std::clock_t startFlattening;
     startFlattening = std::clock();
 
@@ -975,13 +970,11 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
     bool useInputUv = false;
     GU_Flatten flattener(&tempGdp,NULL,NULL,NULL,useInputUv);
     flattener.flattenAndPack();
-    //cout << "Flattening "<<primGroup->getName() << " with "<<primGroup->entries()<< " polygons";
 
     int numberOfIslands = flattener.getNumIslands();
 
     if (numberOfIslands > 1)
     {
-        //cout << "There are "<<numberOfIslands <<" for patch "<<id<<endl;
         set<GA_Offset> connectedOffset;
 
         if (closestPoint == -1)
@@ -1013,9 +1006,6 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
                 }
             }
         }
-
-        //cout << "destroying "<<toDestroyCount << " elements"<<endl;
-
 
         tempGdp.deletePoints(*toDestroy,mode);
 

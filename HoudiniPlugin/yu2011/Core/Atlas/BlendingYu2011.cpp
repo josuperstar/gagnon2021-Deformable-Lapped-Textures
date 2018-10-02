@@ -77,6 +77,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         //--------------------------------------------------
         //Can we project the pixel on the current patch ?
+        //We may want to put this test outside this function, especially if we want to create a shader.
         GU_MinInfo mininfo;
         mininfo.init(thresholdProjectionDistance,0.0001f);
         map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
@@ -164,8 +165,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         //UT_Vector3 diffP = positionOnSurface-trackerPosition;
         float d_P = distance3d(positionOnSurface,trackerPosition);//diffP.length();
-        float d_V = 1.0f;
 
+        float d_V = 1.0f;
         if (d_P > d)
             d_V = 0.0f;
         float K_s = (1.0f-(d_P/d))*d_V*Q_V;
