@@ -106,7 +106,7 @@ private:
    map<string,map<GA_Offset,GA_Offset> > initialOffsetList;
 
    vector< vector<bool> > pixelUsed;
-   map<int,float> patchBlend;
+   map<int,float> temporalComponetKt;
    map<int,UT_Vector3> trackerPosition;
 
    bool useCopyGUDetail = false;

@@ -21,7 +21,7 @@ public:
 
     //vector<GA_Offset>  PoissonDiskDistribution(GU_Detail *gdp, ParametersDeformablePatches params);
     vector<GA_Offset>  CreateTrackers(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params, vector<GA_Offset> referencePoints);
-    vector<GA_Offset>  CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params, vector<PoissonDisk> &referencePoints);
+    void  CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params, vector<PoissonDisk> &referencePoints);
     vector<GA_Offset>  AdvectMarkers(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree);
     void ComputeDivergence(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree);
     void DeleteTracker(GU_Detail* trackers,int trackerId);

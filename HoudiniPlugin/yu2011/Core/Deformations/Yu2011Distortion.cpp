@@ -99,11 +99,13 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
                 //Qt is equal to 1 for an un-distorted triangle, and is equal to 0 for a triangle where the distortion is larger
                 //than δmax. For each grid vertex V , we then compute its quality, QV as the mean of the quality of its incident triangles.
 
+                //for debuging purpose:
                 attSs.set(prim->getMapOffset(),Ss);
                 attSt.set(prim->getMapOffset(),St);
                 attGMax.set(prim->getMapOffset(),gmax);
                 attGMin.set(prim->getMapOffset(),gmin);
                 attDt.set(prim->getMapOffset(),dt);
+                //The vertex quality measure. It is also use in the blending function.
                 attQt.set(prim->getMapOffset(),Qt);
 
                 //We kill a particle if, for any vertex in the grid, we have QV < 1/2 (i.e., we keep a margin of quality for the fading-out).

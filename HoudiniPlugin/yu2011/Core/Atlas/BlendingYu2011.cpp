@@ -166,6 +166,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //UT_Vector3 diffP = positionOnSurface-trackerPosition;
         float d_P = distance3d(positionOnSurface,trackerPosition);//diffP.length();
 
+        //d_V =0 if V ∈ grid boundary 1 otherwise
         float d_V = 1.0f;
         if (d_P > d)
             d_V = 0.0f;

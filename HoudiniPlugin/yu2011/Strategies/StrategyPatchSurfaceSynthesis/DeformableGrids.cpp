@@ -793,7 +793,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                             }
                         }
 
-                        //---------------------- Dynamic Tay -----------------------------------
+                        //---------------------- Dynamic Tau -----------------------------------
                         float dP0 = attDP0.get(ppt);
                         float dPi = distance3d(p1,trackerPosition);
                         attDPi.set(ppt,dPi);

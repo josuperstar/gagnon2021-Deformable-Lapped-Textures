@@ -78,7 +78,7 @@ void ParticleTracker::DeleteTracker(GU_Detail* trackers,int trackerId)
 //================================================================================================
 
 
-vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params, vector<PoissonDisk> &existingPoissonDisks)
+void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params, vector<PoissonDisk> &existingPoissonDisks)
 {
 
     bool useDynamicTau = params.useDynamicTau;
@@ -93,10 +93,9 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
     cout << "max delta = "<<maxDelta<<endl;
     cout << "tau = "<<tau<<endl;
 
-    vector<GA_Offset> trackers;
 
     if (surfaceGroup == 0x0)
-        return trackers;
+        return;
 
     trackersGdp->clearAndDestroy();
 
@@ -127,7 +126,7 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleI    attPoissonDisk(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"poissondisk", 1));
-    GA_RWHandleF    attBlend(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"blend", 1));
+    GA_RWHandleF    attBlend(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     GA_RWHandleF    attRandT(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
 
@@ -193,7 +192,6 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
 
         trackersGdp->setPos3(newPoint,position);
         markerGrp->addOffset(newPoint);
-        trackers.push_back(newPoint);
         attCd.set(newPoint,UT_Vector3(0,1,1));
 
         //-------------------------------------------------
@@ -211,17 +209,17 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
         float life = currentLife;
         attLife.set(newPoint,life);
 
-        float blending = ((float)life-1)/params.fadingTau;
+        float temporalComponetKt = ((float)life-1)/params.fadingTau;
 
-        attBlend.set(newPoint,blending);
+        attBlend.set(newPoint,temporalComponetKt);
         attSpawn.set(newPoint,currentSpawn);
         attMaxDeltaOnD.set(newPoint,dynamicTau);
         //cout << "Point "<<id<< " active == "<<active<<endl;
         attActive.set(newPoint,active);
         attIsMature.set(newPoint,isMature);
         attPoissonDisk.set(newPoint,1);
-
-        GA_RWHandleF blend = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"blend", 1));
+        /*
+        GA_RWHandleF blend = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
 
         if (params.startFrame == params.frame)
         {
@@ -233,15 +231,12 @@ vector<GA_Offset> ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_
             attFadeIn.set(newPoint,0);
             blend.set(newPoint,0.0f);
         }
-
+        */
         float randt = (((double) rand() / (RAND_MAX)));
         attRandT.set(newPoint,randt);
 
         numberOfPatches++;
     }
-
-    return trackers;
-
 }
 
 
@@ -270,7 +265,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
-    GA_RWHandleF blend = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"blend", 1));
+    GA_RWHandleF temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
     float deletionLife = params.fadingTau;
 
@@ -338,7 +333,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
                 attFadeIn.set(ppt,fadeIn);
             }
             float blending = (float)currentLife/(float(deletionLife));
-            blend.set(ppt,blending);
+            temporalComponentKt.set(ppt,blending);
 
             //-----------------------------------------
             //advect

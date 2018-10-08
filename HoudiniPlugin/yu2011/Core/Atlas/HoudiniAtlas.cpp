@@ -87,8 +87,8 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 
     surfaceTree.build(surface, NULL);
     attLife = life;
-    attFadeIn = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"fadeIn", 1));
-    attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"blend", 1));
+
+    attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
 
     if(useDeformableGrids)
     {
@@ -222,7 +222,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 
         if (isinf(blend))
             blend = 1.0f;
-        patchBlend[patchId] = blend;
+        temporalComponetKt[patchId] = blend;
     }
 
     if(renderColoredPatches)
@@ -473,7 +473,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                                           //attAlpha,
                                           attPointUV,
                                           //attLife,
-                                          patchBlend,
+                                          temporalComponetKt,
                                           //patchUvs,
                                           //alphasMap,
                                           textureExemplar1Image,
@@ -505,11 +505,15 @@ void HoudiniAtlas::SaveAtlas()
     diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
     diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equation3.png");
     diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equation4.png");
+    diffuseImageBlendingYu2011Equation4->growRegions(diffuseImageBlendingYu2011Equation4->image,diffuseImageBlendingYu2011Equation4->image,3); //
+    diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equation4.padded.png");
     cout << "Save texture atlas"<<outputFilename<<endl;
     if (computeDisplacement)
     {
         //write the image to the disk
         displacementMap->SaveImageAs(outputFilename+"displacement.png"); //HARDCODED NAME !!!
+        displacementMap->growRegions(displacementMap->image,displacementMap->image,3); //
+        displacementMap->SaveImageAs(outputFilename+".displacement.padded.png");
         cout << "Save texture atlas"<<outputFilename+"displacement.png"<<endl;
     }
 }

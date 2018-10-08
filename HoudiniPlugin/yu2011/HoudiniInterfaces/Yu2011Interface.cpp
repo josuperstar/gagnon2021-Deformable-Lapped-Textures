@@ -70,32 +70,32 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     surfaceTree.build(surfaceGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
-    //section 3.3.1 Particle Distribution
-    vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
-    trackers = strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
+
 
     //---- for visualisation purpose
 
-    string beforeUpdateString = params.trackersFilename + "beforeAdvection.bgeo";
-    const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
-    trackersGdp->save(filename,options,errors);
+    //string beforeUpdateString = params.trackersFilename + "beforeAdvection.bgeo";
+    //const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
+    //trackersGdp->save(filename,options,errors);
     //----------------------------------
 
-    //section 3.3.2 Particle Delition
-    newPatchesPoints = strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
+
     if(params.startFrame == params.frame)
     {
+        vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
+        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
+        newPatchesPoints = strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
     }
     else
     {
-        //section 3.3.2 Grid Advection and estimate distortion
-        strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,newPatchesPoints,surfaceGdp);
 
-        //section 3.3.3 Estimating the Grid Distortion
+        newPatchesPoints = strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
+        strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,newPatchesPoints,surfaceGdp);
+        vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
+        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
         strategy.UpdateDistributionUsingBridson2012PoissonDisk(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
     }
-    //3.4 Blending and Continuity
     //For the blending computation, we create uv array per vertex that we called patch
     strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree,ray);
 
