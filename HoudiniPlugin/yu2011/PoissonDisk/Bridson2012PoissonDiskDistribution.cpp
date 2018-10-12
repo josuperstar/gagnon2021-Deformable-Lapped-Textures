@@ -176,7 +176,7 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
             //if it is not close to the surface, continue
-            if (abs(boundaryDist) > r)
+            if (abs(boundaryDist) > poissonDiskRadius/3) // We should use a threshold defined by the user
                 continue;
             //=================================================================
             //2:  for t attempts do
@@ -200,12 +200,12 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 float rz = (((double) rand()/(RAND_MAX)-offset));
 
                 openvdb::Vec3f randomPosition(rx,ry,rz);
-                randomPosition *= r;
+                randomPosition *= poissonDiskRadius/10;
 
                 openvdb::Vec3f p = worldCellPos+randomPosition;
 
                 float newPointDistance = samplerSurface.wsSample(p);
-                if (abs(newPointDistance) > r*2)
+                if (abs(newPointDistance) > poissonDiskRadius)
                 {
                     //cout << "random point is outside of range"<<endl;
                     continue;
@@ -222,13 +222,13 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 //5:      if p meets the Poisson Disk criterion in S then
                 //=================================================================
                 std::vector<PoissonDisk> neighbors;
-                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion( poissonDisk, r, cellSize, neighbors, angleNormalThreshold);
+                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion( poissonDisk, poissonDiskRadius, cellSize, neighbors, angleNormalThreshold);
                 if (meetPoissonDiskCriterion)
                 {
                     //=================================================================
                     //6:          S ← S ∪ {p}
                     //=================================================================
-                    this->InsertPoissonDisk(poissonDisk,r, false, angleNormalThreshold);
+                    this->InsertPoissonDisk(poissonDisk,poissonDiskRadius, false, angleNormalThreshold);
                     if (poissonDisk.IsValid())
                     {
                         break;
@@ -278,8 +278,8 @@ void Bridson2012PoissonDiskDistribution::initializeGrid(std::vector<PoissonDisk>
 
     //intialize sGrid
     k = 30;
-    r = diskRadius;
-    cellSize = r/(sqrt(n));
+    poissonDiskRadius = diskRadius;
+    cellSize = poissonDiskRadius/(sqrt(n));
 
 
     //section 3.3.1 of Yu 2011
@@ -287,7 +287,7 @@ void Bridson2012PoissonDiskDistribution::initializeGrid(std::vector<PoissonDisk>
     //a = 0.25
     float a = 0.25f;
     //float a = 0.66f;
-    float kd = ((1.0f-a)*r);
+    float kd = ((1.0f-a)*poissonDiskRadius);
 
 
     cout << "[Bridson2012PoissonDiskDistribution] We kill particles if they are at a distance less than (1-a)d: "<<kd<<endl;

@@ -89,10 +89,9 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     }
     else
     {
-
         newPatchesPoints = strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,newPatchesPoints,surfaceGdp);
-        vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
+        vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
         strategy.UpdateDistributionUsingBridson2012PoissonDisk(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
     }

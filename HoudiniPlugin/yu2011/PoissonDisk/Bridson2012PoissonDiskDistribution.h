@@ -88,7 +88,7 @@ private:
     }
 
 
-    float r;    //radius
+    float poissonDiskRadius;    //radius
     int k;      //the limit of samples to choose before rejection in the algorithm, typically k = 30
     int numberOfPoints;
     TreeDGrid backgroundGrid;

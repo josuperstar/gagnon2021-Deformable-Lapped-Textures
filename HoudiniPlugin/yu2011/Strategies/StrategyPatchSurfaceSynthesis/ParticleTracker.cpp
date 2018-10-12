@@ -130,6 +130,9 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
     GA_RWHandleF    attRandT(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
 
+    GA_RWHandleV3 refAttV(surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3 refAttN(surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+
     //GA_Offset ppt;
     GA_Offset newPoint;
 
@@ -139,9 +142,12 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
     UT_Vector3 defaultDirection(1,0,0);
     UT_Vector3 S,T;
-
+    float thresholdDistance = params.maximumProjectionDistance;
 
     vector<PoissonDisk>::iterator it;
+    GU_MinInfo mininfo;
+    GU_RayIntersect ray(surface);
+    ray.init();
 
     int id = 0;
     for(it = existingPoissonDisks.begin(); it != existingPoissonDisks.end(); ++it)
@@ -152,6 +158,8 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         int currentSpawn = currentPoissonDisk.GetSpawn();
         currentSpawn++;
 
+        UT_Vector3 velocity;
+
         float dynamicTau = currentPoissonDisk.GetDynamicTau();
 
         //=================== UPDATE ===================
@@ -159,6 +167,60 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         {
             continue;
         }
+
+        //============================ PROJECION ON MESH =======================
+        UT_Vector3 p1 = currentPoissonDisk.GetPosition();
+        mininfo.init(thresholdDistance,0.0001);
+        ray.minimumPoint(p1,mininfo);
+
+        if (!mininfo.prim)
+        {
+            //cout << "No primitive to project on"<<endl;
+            continue;
+        }
+
+        const GEO_Primitive *geoPrim = mininfo.prim;
+        int vertexCount = geoPrim->getVertexCount();
+        if (vertexCount != 3)
+        {
+            //cout << "vertex count "<<vertexCount<<" for primitive "<<geoPrim->getMapOffset()<<endl;
+            continue;
+        }
+        //get pos of hit
+        UT_Vector4 hitPos;
+        mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+        if (distance3d(p1,hitPos) < thresholdDistance)
+        {
+            p1 = hitPos;
+
+
+            //------------------------------PARAMETRIC COORDINATE -----------------------------------
+            GA_Offset primOffset = mininfo.prim->getMapOffset();
+            float u = mininfo.u1;
+            float v = mininfo.v1;
+            GEO_Primitive *prim = surface->getGEOPrimitive(primOffset);
+
+            GA_Offset vertexOffset0 = prim->getVertexOffset(0);
+
+            GA_Offset pointOffset0  = surface->vertexPoint(vertexOffset0);
+            UT_Vector3 n0 = refAttN.get(pointOffset0);
+            UT_Vector3 v0 = refAttV.get(pointOffset0);
+
+            GA_Offset vertexOffset1 = prim->getVertexOffset(1);
+            GA_Offset pointOffset1  = surface->vertexPoint(vertexOffset1);
+            UT_Vector3 n1 = refAttN.get(pointOffset1);
+            UT_Vector3 v1 = refAttV.get(pointOffset1);
+
+            GA_Offset vertexOffset2 = prim->getVertexOffset(2);
+            GA_Offset pointOffset2  = surface->vertexPoint(vertexOffset2);
+            UT_Vector3 n2 = refAttN.get(pointOffset2);
+            UT_Vector3 v2 = refAttV.get(pointOffset2);
+
+            N                   = n0+u*(n1-n0)+v*(n2-n0);
+            velocity = v0+u*(v1-v0)+v*(v2-v0);
+        }
+
+        //========================================================================
 
         int active = currentPoissonDisk.IsValid();
         int isMature = currentPoissonDisk.IsMature();
@@ -180,28 +242,20 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //==============================================
         //if (!surfaceGroup->containsOffset(ppt))
         //    continue;
-        position = currentPoissonDisk.GetPosition();
+        //position = currentPoissonDisk.GetPosition();
+        position = p1;
         //vRef = attVSurface.get(ppt);
-        vRef = currentPoissonDisk.GetVelocity();
-        N = currentPoissonDisk.GetNormal();
+        //vRef = currentPoissonDisk.GetVelocity();
+        //N = currentPoissonDisk.GetNormal();
         N.normalize();
 
         newPoint = trackersGdp->appendPoint();
-        attV.set(newPoint,vRef);
+        attV.set(newPoint,velocity);
         attN.set(newPoint,N);
 
         trackersGdp->setPos3(newPoint,position);
         markerGrp->addOffset(newPoint);
         attCd.set(newPoint,UT_Vector3(0,1,1));
-
-        //-------------------------------------------------
-        //adding adjacent tracker
-        //N.normalize();
-        S = cross(N,defaultDirection);
-        S.normalize();
-        T = cross(S,N);
-        T.normalize();
-        //-------------------------------------------------
 
         //cout << "[ParticleTracker] creating tracker "<<currentPoissonDisk.GetId()<<endl;
 
@@ -265,7 +319,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
-    GA_RWHandleF temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
+    GA_RWHandleF    temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
     float deletionLife = params.fadingTau;
 
