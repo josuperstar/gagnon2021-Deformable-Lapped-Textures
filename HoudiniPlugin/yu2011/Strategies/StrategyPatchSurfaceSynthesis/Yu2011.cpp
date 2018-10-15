@@ -289,6 +289,9 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
     //================================ CREATE PATCH GROUPS ==============================
     GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
+    GA_GroupType pointGroupType = GA_GROUP_POINT;
+    const GA_GroupTable *pointGTable = deformableGridsGdp->getGroupTable(pointGroupType);
+
     if (grpMarker->entries() == 0)
     {
         cout << this->approachName << " tracker group is empty"<<endl;
@@ -311,6 +314,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     UT_Vector3 NN;
     UT_Vector3 position;
     UT_Vector3 patchP;
+    UT_Vector3 gridP;
 
     GA_Offset surfacePointOffset;
     int patchNumber = 0;
@@ -339,7 +343,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         string str = std::to_string(patchNumber);
         UT_String patchGroupName("patch"+str);
         GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
-
+        GA_PointGroup*      gridPointGroup      = (GA_PointGroup*)pointGTable->find(gridGroupName);
         UT_String gridGroupName("grid"+str);
         GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
         if (gridPrimitiveGroup == 0x0)
@@ -410,6 +414,62 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 alphaPatch = 1;
             else if (alphaPatch < 0)
                 alphaPatch = 0; //this is weird, should not happen
+
+            //============================= SMOOTH ALPHA ===========================
+            float alpha_W_k = 0.0f;
+            float alpha_sumW_k = 0.0f;
+
+            float distance = 0;
+            bool firstTime = true;
+            float alphaGrid = 0;
+            alphaPatch = 0;
+            //transfert uv from grids
+            GA_Offset pptGrid;
+            bool closeEnough = false;
+
+            //--------------------- ATTRIB TRANSFER----------------------------
+            //for each point of the deformable grid group
+            GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,gridPointGroup,pptGrid)
+            {
+                if (closeEnough)
+                    break;
+
+                gridP = deformableGridsGdp->getPos3(pptGrid);
+                alphaGrid = attAlpha.get(pptGrid);
+                distance = distance3d(gridP,patchP);
+                if (distance < epsilon && distance > -epsilon) //very close to 0
+                {
+                    alpha_W_k = 1;
+                    alpha_sumW_k = 1;
+                    alphaPatch = alphaGrid;
+                    closeEnough = true;
+                }
+                if (distance >= epsilon && distance <= d)//params.alphaTransfertRadius)
+                {
+                    alpha_W_k = 1.f / (distance);
+                    if (firstTime)
+                    {
+                        alphaPatch = alphaGrid * alpha_W_k;
+                        firstTime = false;
+                    }
+                    else
+                    {
+                        alphaPatch += alphaGrid * alpha_W_k;
+                    }
+                    alpha_sumW_k += alpha_W_k;
+                }
+                if (closeEnough)
+                    break;
+            }
+            //-----------------------------------------------------------
+
+            if (alpha_sumW_k <= epsilon)
+                alpha_sumW_k = 1;
+
+            alphaPatch /= alpha_sumW_k;
+            if (alphaPatch < 0)
+                alphaPatch = 0;
+
 
             //------------------------------- SAVE TO VERTEX ----------------------------------------
             patchGroup->addOffset(surfacePointOffset);

@@ -321,6 +321,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
     GA_RWHandleF    temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
     float deletionLife = params.fadingTau;
 
     if (attV.isInvalid())
@@ -454,11 +455,11 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
             }
             else
             {
-                //delete this point
-                //cout << "Delete this point because it can't be projected" <<endl;
+                //delete this point because we can't project it, probably because of a sudden topological change.
                 AttCd.set(ppt,UT_Vector3(1,0,0));
-                grpToDestroy->addOffset(ppt);
-
+                //grpToDestroy->addOffset(ppt);
+                attLife.set(ppt,0);
+                attActive.set(ppt,0);
                 numberOfPatches--;
                 numberOfDetachedPatches++;
                 toAdd = false;
@@ -469,10 +470,10 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
 
             //----------------------------------------------------
             //To add or not to add, this is the question.
-            if(toAdd)
+            //if(toAdd)
                 trackers.push_back(ppt);
-            else
-                grpToDestroy->addOffset(ppt);
+            //else
+                //grpToDestroy->addOffset(ppt);
             //----------------------------------------------------
         }
     }

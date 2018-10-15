@@ -23,6 +23,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
                                 ParametersDeformablePatches params)
 {
 
+    //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
+
     float d = params.poissondiskradius;
     Pixel displaceMean;
     if(computeDisplacement)
@@ -117,6 +119,14 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
 
+        /*
+        float a0        = attAlpha.get(pointOffset0);
+        float a1        = attAlpha.get(pointOffset1);
+        float a2        = attAlpha.get(pointOffset2);
+
+        float   alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
+        float   Q_V = attQt.get(prim->getMapOffset())*alphaPatch;
+        */
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
         float   Q_V = attQt.get(prim->getMapOffset());
