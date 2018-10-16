@@ -503,10 +503,10 @@ void HoudiniAtlas::SaveAtlas()
 {
     //write the image to the disk
     diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
-    diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equation3.png");
-    diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equation4.png");
+    diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equationtree.png");
+    diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.png");
     diffuseImageBlendingYu2011Equation4->growRegions(diffuseImageBlendingYu2011Equation4->image,diffuseImageBlendingYu2011Equation4->image,3); //
-    diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equation4.padded.png");
+    diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.padded.png");
     cout << "Save texture atlas"<<outputFilename<<endl;
     if (computeDisplacement)
     {
