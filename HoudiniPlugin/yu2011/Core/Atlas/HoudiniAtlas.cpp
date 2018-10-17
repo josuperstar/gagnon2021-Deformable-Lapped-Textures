@@ -90,23 +90,15 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
 
-    if(useDeformableGrids)
-    {
-        gridTree.build(deformableGrids,NULL);
-        attPointUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
-        attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
-        pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
-        primGroupTable = deformableGrids->getGroupTable(primGroupType);
-        cout << "[HoudiniAtlas::BuildAtlas] Atlas uses deformable grids"<<endl;
 
-    }
-    else
-    {
-        attPointUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
-        attAlpha = GA_ROHandleF(surface->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
-        pointGroupTable = surface->getGroupTable(pointGroupType);
-        primGroupTable = surface->getGroupTable(primGroupType);
-    }
+    gridTree.build(deformableGrids,NULL);
+    attPointUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
+    attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
+    pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
+    primGroupTable = deformableGrids->getGroupTable(primGroupType);
+    cout << "[HoudiniAtlas::BuildAtlas] Atlas uses deformable grids"<<endl;
+
+
 
     attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
     if (attUV.isInvalid())
@@ -452,7 +444,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             while (pixelPositionY < 0)
                 pixelPositionY += h;
 
-            if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]) || !this->pixelUsed[pixelPositionX][pixelPositionY]  )
+            if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]))// || !this->pixelUsed[pixelPositionX][pixelPositionY]  )
             {
                 //test color
                 color.R = 1;

@@ -131,10 +131,12 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //Q_v quality of the vertex, value from 0 to 1
         float   Q_t = attQt.get(prim->getMapOffset());
 
+        /*
         //For each vertex V, we then compute its quality,
         //Q_v as the mean of the quality of its incident triangles.
-        vector<GA_Offset> triangleList;
-        vector<GA_Offset>::iterator itT;
+        //We can move this part of the code outside the blending function
+        set<GA_Offset> triangleList;
+        set<GA_Offset>::iterator itT;
         GA_OffsetArray incidentTriangles;
         GA_OffsetArray::iterator itPrimList;
         int nbVertex = prim->getVertexCount();
@@ -145,7 +147,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             deformableGrids->getPrimitivesReferencingPoint(incidentTriangles,point);
             for(itPrimList=incidentTriangles.begin(); itPrimList != incidentTriangles.end(); itPrimList++ )
             {
-                triangleList.push_back(itPrimList.item());
+                triangleList.insert(itPrimList.item());
             }
         }
 
@@ -154,7 +156,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             Q_t += attQt.get(*itT);
 
         Q_t /= (triangleList.size()+1);
-
+        */
         float   Q_V = Q_t;
 
         //-----------------------------------------------------------------

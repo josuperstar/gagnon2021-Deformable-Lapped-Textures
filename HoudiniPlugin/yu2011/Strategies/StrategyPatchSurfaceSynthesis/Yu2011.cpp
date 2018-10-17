@@ -335,7 +335,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         // Close particles indices
         GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
         surfaceTree.findAllCloseIdx(position,
-                             patchRadius,
+                             patchRadius*2,
                              surfaceNeighborhoodVertices);
 
         unsigned close_particles_count = surfaceNeighborhoodVertices.entries();
@@ -377,6 +377,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 //we can't project the point on the surface
                 continue;
             }
+            /*
             //get pos of hit
             UT_Vector4 hitPos;
             mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
@@ -470,7 +471,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             if (alphaPatch < 0)
                 alphaPatch = 0;
 
-
+            */
             //------------------------------- SAVE TO VERTEX ----------------------------------------
             patchGroup->addOffset(surfacePointOffset);
             // Fetch array value
@@ -479,6 +480,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             // Write back
             patchIdsAtt->set(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
 
+            /*
             alphaAtt->get(alphaArrayAtt, surfacePointOffset, alphaArrayData);
             alphaArrayData.append(alphaPatch);
             // Write back
@@ -490,6 +492,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             uvArrayData.append(uvPatch.z());
             // Write back
             uvsArray->set(uvsAtt, surfacePointOffset, uvArrayData);
+            */
             //---------------------------------------------------------------------------------
         }
         neighborhood.clear();
