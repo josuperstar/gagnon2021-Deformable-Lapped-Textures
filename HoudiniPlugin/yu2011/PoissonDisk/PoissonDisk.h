@@ -38,6 +38,9 @@ public:
     UT_Vector3 GetVelocity(){return v;}
     void SetVelocity(UT_Vector3 data){v = data;}
 
+    UT_Vector3 GetCenterUV(){return centerUV;}
+    void SetCenterUV(UT_Vector3 data){centerUV = data;}
+
     UT_Vector3 GetPosition(){return position;}
 
 
@@ -76,6 +79,7 @@ private:
     UT_Vector3 position;
     UT_Vector3 n;
     UT_Vector3 v;
+    UT_Vector3 centerUV;
     int valid;
     int isMature;
     int id = 0;

@@ -108,6 +108,7 @@ private:
    vector< vector<bool> > pixelUsed;
    map<int,float> temporalComponetKt;
    map<int,UT_Vector3> trackerPosition;
+   map<int,UT_Vector3> trackerUVPosition;
 
    bool useCopyGUDetail = false;
    bool useDeformableGrids = false;

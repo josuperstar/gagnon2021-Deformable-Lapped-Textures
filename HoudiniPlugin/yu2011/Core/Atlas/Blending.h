@@ -50,11 +50,25 @@ public:
 
     static void Clamp(Pixel &pixel)
     {
+
+        /*
+        pixel.A = 1;
+        pixel.R /= 2;
+        pixel.G /= 2;
+        pixel.B /= 2;
+
+
+        pixel.R += 0.25;
+        pixel.G += 0.25;
+        pixel.B += 0.25;
+
+        pixel.R -= 0.1;
+        pixel.G -= 0.1;
+        pixel.B -= 0.1;
+        */
+
         if (pixel.A > 1)
             pixel.A = 1;
-
-        if (pixel.A < 0)
-            pixel.A = 0;
 
         if (pixel.R > 1)
             pixel.R = 1;
@@ -63,14 +77,18 @@ public:
         if (pixel.B > 1)
             pixel.B = 1;
 
+        if (pixel.A < 0)
+            pixel.A = 0;
+
         if (pixel.R < 0)
             pixel.R = 0;
         if (pixel.G < 0)
             pixel.G = 0;
         if (pixel.B < 0)
             pixel.B = 0;
+
     }
-	
+
 };
 }
 

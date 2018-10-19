@@ -9,6 +9,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
                                 vector<UT_Vector3> &surfaceUv,
                                 vector<UT_Vector3> &surfacePosition,
                                 map<int,UT_Vector3> &trackersPosition,
+                                map<int,UT_Vector3> &trackersUVPosition,
                                 map<string,GU_RayIntersect*> &rays,
                                 map<int,Pixel> &patchColors,
                                 Pixel RM,           //Mean Value
@@ -95,10 +96,18 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (prim->getVertexCount() < 3)
             continue;
 
+
+
         //------------------------------PARAMETRIC COORDINATE -----------------------------------
         float u = mininfo.u1;
         float v = mininfo.v1;
-
+        //get pos of hit
+        UT_Vector4 hitPos;
+        //mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+        //if (distance3d(positionOnSurface,hitPos) > params.maximumProjectionDistance)
+        //{
+        //    continue;
+        //}
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
         GA_Offset vertexOffset1 = prim->getVertexOffset(1);  
         GA_Offset vertexOffset2 = prim->getVertexOffset(2);
@@ -174,6 +183,15 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (computeDisplacement)
             displacementMapImage->GetColor(i2,j2,0,displacement);
 
+        //clamping color values ...
+        if (color.B > 1.0f)
+            color.B = 1.0f;
+        if (color.G > 1.0f)
+            color.G = 1.0f;
+        if (color.R > 1.0f)
+            color.R = 1.0f;
+
+
         //-----------------------------------------------------------------
 
         //--------------------------Equation 7--------------------
@@ -202,13 +220,30 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         UT_Vector3 trackerPosition = trackersPosition[patchId];//trackersGdp->getPos3(patchId);
 
         //UT_Vector3 diffP = positionOnSurface-trackerPosition;
-        float d_P = distance3d(positionOnSurface,trackerPosition);//diffP.length();
+        //float d_P = distance3d(positionOnSurface,trackerPosition);//diffP.length();
+        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
+        float d_P = distance3d(positionInPolygon,centerUV);
+        float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
 
+
+        /*
         //d_V =0 if V ∈ grid boundary 1 otherwise
         float d_V = 1.0f;
         if (d_P > d)
             d_V = 0.0f;
         float K_s = (1.0f-(d_P/d))*d_V*Q_V;
+        */
+
+        float d_V = 1.0f;
+        if (d_P > maxDUV)
+            d_V = 0.0f;
+        float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;
+
+        //K_s should be between 0 and 1
+        if (K_s < 0)
+            K_s = 0;
+        else if (K_s > 1.0f)
+            K_s = 1.0f;
 
         //--------------------------Equation 6--------------------
         //temporal componet
@@ -226,6 +261,10 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //after the particle has been killed.
         //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
         float K_t = fading[patchId];
+        if (K_t < 0)
+            K_t = 0;
+        else if (K_t > 1.0f)
+            K_t = 1.0f;
 
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights

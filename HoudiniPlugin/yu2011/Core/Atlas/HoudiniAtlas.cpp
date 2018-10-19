@@ -89,6 +89,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     attLife = life;
 
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
+    GA_RWHandleV3   attCenterUV(trackers->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
 
 
     gridTree.build(deformableGrids,NULL);
@@ -215,6 +216,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         if (isinf(blend))
             blend = 1.0f;
         temporalComponetKt[patchId] = blend;
+        trackerUVPosition[patchId] = attCenterUV.get(ppt);
     }
 
     if(renderColoredPatches)
@@ -457,6 +459,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                                           surfaceUv,
                                           surfacePosition,
                                           trackerPosition,
+                                          trackerUVPosition,
                                           //useDeformableGrids,
                                           rays,
                                           patchColors,

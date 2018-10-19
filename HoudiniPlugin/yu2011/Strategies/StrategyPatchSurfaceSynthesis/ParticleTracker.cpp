@@ -117,6 +117,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
 
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleV3   attV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   attCd(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -161,6 +162,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         UT_Vector3 velocity;
 
         float dynamicTau = currentPoissonDisk.GetDynamicTau();
+        UT_Vector3 centerUV = currentPoissonDisk.GetCenterUV();
 
         //=================== UPDATE ===================
         if (currentLife <= 0 && params.frame > params.startFrame)
@@ -252,6 +254,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         newPoint = trackersGdp->appendPoint();
         attV.set(newPoint,velocity);
         attN.set(newPoint,N);
+        attCenterUV.set(newPoint,centerUV);
 
         trackersGdp->setPos3(newPoint,position);
         markerGrp->addOffset(newPoint);
@@ -317,6 +320,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
 
     GA_RWHandleV3   attV(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+
     GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
     GA_RWHandleF    temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));

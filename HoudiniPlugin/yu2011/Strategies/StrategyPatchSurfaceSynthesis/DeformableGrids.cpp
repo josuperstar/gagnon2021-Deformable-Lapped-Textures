@@ -84,6 +84,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     //cout << "gridwidth "<<gridwidth<<endl;
 
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
 
     GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
@@ -518,15 +519,34 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         float scaleup = 2.0;
 
-        GA_Offset ppt;
-        GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,ppt)
+
         {
-            UT_Vector3 uv = attUV.get(ppt);
-            uv += UT_Vector3(tx,ty,tz);
-            uv /= scaleup;
-            attUV.set(ppt,uv);
+            GA_Offset gppt;
+            GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
+            {
+                UT_Vector3 uv = attUV.get(gppt);
+                uv += UT_Vector3(tx,ty,tz);
+                uv /= scaleup;
+                attUV.set(gppt,uv);
+            }
         }
 
+        UT_Vector3 centerUV;
+        int i = 0;
+        {
+            GA_Offset gppt;
+            GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
+            {
+                UT_Vector3 uv = attUV.get(gppt);
+                centerUV += uv;
+                i++;
+            }
+        }
+        if (i > 0)
+        {
+            centerUV /= i;
+            attCenterUV.set(ppt,centerUV);
+        }
         //-----------------------------------------------------
         GEO_Primitive *prim;
         float area;

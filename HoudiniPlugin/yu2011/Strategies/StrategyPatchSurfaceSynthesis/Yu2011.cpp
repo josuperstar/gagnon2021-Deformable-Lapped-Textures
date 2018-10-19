@@ -176,6 +176,7 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     cout << "[Yu2011:PoissonDiskSampling]"<<endl;
     GA_RWHandleV3   attV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleF    attExistingLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life", 1));
     GA_RWHandleI    attExistingSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn", 1));
@@ -229,6 +230,7 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
             p.SetSpawn(attExistingSpawn.get(ppt));
             p.SetDynamicTau(attMaxDeltaOnD.get(ppt));
             p.SetNormal(attN.get(ppt));
+            p.SetCenterUV(attCenterUV.get(ppt));
             //cout << "existing point "<<id<<" valid "<<attExistingActive.get(ppt)<<endl;
             p.SetValid(attExistingActive.get(ppt));
             p.SetMature(attExistingMature.get(ppt));
@@ -314,7 +316,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     UT_Vector3 NN;
     UT_Vector3 position;
     UT_Vector3 patchP;
-    UT_Vector3 gridP;
 
     GA_Offset surfacePointOffset;
     int patchNumber = 0;
@@ -335,7 +336,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         // Close particles indices
         GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
         surfaceTree.findAllCloseIdx(position,
-                             patchRadius*2,
+                             patchRadius*1.2,
                              surfaceNeighborhoodVertices);
 
         unsigned close_particles_count = surfaceNeighborhoodVertices.entries();
@@ -343,7 +344,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         string str = std::to_string(patchNumber);
         UT_String patchGroupName("patch"+str);
         GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
-        GA_PointGroup*      gridPointGroup      = (GA_PointGroup*)pointGTable->find(gridGroupName);
         UT_String gridGroupName("grid"+str);
         GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
         if (gridPrimitiveGroup == 0x0)
@@ -363,10 +363,17 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         {
             surfacePointOffset = *itG;
             NN = attNSurface.get(surfacePointOffset);
-            float dotP = dot(N,NN); //exlude points that are not in the same plane.
-            if (dotP < params.angleNormalThreshold)
-                continue;
+            //float dotP = dot(N,NN); //exlude points that are not in the same plane.
+            //if (dotP < params.angleNormalThreshold)
+            //    continue;
+
+
             patchP = surfaceGdp->getPos3(surfacePointOffset);
+
+            //float dist = distance3d(patchP,position);
+            //if (dist > params.maximumProjectionDistance)
+            //    continue;
+
             //------------------------------------ RAY -----------------------------------------
             //project patchP on trackers set
             GU_MinInfo mininfo;
@@ -377,123 +384,12 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 //we can't project the point on the surface
                 continue;
             }
-            /*
-            //get pos of hit
-            UT_Vector4 hitPos;
-            mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
-            if (distance3d(hitPos,patchP) > thresholdDistance)
-                continue;
-            float u = mininfo.u1;
-            float v = mininfo.v1;
 
-            //------------------------------PARAMETRIC COORDINATE -----------------------------------
-            GA_Offset primOffset = mininfo.prim->getMapOffset();
-            GEO_Primitive *prim = deformableGridsGdp->getGEOPrimitive(primOffset);
-            if (prim->getVertexCount() < 3)
-                continue;
-
-            GA_Offset vertexOffset0 = prim->getVertexOffset(0);
-            GA_Offset vertexOffset1 = prim->getVertexOffset(1);
-            GA_Offset vertexOffset2 = prim->getVertexOffset(2);
-
-            GA_Offset pointOffset0  = deformableGridsGdp->vertexPoint(vertexOffset0);
-            GA_Offset pointOffset1  = deformableGridsGdp->vertexPoint(vertexOffset1);
-            GA_Offset pointOffset2  = deformableGridsGdp->vertexPoint(vertexOffset2);
-
-            UT_Vector3 v0   = attUV.get(pointOffset0);
-            UT_Vector3 v1   = attUV.get(pointOffset1);
-            UT_Vector3 v2   = attUV.get(pointOffset2);
-
-            float a0        = attAlpha.get(pointOffset0);
-            float a1        = attAlpha.get(pointOffset1);
-            float a2        = attAlpha.get(pointOffset2);
-
-            UT_Vector3 uvPatch = v0+u*(v1-v0)+v*(v2-v0);
-            float   alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
-
-            if (alphaPatch > 1)
-                alphaPatch = 1;
-            else if (alphaPatch < 0)
-                alphaPatch = 0; //this is weird, should not happen
-
-            //============================= SMOOTH ALPHA ===========================
-            float alpha_W_k = 0.0f;
-            float alpha_sumW_k = 0.0f;
-
-            float distance = 0;
-            bool firstTime = true;
-            float alphaGrid = 0;
-            alphaPatch = 0;
-            //transfert uv from grids
-            GA_Offset pptGrid;
-            bool closeEnough = false;
-
-            //--------------------- ATTRIB TRANSFER----------------------------
-            //for each point of the deformable grid group
-            GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,gridPointGroup,pptGrid)
-            {
-                if (closeEnough)
-                    break;
-
-                gridP = deformableGridsGdp->getPos3(pptGrid);
-                alphaGrid = attAlpha.get(pptGrid);
-                distance = distance3d(gridP,patchP);
-                if (distance < epsilon && distance > -epsilon) //very close to 0
-                {
-                    alpha_W_k = 1;
-                    alpha_sumW_k = 1;
-                    alphaPatch = alphaGrid;
-                    closeEnough = true;
-                }
-                if (distance >= epsilon && distance <= d)//params.alphaTransfertRadius)
-                {
-                    alpha_W_k = 1.f / (distance);
-                    if (firstTime)
-                    {
-                        alphaPatch = alphaGrid * alpha_W_k;
-                        firstTime = false;
-                    }
-                    else
-                    {
-                        alphaPatch += alphaGrid * alpha_W_k;
-                    }
-                    alpha_sumW_k += alpha_W_k;
-                }
-                if (closeEnough)
-                    break;
-            }
-            //-----------------------------------------------------------
-
-            if (alpha_sumW_k <= epsilon)
-                alpha_sumW_k = 1;
-
-            alphaPatch /= alpha_sumW_k;
-            if (alphaPatch < 0)
-                alphaPatch = 0;
-
-            */
-            //------------------------------- SAVE TO VERTEX ----------------------------------------
             patchGroup->addOffset(surfacePointOffset);
-            // Fetch array value
             patchIdsAtt->get(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
             patchArrayData.append(patchNumber);
-            // Write back
             patchIdsAtt->set(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
 
-            /*
-            alphaAtt->get(alphaArrayAtt, surfacePointOffset, alphaArrayData);
-            alphaArrayData.append(alphaPatch);
-            // Write back
-            alphaAtt->set(alphaArrayAtt, surfacePointOffset, alphaArrayData);
-
-            uvsArray->get(uvsAtt, surfacePointOffset, uvArrayData);
-            uvArrayData.append(uvPatch.x());
-            uvArrayData.append(uvPatch.y());
-            uvArrayData.append(uvPatch.z());
-            // Write back
-            uvsArray->set(uvsAtt, surfacePointOffset, uvArrayData);
-            */
-            //---------------------------------------------------------------------------------
         }
         neighborhood.clear();
     }
