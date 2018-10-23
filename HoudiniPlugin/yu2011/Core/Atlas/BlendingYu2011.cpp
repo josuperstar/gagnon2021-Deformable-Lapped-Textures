@@ -102,12 +102,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         float u = mininfo.u1;
         float v = mininfo.v1;
         //get pos of hit
-        UT_Vector4 hitPos;
-        //mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
-        //if (distance3d(positionOnSurface,hitPos) > params.maximumProjectionDistance)
-        //{
-        //    continue;
-        //}
+
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
         GA_Offset vertexOffset1 = prim->getVertexOffset(1);  
         GA_Offset vertexOffset2 = prim->getVertexOffset(2);
@@ -128,44 +123,10 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
 
-        /*
-        float a0        = attAlpha.get(pointOffset0);
-        float a1        = attAlpha.get(pointOffset1);
-        float a2        = attAlpha.get(pointOffset2);
-
-        float   alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
-        float   Q_V = attQt.get(prim->getMapOffset())*alphaPatch;
-        */
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
         float   Q_t = attQt.get(prim->getMapOffset());
 
-        /*
-        //For each vertex V, we then compute its quality,
-        //Q_v as the mean of the quality of its incident triangles.
-        //We can move this part of the code outside the blending function
-        set<GA_Offset> triangleList;
-        set<GA_Offset>::iterator itT;
-        GA_OffsetArray incidentTriangles;
-        GA_OffsetArray::iterator itPrimList;
-        int nbVertex = prim->getVertexCount();
-        for (int i = 0; i < nbVertex; i++)
-        {
-            GA_Offset vertexPoint = prim->getVertexOffset(i);
-            GA_Offset point = deformableGrids->vertexPoint(vertexPoint);
-            deformableGrids->getPrimitivesReferencingPoint(incidentTriangles,point);
-            for(itPrimList=incidentTriangles.begin(); itPrimList != incidentTriangles.end(); itPrimList++ )
-            {
-                triangleList.insert(itPrimList.item());
-            }
-        }
-
-        //juste compute the average
-        for(itT = triangleList.begin(); itT != triangleList.end(); itT++)
-            Q_t += attQt.get(*itT);
-
-        Q_t /= (triangleList.size()+1);
-        */
         float   Q_V = Q_t;
 
         //-----------------------------------------------------------------
@@ -216,25 +177,14 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         //float dP = ((falloff.R+falloff.G+falloff.B)/3);
 
-        //tracker position
-        UT_Vector3 trackerPosition = trackersPosition[patchId];//trackersGdp->getPos3(patchId);
-
-        //UT_Vector3 diffP = positionOnSurface-trackerPosition;
-        //float d_P = distance3d(positionOnSurface,trackerPosition);//diffP.length();
         UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
         float d_P = distance3d(positionInPolygon,centerUV);
-        float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
+        //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
+        float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
 
-
-        /*
         //d_V =0 if V ∈ grid boundary 1 otherwise
         float d_V = 1.0f;
-        if (d_P > d)
-            d_V = 0.0f;
-        float K_s = (1.0f-(d_P/d))*d_V*Q_V;
-        */
 
-        float d_V = 1.0f;
         if (d_P > maxDUV)
             d_V = 0.0f;
         float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;

@@ -275,20 +275,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         attActive.set(newPoint,active);
         attIsMature.set(newPoint,isMature);
         attPoissonDisk.set(newPoint,1);
-        /*
-        GA_RWHandleF blend = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
 
-        if (params.startFrame == params.frame)
-        {
-            attFadeIn.set(newPoint,params.fadingTau);
-            blend.set(newPoint,1.0f);
-        }
-        else
-        {
-            attFadeIn.set(newPoint,0);
-            blend.set(newPoint,0.0f);
-        }
-        */
         float randt = (((double) rand() / (RAND_MAX)));
         attRandT.set(newPoint,randt);
 

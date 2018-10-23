@@ -55,6 +55,7 @@ public:
     fpreal  UseDeformableGrids() { return evalFloat("UseDeformableGrids", 0, 0); }
     fpreal  RenderColoredPatches() { return evalFloat("RenderColoredPatches", 0, 0); }
     fpreal  PoissonDiskRadius() { return evalFloat("PoissonDiskRadius", 0, 0); }
+    fpreal  UVScaling() { return evalFloat("UVScaling", 0, 0); }
 
 
 protected:

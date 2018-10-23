@@ -56,6 +56,7 @@ static PRM_Name        names[] = {
     PRM_Name("UseDeformableGrids","Use Deformable Grids"),
     PRM_Name("OutputName","Output Name"),
     PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),
+    PRM_Name("UVScaling",	"UV Scaling"),
 };
 
 
@@ -73,6 +74,7 @@ AtlasPlugin::myTemplateList[] =
     PRM_Template(PRM_TOGGLE, 1, &names[8]),
     PRM_Template(PRM_STRING, 1, &names[9]),
     PRM_Template(PRM_FLT, 1, &names[10]),
+    PRM_Template(PRM_FLT, 1, &names[11]),
     PRM_Template(),
 };
 
@@ -192,6 +194,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
 
     params.useDeformableGrids = UseDeformableGrids();
     params.coloredPatches = RenderColoredPatches();
+    params.UVScaling = UVScaling();
 
     if (params.atlasHeight <= 0)
     {

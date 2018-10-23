@@ -74,7 +74,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     //grids of width (2 + β)d, with a small β (in our implementation, β = 0.6). The size of the grid is a compromise
     //between particle lifetime and the number of vertices it will require to ensure a given resolution
 
-    float beta = 0.6f;
+    float beta = params.Yu2011Beta;
     float d = params.poissondiskradius;
     float gridwidth = (2+beta)*d;
 
@@ -122,8 +122,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     GA_RWHandleF attVA(deformableGridsGdp->addFloatTuple(GA_ATTRIB_VERTEX,initialVertexAngle,1));
     GA_RWHandleF attLife(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI attPrimLife(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"life",1));
-    //GA_RWHandleF attTMin(gdp->addFloatTuple(GA_ATTRIB_POINT,disrortionMinThreshold,1));
-    //GA_RWHandleF attTMax(gdp->addFloatTuple(GA_ATTRIB_POINT,distortionMaxThreshold,1));
 
     GA_RWHandleV3 attNSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3 attVSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
@@ -421,14 +419,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             attRP.set(vertexB,triangleSpacePosB);
             attRP.set(vertexC,triangleSpacePosC);
 
-
-            //======================== JULIAN MAGIC HERE =========================
-            /*
-            UT_Vector3 p1 = UT_Vector3(0.0902777,-0.176871,0);//triangleSpacePosA;
-            UT_Vector3 p2 = UT_Vector3(0.0902777,0.0884352,0);//triangleSpacePosB;
-            UT_Vector3 p3 = UT_Vector3(-0.18055,0.0884352,0);//triangleSpacePosC;
-            */
-
+            //======================== SORKINE 2002 SECTION 3.2 =========================
+            //this part of the code is also in Yu2011Distortion.cpp
             UT_Vector3 p1 = triangleSpacePosA;
             UT_Vector3 p2 = triangleSpacePosB;
             UT_Vector3 p3 = triangleSpacePosC;
@@ -448,10 +440,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
             float area = ((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f;
             attArea.set(prim_poly_ptr->getMapOffset(),area);
-
-            //cout << "s1 "<<s1<< " s2 "<<s2 << " s3 "<<s3 << " t1 "<<t1 << " t2 "<<t2 << " t3 "<<t3<<endl;
-            //cout << "q1 "<<q1<<" q2 "<<q2 << " q3 "<<q3<<endl;
-            //cout << "area "<<area<<endl;
 
             if (area != 0.0f)
             {
@@ -482,16 +470,13 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
             primGroup->addOffset(prim_poly_ptr->getMapOffset());
         }
-
-        //cout << "compute areas"<<endl;
         this->gridMeshCreation += (std::clock() - startMeshCreation) / (double) CLOCKS_PER_SEC;
 
         if (close_particles_count == 0)
             continue;
 
         GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-        //if ( (float)nbDistorted/(float)close_particles_count > 0.2)
-        //if ( nbDistorted > 1)
+
         //=====================================================================================
         //--------------------- UV FLATENING-------------------
         bool flattening = true;
@@ -501,23 +486,20 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         }//======================================END UV FLATENING===============================================
 
-
         //--------------------------------------------------
         //Take a random part of the input texture uv space
         //- compute a random translation
         //- scale up
-
+        float scaleup = params.UVScaling;
         int seed = id;
         float offset = 0.5;
-        float randomScale = 1.0;
+        float randomScale = scaleup/2.0f;
         srand(seed);
         float tx = (((double) rand()/(RAND_MAX)))*randomScale;
         srand(seed+1);
         float ty = (((double) rand()/(RAND_MAX)))*randomScale;
         srand(seed+2);
         float tz = (((double) rand()/(RAND_MAX)))*randomScale;
-
-        float scaleup = 2.0;
 
 
         {
@@ -558,7 +540,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         if(pointGroup->entries() == 0)
         {
-            //cout << "Was not able to add points in "<<pointGroup->getName()<<endl;
             //delete prim point and prim group
             deformableGridsGdp->deletePoints(*pointGroup,mode);
             deformableGridsGdp->destroyPointGroup(pointGroup);
@@ -566,7 +547,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             DeleteTracker(trackersGdp,id);
 
         }
-        //cout << "done"<<endl;
     }
 }
 
@@ -627,10 +607,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     float poissonDiskD = params.poissondiskradius;
 
     ParametersDistortion distortionParams;
-    distortionParams.dilatationMin              = params.dilatationMin;
-    distortionParams.dilatationMax              = params.dilatationMax;
-    distortionParams.squeezeMin                 = params.squeezeMin;
-    distortionParams.squeezeMax                 = params.squeezeMax;
     distortionParams.deletionLife               = params.fadingTau;
     distortionParams.distortionRatioThreshold   = params.distortionRatioThreshold ;
     distortionParams.Yu2011DMax                 = params.Yu2011DMax ;

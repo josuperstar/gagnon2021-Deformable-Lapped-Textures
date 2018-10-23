@@ -67,8 +67,8 @@ static PRM_Name        names[] = {
     PRM_Name("DeformableGridsFilename",	"Deformable Grids Filename"),
     PRM_Name("PatchAngleNormalThreshold",	"Patch Angle Normal Threshold"),
     PRM_Name("PoissonAngleNormalThreshold",	"Poisson Angle Normal Threshold"),
-
-
+    PRM_Name("UVScaling",	"UV Scaling"),
+    PRM_Name("Yu2011Beta",	"Yu2011 Beta"),
 };
 
 static PRM_Default StartFrameDefault(1);
@@ -79,6 +79,8 @@ static PRM_Default Yu2011DMaxDefault(2.0f);
 static PRM_Default QvMinDefault(0.5f);
 static PRM_Default AngleNormalThresholdDefault(0.5f);
 static PRM_Default PoissonAngleNormalThresholdDefault(0.9f);
+static PRM_Default UVScalingDefault(2.0f);
+static PRM_Default Yu2011BetaDefault(0.6f);
 
 PRM_Template
 Yu2011Plugin::myTemplateList[] = {
@@ -97,6 +99,8 @@ Yu2011Plugin::myTemplateList[] = {
     PRM_Template(PRM_GEOFILE, 1, &names[12]),
     PRM_Template(PRM_FLT, 1, &names[13], &AngleNormalThresholdDefault),
     PRM_Template(PRM_FLT, 1, &names[14], &PoissonAngleNormalThresholdDefault),
+    PRM_Template(PRM_FLT, 1, &names[15], &UVScalingDefault),
+    PRM_Template(PRM_FLT, 1, &names[16], &Yu2011BetaDefault),
     PRM_Template(),
 
 };
@@ -224,6 +228,8 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     params.useDeformableGrids = UseDeformableGrids();
     params.angleNormalThreshold = PatchAngleNormalThreshold();
     params.poissonAngleNormalThreshold = PoissonAngleNormalThreshold();
+    params.UVScaling = UVScaling();
+    params.Yu2011Beta = Yu2011Beta();
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
 

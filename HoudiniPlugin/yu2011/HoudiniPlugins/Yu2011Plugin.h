@@ -46,6 +46,8 @@ public:
     fpreal  FadingTau() { return evalFloat("FadingTau", 0, 0); }
     fpreal  PatchAngleNormalThreshold() { return evalFloat("PatchAngleNormalThreshold", 0, 0); }
     fpreal  PoissonAngleNormalThreshold() { return evalFloat("PoissonAngleNormalThreshold", 0, 0); }
+    fpreal  UVScaling() { return evalFloat("UVScaling", 0, 0); }
+    fpreal  Yu2011Beta() { return evalFloat("Yu2011Beta", 0, 0); }
     fpreal  Yu2011DMax() { return evalFloat("Yu2011DMax", 0, 0); }
     fpreal  QvMin() { return evalFloat("QvMin", 0, 0); } 
     fpreal  TestPatch() { return evalFloat("TestPatch", 0, 0); }

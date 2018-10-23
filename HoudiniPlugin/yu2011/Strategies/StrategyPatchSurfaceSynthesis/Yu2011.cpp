@@ -284,7 +284,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     addPatchesStart = std::clock();
 
 
-    float beta = 0.6f;
+    float beta = params.Yu2011Beta;
     float d = params.poissondiskradius;
     float gridwidth = (2+beta)*d; //same formula used in DeformableGrids.cpp
     fpreal patchRadius = (fpreal)gridwidth;
@@ -363,17 +363,12 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         {
             surfacePointOffset = *itG;
             NN = attNSurface.get(surfacePointOffset);
-            //float dotP = dot(N,NN); //exlude points that are not in the same plane.
-            //if (dotP < params.angleNormalThreshold)
-            //    continue;
+            float dotP = dot(N,NN); //exlude points that are not in the same plane.
+            if (dotP < params.angleNormalThreshold)
+                continue;
 
 
             patchP = surfaceGdp->getPos3(surfacePointOffset);
-
-            //float dist = distance3d(patchP,position);
-            //if (dist > params.maximumProjectionDistance)
-            //    continue;
-
             //------------------------------------ RAY -----------------------------------------
             //project patchP on trackers set
             GU_MinInfo mininfo;

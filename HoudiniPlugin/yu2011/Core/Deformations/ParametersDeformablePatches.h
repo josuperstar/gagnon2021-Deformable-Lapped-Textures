@@ -47,7 +47,9 @@ struct ParametersDeformablePatches
     float fadingTau; // Yu2011 Fading Tau, equation 6
     float Yu2011DMax; // Yu2011 delta max, equation 2
     float QvMin; //Yu2011 Quality Vertex Minimum, 0.5f by default
+    float UVScaling; //scaling used for the patch definition of uv.
     bool useDynamicTau;
+    float Yu2011Beta;
 };
 }
 
