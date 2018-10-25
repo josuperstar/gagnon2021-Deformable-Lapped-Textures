@@ -22,13 +22,17 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
     GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
     GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
 
-
     bool killParticle = false;
     bool overDistorted = false;
     {
         GEO_Primitive *prim;
         float area;
         int nbVertex;
+
+        for (int i=0; i<10000000; ++i)
+        {
+            std::cout << "Moumoune!" << std::endl;
+        }
 
         GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
         {
@@ -125,19 +129,9 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
     if (killParticle)
     {
         //flag killing particle if it's not already flagged:
-        //if (attSpawn.get(trackerPpt) >= params.deletionLife)
         if (attActive.get(trackerPpt) == 1)
         {
-            //cout << "Flag patch "<<attId.get(trackerPpt)<< " to be inactive because too distorted."<<endl;
             attActive.set(trackerPpt,0);
         }
-        /*
-        //cout << "[Yu2011Distortion] reducing life of tracker "<<trackerPpt<< " id "<< attId.get(trackerPpt) << " to inactive"<< endl;
-        if (overDistorted)
-        {
-            attActive.set(trackerPpt,0);
-            attLife.set(trackerPpt,3);
-        }
-        */
     }
 }

@@ -59,12 +59,12 @@ private:
    ImageCV *diffuseImageBlendingGagnon;
    ImageCV *diffuseImageBlendingYu2011Equation3;
    ImageCV *diffuseImageBlendingYu2011Equation4;
-   ImageCV *displacementMap;
+   ImageCV *displacementMapEquation4;
+   ImageCV *displacementMapEquation3;
 
    ImageCV *textureExemplar1Image;
    Pixel RM;
    string textureExemplar1Name;
-
 
    ImageCV *textureExemplar1ImageMask;
    string textureExemplar1MaskName;
@@ -78,12 +78,6 @@ private:
 
    const GA_AIFNumericArray *patchArray;
    GA_Attribute        *patchIds;
-
-   GA_Attribute        *alphas;
-   const GA_AIFNumericArray *alphaArray;
-
-   GA_Attribute        *uvsAtt;
-   const GA_AIFNumericArray *uvsArray;
 
    GA_RWHandleV3 attUV;
    GA_RWHandleV3 attGridUV;
@@ -117,8 +111,6 @@ private:
 
    bool debugPatch = false;
    int patchNumber = 15;
-
-   //GU_RayIntersect ray;
 
 };
 }

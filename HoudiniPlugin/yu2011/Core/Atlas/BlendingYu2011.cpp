@@ -20,7 +20,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
                                 bool computeDisplacement,
                                 bool renderColoredPatches,
                                 Pixel &R_eq3,
-                                Pixel &displacementSum,
+                                Pixel &displacementSumEq3,
+                                Pixel &displacementSumEq4,
                                 ParametersDeformablePatches params)
 {
 
@@ -238,6 +239,13 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         R_eq3.G += w_v*(color.G);
         R_eq3.B += w_v*(color.B);
 
+        if (computeDisplacement)
+        {
+            displacementSumEq3.R += w_v*(displacement.R);
+            displacementSumEq3.G += w_v*(displacement.G);
+            displacementSumEq3.B += w_v*(displacement.B );
+        }
+
         //---------------- YU 2011 Equation 4 -----------------------
         //blending function
         R_eq4.R += w_v*(color.R - RM.R);
@@ -246,9 +254,9 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         if (computeDisplacement)
         {
-            displacementSum.R += w_v*(displacement.R - displaceMean.R);
-            displacementSum.G += w_v*(displacement.G - displaceMean.G);
-            displacementSum.B += w_v*(displacement.B - displaceMean.B);
+            displacementSumEq4.R += w_v*(displacement.R - displaceMean.R);
+            displacementSumEq4.G += w_v*(displacement.G - displaceMean.G);
+            displacementSumEq4.B += w_v*(displacement.B - displaceMean.B);
         }
     }
     //========================= END SUM ==================================
@@ -296,11 +304,11 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
     if (computeDisplacement)
     {
-        displacementSum.R = (displacementSum.R)/sqw    + displaceMean.R;
-        displacementSum.G = (displacementSum.G)/sqw    + displaceMean.G;
-        displacementSum.B = (displacementSum.B)/sqw    + displaceMean.B;
+        displacementSumEq4.R = (displacementSumEq4.R)/sqw    + displaceMean.R;
+        displacementSumEq4.G = (displacementSumEq4.G)/sqw    + displaceMean.G;
+        displacementSumEq4.B = (displacementSumEq4.B)/sqw    + displaceMean.B;
 
-        Clamp(displacementSum);
+        Clamp(displacementSumEq4);
     }
 
     float Af = sumW;

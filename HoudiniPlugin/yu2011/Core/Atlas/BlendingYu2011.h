@@ -30,7 +30,8 @@ public:
                 bool computeDisplacement,
                 bool renderColoredPatches,
                 Pixel &R1,
-                Pixel &displacementSum,
+                Pixel &displacementSumEq3,
+                Pixel &displacementSumEq4,
                 ParametersDeformablePatches params);
 
 
