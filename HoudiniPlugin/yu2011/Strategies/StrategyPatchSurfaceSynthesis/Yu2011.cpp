@@ -179,6 +179,7 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleF    attExistingLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life", 1));
+    //GA_RWHandleI    attDensity(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"density", 1));
     GA_RWHandleI    attExistingSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn", 1));
     GA_RWHandleI    attExistingActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attExistingMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
@@ -305,6 +306,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
     GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleI attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
+    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleV3 attUV(deformableGridsGdp->findFloatTuple(GA_ATTRIB_POINT,uvName, 3));
     GA_RWHandleF attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
     GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -324,6 +327,10 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     {
         ppt = *it;
         patchNumber = attId.get(ppt);
+        int active = attActive.get(ppt);
+        float life = attLife.get(ppt);
+        if (active == 0 && life <= 0 )
+            continue;
         if (params.testPatch == 1 && params.patchNumber != patchNumber)
             continue;
         N = attN.get(ppt);
@@ -389,10 +396,16 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         neighborhood.clear();
     }
 
+    cout << "Create primitive group" << endl;
     for(it = trackers.begin(); it != trackers.end(); ++it)
     {
         ppt = *it;
         patchNumber = attId.get(ppt);
+        int active = attActive.get(ppt);
+        float life = attLife.get(ppt);
+
+        if (active == 0 && life <= 0 )
+            continue;
 
         //for test purposes
         if (params.testPatch == 1 && params.patchNumber != patchNumber)
@@ -446,7 +459,7 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
         {   
             int spawn = attSpawn.get(ppt);
             int active = attActive.get(ppt);
-            if (active == 1 && spawn == 1)
+            if (active == 1 && spawn == 2) //to avoid new detached patches ?
             {
                 vector<GA_Offset> newPatchPoints;
                 vector<GA_Offset> newTrackers;

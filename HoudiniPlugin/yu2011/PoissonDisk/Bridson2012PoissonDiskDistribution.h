@@ -40,6 +40,7 @@ public:
         cout << "[Bridson2012PoissonDiskDistribution] destrotying grid"<<endl;
         //backgroundGrid.~TreeDGrid();
         backgroundGrid.Clear();
+        allPointsGrid.Clear();
         ProcessList.clear();
         SamplePoints.clear();
     }
@@ -92,6 +93,7 @@ private:
     int k;      //the limit of samples to choose before rejection in the algorithm, typically k = 30
     int numberOfPoints;
     TreeDGrid backgroundGrid;
+    TreeDGrid allPointsGrid;
     vector<PoissonDisk> ProcessList;
     vector<PoissonDisk> SamplePoints;
     int n = 3; // n-dimensional

@@ -29,6 +29,9 @@ public:
     int IsMature(){return isMature;}
     void SetMature(int data){isMature = data;}
 
+    int GetDensity(){return density;}
+    void SetDensity(int data){density = data;}
+
     int GetId(){return id;}
     void SetId(int data){id = data;}
 
@@ -83,6 +86,7 @@ private:
     int valid;
     int isMature;
     int id = 0;
+    int density = 0;
     float life = 0.0f;
     int spawn = 0;
     float dynamicTau = -1.0f;

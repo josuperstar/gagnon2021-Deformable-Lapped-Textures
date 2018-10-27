@@ -29,10 +29,6 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
         float area;
         int nbVertex;
 
-        for (int i=0; i<10000000; ++i)
-        {
-            std::cout << "Moumoune!" << std::endl;
-        }
 
         GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
         {

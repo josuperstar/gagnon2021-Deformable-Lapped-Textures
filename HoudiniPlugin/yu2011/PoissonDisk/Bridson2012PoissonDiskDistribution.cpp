@@ -221,8 +221,9 @@ std::vector<PoissonDisk> Bridson2012PoissonDiskDistribution::PoissonDiskSampling
                 //=================================================================
                 //5:      if p meets the Poisson Disk criterion in S then
                 //=================================================================
-                std::vector<PoissonDisk> neighbors;
-                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion( poissonDisk, poissonDiskRadius, cellSize, neighbors, angleNormalThreshold);
+                int numberOfClosePoint;
+
+                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion( poissonDisk, poissonDiskRadius, cellSize, numberOfClosePoint, angleNormalThreshold);
                 if (meetPoissonDiskCriterion)
                 {
                     //=================================================================
@@ -349,11 +350,24 @@ void Bridson2012PoissonDiskDistribution::InsertPoissonDisk(PoissonDisk p, float 
 
     //get next available id
     long numberOfPoints = this->maxId+1;
-
+    int numberOfClosePoint;
     //try to insert the poisson disk on the level set
     if(!existingPoint || (existingPoint && p.IsValid()))
     {
-        backgroundGrid.Insert(p,diskRadius, angleNormalThreshold);
+        //put the respect criterion here instead of the Insert function !!!!!!!!!!!!!!!!!
+        //backgroundGrid.Insert(p,diskRadius, angleNormalThreshold);
+
+
+        if (!backgroundGrid.RespectCriterion(p, diskRadius,cellSize,numberOfClosePoint, angleNormalThreshold))
+            p.SetValid(false);
+        else
+        {
+            p.SetValid(true);
+            backgroundGrid.gridPoints.push_back(p);
+        }
+        p.SetDensity(numberOfClosePoint);
+
+
     }
     if (p.GetId() > this->maxId) //existing points
     {
@@ -378,7 +392,12 @@ void Bridson2012PoissonDiskDistribution::InsertPoissonDisk(PoissonDisk p, float 
     //if it is an existing point, we want to had it anyway because we will delete it temporaly if it is non valid.
     if(existingPoint)
     {
+        allPointsGrid.gridPoints.push_back(p);
+        //use to compute dentisy: number of neighbours inside the Poisson Disk Radius
+        allPointsGrid.RespectCriterion(p, diskRadius,cellSize,numberOfClosePoint, angleNormalThreshold);
+        p.SetDensity(numberOfClosePoint);
         allpoints.push_back(p);
+
     }
 }
 

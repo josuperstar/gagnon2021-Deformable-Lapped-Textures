@@ -2,11 +2,12 @@
 
 using namespace Mokko;
 
-bool TreeDGrid::RespectCriterion( PoissonDisk Point, float MinDist, float CellSize, std::vector<PoissonDisk> &neighbors, float angleNormalThreshold )
+bool TreeDGrid::RespectCriterion( PoissonDisk Point, float MinDist, float CellSize, int &numberOfClosePoint, float angleNormalThreshold )
 {
 
     //brute force
     std::vector< PoissonDisk >::iterator it;
+    numberOfClosePoint = 0;
     for(it = gridPoints.begin(); it != gridPoints.end(); it++)
     {
         PoissonDisk P = *it;
@@ -19,13 +20,17 @@ bool TreeDGrid::RespectCriterion( PoissonDisk Point, float MinDist, float CellSi
         //It is too close to the current point ?
         if(samePlane && !notToClose)
         {
-            return false;
+            numberOfClosePoint++;
+            //return false;
         }
         else // then it is on the same plane, but not too close
         {
-            neighbors.push_back(P);
+            //neighbors.push_back(P);
         }
     }
+    //Point.SetDensity(numberOfClosePoint);
+    if (numberOfClosePoint > 0)
+        return false;
     return true;
 }
 

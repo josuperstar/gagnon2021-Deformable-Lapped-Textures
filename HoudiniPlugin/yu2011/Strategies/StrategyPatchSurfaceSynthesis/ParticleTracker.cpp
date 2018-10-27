@@ -126,6 +126,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
     GA_RWHandleI    attFadeIn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
+    GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
     GA_RWHandleI    attPoissonDisk(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"poissondisk", 1));
     GA_RWHandleF    attBlend(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     GA_RWHandleF    attRandT(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
@@ -226,10 +227,12 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
         int active = currentPoissonDisk.IsValid();
         int isMature = currentPoissonDisk.IsMature();
+        int density = currentPoissonDisk.GetDensity();
 
-        if (active == 0 && currentSpawn >= params.fadingTau)
+        if (active == 0 && (currentSpawn >= params.fadingTau || density > 5))
         {
-            currentLife--;
+            cout << "current life "<<currentLife << " -= "<<density<<endl;
+            currentLife -= density;
         }
         //fade in
         else if (currentSpawn < params.fadingTau)
@@ -274,6 +277,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //cout << "Point "<<id<< " active == "<<active<<endl;
         attActive.set(newPoint,active);
         attIsMature.set(newPoint,isMature);
+        attDensity.set(newPoint,density);
         attPoissonDisk.set(newPoint,1);
 
         float randt = (((double) rand() / (RAND_MAX)));
@@ -312,6 +316,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
     GA_RWHandleF    temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_ROHandleI    attDensity(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"density",1));
     GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
     float deletionLife = params.fadingTau;
 
@@ -334,6 +339,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3 AttCd(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
 
+
     GA_PointGroup *markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
 
     //===============================================================================
@@ -350,12 +356,14 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
         bool toAdd = false;
         GA_Offset ppt;
         int id;
+        int density;
         float currentLife = 0;
         GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGrp,ppt)
         {
             toAdd = true;
             v = attV.get(ppt);
             N = attN.get(ppt);
+            density = attDensity.get(ppt);
             //cout << "advecting point "<<ppt<<endl;
             if (N.length() < epsilon)
             {
@@ -378,7 +386,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
                 fadeIn = fadeIn +1;
                 attFadeIn.set(ppt,fadeIn);
             }
-            float blending = (float)currentLife/(float(deletionLife));
+            float blending = (float)currentLife/(float(deletionLife)/(1+density));
             temporalComponentKt.set(ppt,blending);
 
             //-----------------------------------------
@@ -469,6 +477,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
         }
     }
 
+
     //---- for visualisation purpose
     const GA_SaveOptions *options;
     UT_StringArray *errors;
@@ -490,6 +499,45 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
 
     return trackers;
 }
+
+//================================================================================================
+
+//                                      COMPUTE DENSITY
+
+//================================================================================================
+
+void ParticleTracker::ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
+{
+
+    cout <<this->approachName<< " Compute Density"<<endl;
+
+    UT_Vector3 v,vn,p;
+
+    float epsilon = 0.001;
+
+    GA_RWHandleI attDensity(trackers->addIntTuple(GA_ATTRIB_POINT,"density",1));
+
+    //GA_RWHandleV3 attV(trackers->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    float patchRadius = params.poissondiskradius;
+    GA_Offset ppt;
+
+    GA_FOR_ALL_PTOFF(trackers,ppt)
+    {
+
+        p = trackers->getPos3(ppt);
+
+        GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
+        tree.findAllCloseIdx(p,
+                             patchRadius,
+                             close_particles_indices);
+
+        int l = close_particles_indices.entries();
+
+        attDensity.set(ppt,l);
+
+    }
+}
+
 
 
 //================================================================================================
