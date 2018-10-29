@@ -368,7 +368,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             while (pixelPositionY < 0)
                 pixelPositionY += h;
 
-            if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]))// || !this->pixelUsed[pixelPositionX][pixelPositionY]  )
+            if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]) || !this->pixelUsed[pixelPositionX][pixelPositionY]  )
             {
                 //test color
                 color.R = 1;
