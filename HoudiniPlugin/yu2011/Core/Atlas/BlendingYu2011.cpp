@@ -72,6 +72,10 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
     {
         int patchId = *itPatch;
+
+        if ( fading.find(patchId) == fading.end())
+            continue;
+
         //-------------------------------------------------------------
         //get deformable grids according to patchId in deformableGrids
 
@@ -267,15 +271,27 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
     if (sumW <= epsilon && sumW >= -epsilon )
     {
-        R_eq3.R = 0;
-        R_eq3.G = 0;
-        R_eq3.B = 0;
-        R_eq3.A = 0;
+        displacementSumEq3.R = 0;
+        displacementSumEq3.G = 0;
+        displacementSumEq3.B = 0;
+        displacementSumEq3.A = 0;
+
         //----------
         R_eq4.R = 0;
         R_eq4.G = 0;
         R_eq4.B = 0;
         R_eq4.A = 0;
+
+        R_eq3.R = 0;
+        R_eq3.G = 0;
+        R_eq3.B = 0;
+        R_eq3.A = 0;
+        //----------
+
+        displacementSumEq4.R = 0;
+        displacementSumEq4.G = 0;
+        displacementSumEq4.B = 0;
+        displacementSumEq4.A = 0;
         return R_eq4;
     }
 

@@ -644,9 +644,10 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     set<int> patchAdvected;
 
 
-    for(it = trackers.begin(); it != trackers.end(); ++it)
+    GA_FOR_ALL_PTOFF(trackersGdp,trackerPpt)
+    //for(it = trackers.begin(); it != trackers.end(); ++it)
     {
-        trackerPpt = *it;
+        //trackerPpt = *it;
         id = attId.get(trackerPpt);
 
         if (params.testPatch == 1 && params.patchNumber != id)
@@ -1089,9 +1090,24 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
         }
     }
 
-    GA_PrimitiveGroup *primGroup;
+    GA_PrimitiveGroup *primGroup = 0;
+    static int lenomquejeveux = 0;
+    cout << "marque ce tu veux" << ++lenomquejeveux << std::endl;
     //rescale uv on every primitive
-    GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
+    //GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
+    GA_Range range = (deformableGridsGdp)->getPrimitiveRange((primGroup));
+    bool isValid = range.isValid();
+    bool isEmpty = range.isEmpty();
+    GA_Size entries = range.getEntries();
+    GA_Size maxEntries = range.getMaxEntries();
+    GA_Iterator begin = range.begin();
+    GA_Iterator end = range.end();
+    GA_Iterator itTest(range);
+    GU_Detail::GB_MACRO_PRIM_TYPE* wtf = static_cast<GU_Detail::GB_MACRO_PRIM_TYPE *>((deformableGridsGdp)->getPrimitive(*itTest));
+
+    for (GA_Iterator it((deformableGridsGdp)->getPrimitiveRange(primGroup)); (!it.atEnd() || (prim = nullptr)) &&
+            ((prim)=GA_Detail::GB_MACRO_CAST((deformableGridsGdp), (deformableGridsGdp)->getPrimitive(*it)));
+            ++it)
     {
         GEO_Primitive *primitive = deformableGridsGdp->getGEOPrimitive(prim->getMapOffset());
         int nbVertex = primitive->getVertexCount();

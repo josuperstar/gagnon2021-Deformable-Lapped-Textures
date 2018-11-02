@@ -5,6 +5,41 @@
 #include "BlendingYu2011.h"
 #include "../HoudiniUtils.h"
 
+HoudiniAtlas::~HoudiniAtlas()
+{
+    if (this->diffuseImageBlendingGagnon->IsValid())
+        delete this->diffuseImageBlendingGagnon;
+
+    if (this->diffuseImageBlendingYu2011Equation3->IsValid())
+        delete this->diffuseImageBlendingYu2011Equation3;
+
+    if (this->diffuseImageBlendingYu2011Equation4->IsValid())
+        delete this->diffuseImageBlendingYu2011Equation4;
+    if (this->textureExemplar1Image->IsValid())
+        delete this->textureExemplar1Image;
+    if (this->textureExemplar1ImageMask->IsValid())
+        delete this->textureExemplar1ImageMask;
+    if (computeDisplacement)
+    {
+        delete this->displacementMapImage;
+        delete this->displacementMapEquation4;
+        delete this->displacementMapEquation3;
+    }
+
+    if (useDeformableGrids)
+    {
+        GA_PrimitiveGroup *primGroup;
+        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
+        {
+             string name = primGroup->getName().toStdString();
+             delete rays[name];
+             delete patchesGeo[name];
+        }
+        //patchesGeo.clear();
+    }
+    trackerPosition.clear();
+
+}
 
 bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 {
@@ -368,7 +403,11 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             while (pixelPositionY < 0)
                 pixelPositionY += h;
 
-            if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]) || !this->pixelUsed[pixelPositionX][pixelPositionY]  )
+            bool notUsedYet = !this->pixelUsed[pixelPositionX][pixelPositionY];
+            UT_Vector3 a = surfaceTexturePosition[0];
+            UT_Vector3 b = surfaceTexturePosition[1];
+            UT_Vector3 c = surfaceTexturePosition[2];
+            if (IsPointInTriangle(point,a,b,c) ||  notUsedYet)
             {
                 //test color
                 color.R = 1;

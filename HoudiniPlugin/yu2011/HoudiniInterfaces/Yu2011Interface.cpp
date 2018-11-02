@@ -97,7 +97,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
 
     }
     //For the blending computation, we create uv array per vertex that we called patch
-    strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree,ray);
+    strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
 
     //=======================================================================
 

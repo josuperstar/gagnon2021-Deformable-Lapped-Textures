@@ -84,17 +84,34 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     GA_Primitive *prim;
 
     bool usingTbb = true;
-    cout << "[AtlasInterface::Synthesis] "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
+
+
     if(!usingTbb)
     {
+        cout << "[AtlasInterface::Synthesis] without tbb"<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
+        long nbOfPrimitive = surfaceGdp->getNumPrimitives();
+        long i = 0;
+        int lastModulo = 0;
+
         GA_FOR_ALL_PRIMITIVES(surfaceGdp,prim)
         {
             GA_Offset primOffset = prim->getMapOffset();
             atlas.RasterizePrimitive(primOffset, params.atlasWidth,params.atlasHeight,params);
+            i++;
+
+            float pourcentage = ((float)i/(float)nbOfPrimitive)*100.0f;
+            int p = pourcentage;
+            int modulo = (p % 100);
+            if (modulo != lastModulo)
+            {
+                lastModulo = modulo;
+                cout << "done "<<modulo<<"%"<<endl;
+            }
         }
     }
     else
     {
+        cout << "[AtlasInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
         unsigned long nbPrims = surfaceGdp->getNumPrimitives();
 
         executor exec(atlas,params.atlasWidth,params.atlasHeight,params);

@@ -19,7 +19,7 @@ class HoudiniAtlas : public Atlas
 
 public:
 
-   // ~HoudiniAtlas();
+    ~HoudiniAtlas();
 
    bool BuildAtlas(int w, int h, int life);
 

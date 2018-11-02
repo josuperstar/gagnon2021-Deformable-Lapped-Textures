@@ -231,7 +231,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
         if (active == 0 && (currentSpawn >= params.fadingTau || density > 5))
         {
-            cout << "current life "<<currentLife << " -= "<<density<<endl;
+            //cout << "current life "<<currentLife << " -= "<<density<<endl;
             currentLife -= density;
         }
         //fade in
@@ -323,6 +323,12 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     if (attV.isInvalid())
     {
         cout << "Markers have no velocity";
+        return trackers;
+    }
+
+    if (attDensity.isInvalid())
+    {
+        cout << "The is no density defined"<<endl;
         return trackers;
     }
 
@@ -469,10 +475,11 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
 
             //----------------------------------------------------
             //To add or not to add, this is the question.
+
             //if(toAdd)
-                trackers.push_back(ppt);
+            //    trackers.push_back(ppt);
             //else
-                //grpToDestroy->addOffset(ppt);
+            //    grpToDestroy->addOffset(ppt);
             //----------------------------------------------------
         }
     }
@@ -488,8 +495,8 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
 
 
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-    trackersGdp->deletePoints(*grpToDestroy,mode);
-    trackersGdp->destroyPointGroup(grpToDestroy);
+    //trackersGdp->deletePoints(*grpToDestroy,mode);
+    //trackersGdp->destroyPointGroup(grpToDestroy);
 
     cout << this->approachName<< " There are "<<trackers.size() << " trackers after advection"<<endl;
     cout << this->approachName<< " There are "<<numberOfDetachedPatches<< " detached trackers"<<endl;
@@ -497,7 +504,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
 
     this->markerAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 
-    return trackers;
+    //return trackers;
 }
 
 //================================================================================================
