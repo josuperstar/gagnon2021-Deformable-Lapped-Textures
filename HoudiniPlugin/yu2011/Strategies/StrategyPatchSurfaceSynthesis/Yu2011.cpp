@@ -195,23 +195,14 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
         {
 
             PoissonDisk p(trackersGdp->getPos3(ppt));
-            p.SetId(attId.get(ppt));
-            p.SetLife(attExistingLife.get(ppt));
-            p.SetSpawn(attExistingSpawn.get(ppt));
             p.SetDynamicTau(0.0f);
             p.SetNormal(attN.get(ppt));
+            p.SetValid(1);
+            p.SetId(ppt+1);
+            p.SetLife(params.fadingTau);
+            p.SetSpawn(1);
+            p.SetDynamicTau(0.0f);
 
-            if (params.startFrame == params.frame)
-            {
-                p.SetValid(1);
-                p.SetId(ppt+1);
-                p.SetLife(params.fadingTau);
-                p.SetSpawn(params.fadingTau);
-                p.SetDynamicTau(0.0f);
-            }
-            else
-                p.SetValid(attExistingActive.get(ppt));
-                p.SetMature(attExistingMature.get(ppt));
             oldPoints.push_back(p);
         }
     }
@@ -262,7 +253,7 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
         for(itPoisson = PPoints.begin(); itPoisson != PPoints.end(); ++itPoisson)
         {
             (*itPoisson).SetLife(params.fadingTau);
-            (*itPoisson).SetSpawn(params.fadingTau);
+            //(*itPoisson).SetSpawn(params.fadingTau);
         }
     }
 
@@ -477,19 +468,20 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
 
     GA_Offset ppt;
     int beforeAddingNumber = numberOfPatches;
+
     //--------------------------- ADDING A NEW PATCH ON NEWLY ADDED POISSON DISK --------------------------------------------
     {
         GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
         {   
             int spawn = attSpawn.get(ppt);
             int active = attActive.get(ppt);
-            if (active == 1 && spawn == 2) //to avoid new detached patches ?
+            if (active == 1 && spawn == 1) //to avoid new detached patches ?
             {
                 vector<GA_Offset> newPatchPoints;
                 vector<GA_Offset> newTrackers;
                 newTrackers.push_back(ppt);
                 newPatchPoints.push_back(ppt);
-                CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newTrackers,surfaceTree);
+                //CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newTrackers,surfaceTree);
                 //AddPatchesUsingBarycentricCoordinates(gdp,surfaceGdp,trackersGdp,params, surfaceTree, ray);
                 numberOfPatches++;
             }
@@ -500,6 +492,13 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
     }
 
     GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");
+
+    GA_GroupType groupType = GA_GROUP_POINT;
+
+    const GA_GroupTable *gtable = gdp->getGroupTable(groupType);
+
+    GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
+    const GA_GroupTable *gPrimTable = gdp->getGroupTable(primGroupType);
     set<int> toDelete;
     //--------------------------- DELETE DEAD PATCH --------------------------------------------
     {
@@ -510,9 +509,23 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
             int active = attActive.get(ppt);
             if (active == 0 && life <= 0.0f && params.frame != params.startFrame)
             {
+                cout << "Deleting patch "<<id<<endl;
                 toDelete.insert(id);
                 numberOfPatches--;
                 numberOfConcealedPatches++;
+
+
+                string str = std::to_string(id);
+                string groupName = "grid"+str;
+                GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+                GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(groupName.c_str());
+
+                //cout << "Is patch "<<patchId<<" exists? Then we should delete "<<groupName<<endl;
+
+                //delete this grid
+                gdp->deletePoints(*pointGrp,mode);
+                gdp->destroyPointGroup(pointGrp);
+                gdp->destroyPrimitiveGroup(primGroup);
             }
         }
     }

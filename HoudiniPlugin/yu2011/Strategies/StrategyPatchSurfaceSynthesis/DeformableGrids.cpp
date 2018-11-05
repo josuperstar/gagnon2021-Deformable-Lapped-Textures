@@ -88,6 +88,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
 
     GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
 
     GA_RWHandleV3   attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
     GA_RWHandleF    attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
@@ -143,15 +144,26 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     //cout << "go through all trackers"<<endl;
     vector<GA_Offset>::iterator it;
     int id =0;
-    for(it = trackers.begin(); it != trackers.end(); it++)
+    //for(it = trackers.begin(); it != trackers.end(); it++)
+    //GA_Offset ppt;
+    GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        ppt = *it;
-        id = attId.get(ppt);
 
+        //ppt = *it;
+        id = attId.get(ppt);
+        int spawn = attSpawn.get(ppt);
+
+        //cout << "tracker "<<id<<" spawn "<<spawn << endl;
         if (params.testPatch == 1 && params.patchNumber != id)
             continue;
 
         life = attTrackerLife.get(ppt);
+        //int spawn = attSpawn.get(ppt);
+        if (spawn != 1)
+            continue;
+
+        cout << "Create Grid "<<id<<endl;
+
         GU_Detail tempGdp;
         set<GA_Offset> tempGdpListOffset;
         GA_Offset tempNewPoint;
@@ -557,7 +569,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 //================================================================================================
 
 
-void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree, vector<GA_Offset> trackers, GU_Detail *surfaceGdp)
+void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree, GU_Detail *surfaceGdp)
 {
     //cout << "[Yu2011] Advect markers"<<endl;
     cout << this->approachName<<" Advect grids";
@@ -1092,7 +1104,7 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
 
     GA_PrimitiveGroup *primGroup = 0;
     static int lenomquejeveux = 0;
-    cout << "marque ce tu veux" << ++lenomquejeveux << std::endl;
+    //cout << "marque ce tu veux" << ++lenomquejeveux << std::endl;
     //rescale uv on every primitive
     //GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
     GA_Range range = (deformableGridsGdp)->getPrimitiveRange((primGroup));

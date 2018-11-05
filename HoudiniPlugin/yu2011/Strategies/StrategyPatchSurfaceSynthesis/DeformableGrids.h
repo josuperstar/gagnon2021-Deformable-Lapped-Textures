@@ -20,7 +20,7 @@ public:
     bool SynthesisSurface( GU_Detail *gdp, ParametersDeformablePatches params);
 
     void CreateGridBasedOnMesh(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree);
-    void AdvectGrids(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree, vector<GA_Offset> trackers,  GU_Detail *surfaceGdp);
+    void AdvectGrids(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree, GU_Detail *surfaceGdp);
 
     void ConnectivityTest(const GU_Detail *gdp,GA_Offset point, GA_PointGroup *grp, set<GA_Offset> &pointsAround,set<GA_Offset> &group);
 

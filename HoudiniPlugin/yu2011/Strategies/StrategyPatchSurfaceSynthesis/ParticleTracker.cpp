@@ -297,7 +297,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 //================================================================================================
 
 
-vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree)
+void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree)
 {
     cout <<this->approachName<< " Advect Markers"<<endl;
 
@@ -306,8 +306,6 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
 
     numberOfPatches = 0;
     maxId = 0;
-
-    vector<GA_Offset> trackers;
 
     GA_RWHandleV3   attV(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -323,13 +321,13 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     if (attV.isInvalid())
     {
         cout << "Markers have no velocity";
-        return trackers;
+        return;
     }
 
     if (attDensity.isInvalid())
     {
         cout << "The is no density defined"<<endl;
-        return trackers;
+        return;
     }
 
     UT_Vector3 v;
@@ -498,7 +496,7 @@ vector<GA_Offset> ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail
     //trackersGdp->deletePoints(*grpToDestroy,mode);
     //trackersGdp->destroyPointGroup(grpToDestroy);
 
-    cout << this->approachName<< " There are "<<trackers.size() << " trackers after advection"<<endl;
+    //cout << this->approachName<< " There are "<<trackers.size() << " trackers after advection"<<endl;
     cout << this->approachName<< " There are "<<numberOfDetachedPatches<< " detached trackers"<<endl;
     cout << this->approachName<< " There are "<<numberOfPatches << " number of patches"<<endl;
 

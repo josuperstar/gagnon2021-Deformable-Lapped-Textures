@@ -82,7 +82,7 @@ void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     //----------------------------------
 
     //section 3.3.2 Particle Delition
-    newPatchesPoints = strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
+    strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
 
     {
         GA_Offset ppt;
