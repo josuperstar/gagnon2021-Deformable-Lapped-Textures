@@ -13,13 +13,13 @@ using namespace std;
 
 namespace Mokko {
 
-class PoissonDisk
+class PoissonDiskLegacy
 {
 public:
-    PoissonDisk(){ this->valid = 1; this->isMature = 0;}
-    PoissonDisk(UT_Vector3 d) {position = d; this->valid = true; this->isMature = 0;}
-    PoissonDisk(float x, float y,float z){position = UT_Vector3(x,y,z);}
-    PoissonDisk(openvdb::Vec3f vdbPoint){ position = UT_Vector3(vdbPoint.x(),vdbPoint.y(),vdbPoint.z());}
+    PoissonDiskLegacy(){ this->valid = 1; this->isMature = 0;}
+    PoissonDiskLegacy(UT_Vector3 d) {position = d; this->valid = true; this->isMature = 0;}
+    PoissonDiskLegacy(float x, float y,float z){position = UT_Vector3(x,y,z);}
+    PoissonDiskLegacy(openvdb::Vec3f vdbPoint){ position = UT_Vector3(vdbPoint.x(),vdbPoint.y(),vdbPoint.z());}
 
     //================= ACCESSORS =================
 

@@ -391,8 +391,8 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             point.y() = j;
             point.z() = 0;
 
-            int pixelPositionX = i;
-            int pixelPositionY = j;
+            unsigned int pixelPositionX = i;
+            unsigned int pixelPositionY = j;
 
             while (pixelPositionX >= w)
                 pixelPositionX -= w;

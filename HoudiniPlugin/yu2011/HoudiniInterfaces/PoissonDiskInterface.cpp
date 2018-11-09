@@ -71,8 +71,8 @@ void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
 
     //=========================== CORE ALGORITHM ============================
     //section 3.3.1 Particle Distribution
-    vector<PoissonDisk> PPoints = strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
-    strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params,PPoints);
+    strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
+    strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
 
     //---- for visualisation purpose
 

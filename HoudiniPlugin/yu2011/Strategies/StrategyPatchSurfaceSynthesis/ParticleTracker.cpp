@@ -78,11 +78,11 @@ void ParticleTracker::DeleteTracker(GU_Detail* trackers,int trackerId)
 //================================================================================================
 
 
-void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params, vector<PoissonDisk> &existingPoissonDisks)
+void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
 {
 
     bool useDynamicTau = params.useDynamicTau;
-    cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk based on "<<existingPoissonDisks.size()<<" poisson disk, with useDynamicTau at "<<useDynamicTau<<endl;
+    //cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk based on "<<existingPoissonDisks.size()<<" poisson disk, with useDynamicTau at "<<useDynamicTau<<endl;
 
     //float maxDelta = 5.0f;
 
@@ -97,7 +97,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
     if (surfaceGroup == 0x0)
         return;
 
-    trackersGdp->clearAndDestroy();
+    //trackersGdp->clearAndDestroy();
 
     GA_PointGroup *markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
     if (markerGrp == 0x0)
@@ -146,24 +146,26 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
     UT_Vector3 S,T;
     float thresholdDistance = params.maximumProjectionDistance;
 
-    vector<PoissonDisk>::iterator it;
+    //vector<PoissonDisk>::iterator it;
     GU_MinInfo mininfo;
     GU_RayIntersect ray(surface);
     ray.init();
 
     int id = 0;
-    for(it = existingPoissonDisks.begin(); it != existingPoissonDisks.end(); ++it)
+    //for(it = existingPoissonDisks.begin(); it != existingPoissonDisks.end(); ++it)
+    GA_Offset ppt;
+    GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        PoissonDisk currentPoissonDisk = (*it);
-        id = currentPoissonDisk.GetId();
-        float currentLife = currentPoissonDisk.GetLife();
-        int currentSpawn = currentPoissonDisk.GetSpawn();
+
+        id = attId.get(ppt);
+        float currentLife = attLife.get(ppt);
+        int currentSpawn = attSpawn.get(ppt);
         currentSpawn++;
 
         UT_Vector3 velocity;
 
-        float dynamicTau = currentPoissonDisk.GetDynamicTau();
-        UT_Vector3 centerUV = currentPoissonDisk.GetCenterUV();
+        float dynamicTau = attMaxDeltaOnD.get(ppt);
+        UT_Vector3 centerUV = attCenterUV.get(ppt);
 
         //=================== UPDATE ===================
         if (currentLife <= 0 && params.frame > params.startFrame)
@@ -172,7 +174,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         }
 
         //============================ PROJECION ON MESH =======================
-        UT_Vector3 p1 = currentPoissonDisk.GetPosition();
+        UT_Vector3 p1 = trackersGdp->getPos3(ppt);
         mininfo.init(thresholdDistance,0.0001);
         ray.minimumPoint(p1,mininfo);
 
@@ -225,15 +227,23 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
         //========================================================================
 
-        int active = currentPoissonDisk.IsValid();
-        int isMature = currentPoissonDisk.IsMature();
-        int density = currentPoissonDisk.GetDensity();
+        int active = attActive.get(ppt);
+        int isMature = attIsMature.get(ppt);
+        int density = attDensity.get(ppt);
+
 
         if (active == 0 && (currentSpawn >= params.fadingTau || density > 5))
         {
             //cout << "current life "<<currentLife << " -= "<<density<<endl;
             currentLife -= density;
         }
+        /*
+        if (active == 0 && (currentSpawn >= params.fadingTau) && isMature == 1)
+        {
+            cout << "point "<<id<< " current life "<<currentLife << " -= "<<1<<endl;
+            currentLife -= 1;
+        }
+        */
         //fade in
         else if (currentSpawn < params.fadingTau)
         {
@@ -249,39 +259,35 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //    continue;
         //position = currentPoissonDisk.GetPosition();
         position = p1;
+        trackersGdp->setPos3(ppt,position);
         //vRef = attVSurface.get(ppt);
         //vRef = currentPoissonDisk.GetVelocity();
         //N = currentPoissonDisk.GetNormal();
         N.normalize();
 
-        newPoint = trackersGdp->appendPoint();
-        attV.set(newPoint,velocity);
-        attN.set(newPoint,N);
-        attCenterUV.set(newPoint,centerUV);
+        //newPoint = trackersGdp->appendPoint();
+        attV.set(ppt,velocity);
+        attN.set(ppt,N);
+        attCenterUV.set(ppt,centerUV);
 
-        trackersGdp->setPos3(newPoint,position);
-        markerGrp->addOffset(newPoint);
-        attCd.set(newPoint,UT_Vector3(0,1,1));
+        trackersGdp->setPos3(ppt,position);
+        //markerGrp->addOffset(newPoint);
+        //attCd.set(newPoint,UT_Vector3(0,1,1));
 
-        //cout << "[ParticleTracker] creating tracker "<<currentPoissonDisk.GetId()<<endl;
 
-        attId.add(newPoint,currentPoissonDisk.GetId());
         float life = currentLife;
-        attLife.set(newPoint,life);
+        attLife.set(ppt,life);
 
         float temporalComponetKt = ((float)life-1)/params.fadingTau;
 
-        attBlend.set(newPoint,temporalComponetKt);
-        attSpawn.set(newPoint,currentSpawn);
-        attMaxDeltaOnD.set(newPoint,dynamicTau);
+        attBlend.set(ppt,temporalComponetKt);
+        attSpawn.set(ppt,currentSpawn);
+        attMaxDeltaOnD.set(ppt,dynamicTau);
         //cout << "Point "<<id<< " active == "<<active<<endl;
-        attActive.set(newPoint,active);
-        attIsMature.set(newPoint,isMature);
-        attDensity.set(newPoint,density);
-        attPoissonDisk.set(newPoint,1);
+
 
         float randt = (((double) rand() / (RAND_MAX)));
-        attRandT.set(newPoint,randt);
+        attRandT.set(ppt,randt);
 
         numberOfPatches++;
     }
@@ -336,19 +342,14 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
     float dt = 1.0f/24.0f;
     float thresholdDistance = params.maximumProjectionDistance;
 
-    GA_PointGroup * grpToDestroy;
     //============================================================
 
     GA_RWHandleV3 refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3 AttCd(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
 
-
-    GA_PointGroup *markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
-
     //===============================================================================
     {
-        grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");
         GU_MinInfo mininfo;
 
         GU_RayIntersect ray(surfaceGdp);
@@ -362,7 +363,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
         int id;
         int density;
         float currentLife = 0;
-        GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGrp,ppt)
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
             toAdd = true;
             v = attV.get(ppt);
@@ -406,7 +407,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
 
             if (!mininfo.prim)
             {
-                //cout << "No primitive to project on"<<endl;
+                cout << "No primitive to project on"<<endl;
                 continue;
             }
 
@@ -459,8 +460,8 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
             else
             {
                 //delete this point because we can't project it, probably because of a sudden topological change.
+                //cout << "delete "<<id<<" because we can't project it, probably because of a sudden topological change."<<endl;
                 AttCd.set(ppt,UT_Vector3(1,0,0));
-                //grpToDestroy->addOffset(ppt);
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
                 numberOfPatches--;
@@ -470,15 +471,6 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
                 trackersGdp->setPos3(ppt,p1);
                 //cout << "new new position "<<p1<<endl;
             }
-
-            //----------------------------------------------------
-            //To add or not to add, this is the question.
-
-            //if(toAdd)
-            //    trackers.push_back(ppt);
-            //else
-            //    grpToDestroy->addOffset(ppt);
-            //----------------------------------------------------
         }
     }
 
@@ -492,11 +484,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
     //----------------------------------
 
 
-    GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-    //trackersGdp->deletePoints(*grpToDestroy,mode);
-    //trackersGdp->destroyPointGroup(grpToDestroy);
-
-    //cout << this->approachName<< " There are "<<trackers.size() << " trackers after advection"<<endl;
+    cout << this->approachName<< " There are "<<trackersGdp->getNumPoints() << " trackers after advection"<<endl;
     cout << this->approachName<< " There are "<<numberOfDetachedPatches<< " detached trackers"<<endl;
     cout << this->approachName<< " There are "<<numberOfPatches << " number of patches"<<endl;
 

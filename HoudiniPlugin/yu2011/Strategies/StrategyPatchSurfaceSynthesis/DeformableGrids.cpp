@@ -86,6 +86,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
 
     GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
@@ -148,8 +149,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     //GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-
-        //ppt = *it;
         id = attId.get(ppt);
         int spawn = attSpawn.get(ppt);
 
@@ -159,10 +158,10 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         life = attTrackerLife.get(ppt);
         //int spawn = attSpawn.get(ppt);
-        if (spawn != 1)
+        if (spawn != 1 || attActive.get(ppt) == 0)
             continue;
 
-        cout << "Create Grid "<<id<<endl;
+        //cout << "Create Grid "<<id<<endl;
 
         GU_Detail tempGdp;
         set<GA_Offset> tempGdpListOffset;
@@ -495,8 +494,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         if (flattening)
         {
             this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling );
-
-        }//======================================END UV FLATENING===============================================
+        }
 
         //--------------------------------------------------
         //Take a random part of the input texture uv space
@@ -553,11 +551,11 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         if(pointGroup->entries() == 0)
         {
             //delete prim point and prim group
+            cout <<"[DeformableGrids]CreateGridBasedOnMesh: delete patch "<< pointGroup->getName()<<endl;
             deformableGridsGdp->deletePoints(*pointGroup,mode);
             deformableGridsGdp->destroyPointGroup(pointGroup);
             deformableGridsGdp->destroyPrimitiveGroup(primGroup);
             DeleteTracker(trackersGdp,id);
-
         }
     }
 }
@@ -657,9 +655,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
 
 
     GA_FOR_ALL_PTOFF(trackersGdp,trackerPpt)
-    //for(it = trackers.begin(); it != trackers.end(); ++it)
     {
-        //trackerPpt = *it;
         id = attId.get(trackerPpt);
 
         if (params.testPatch == 1 && params.patchNumber != id)

@@ -163,7 +163,7 @@ bool Yu2011::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params
 //================================================================================================
 
 
-vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *trackersGdp, GA_PointGroup *markerGroup ,ParametersDeformablePatches params)
+void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *trackersGdp, GA_PointGroup *markerGroup ,ParametersDeformablePatches params)
 {
 
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
@@ -178,87 +178,40 @@ vector<PoissonDisk> Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *level
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF    attExistingLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life", 1));
+    GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
     //GA_RWHandleI    attDensity(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"density", 1));
     GA_RWHandleI    attExistingSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn", 1));
     GA_RWHandleI    attExistingActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attExistingMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
-    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
-    GA_Offset ppt;
-    vector<PoissonDisk> oldPoints;
-    vector<GA_Offset> newPatchesPoints;
+    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+
+    //-----------------------------------------------------------
+
+    cout << "[Yu2011] deleting other groups for surface"<<endl;
+    //int numberOfPoints = newPatchesPoints.size();
+
+    GEO_PointTreeGAOffset trackerTree;
+    trackerTree.build(trackersGdp, NULL);
+
+    //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
+    Bridson2012PoissonDiskDistribution poissonDiskDistribution;
+
+    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
+
+    cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
 
     if(params.startFrame == params.frame)
     {
         GA_Offset ppt;
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
-
-            PoissonDisk p(trackersGdp->getPos3(ppt));
-            p.SetDynamicTau(0.0f);
-            p.SetNormal(attN.get(ppt));
-            p.SetValid(1);
-            p.SetId(ppt+1);
-            p.SetLife(params.fadingTau);
-            p.SetSpawn(1);
-            p.SetDynamicTau(0.0f);
-
-            oldPoints.push_back(p);
-        }
-    }
-    else
-    {
-        //------------------ existing points ----------------------
-        //we should move this in a function
-        GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
-        {
-
-            PoissonDisk p(trackersGdp->getPos3(ppt));
-
-            int id = attId.get(ppt);
-            //cout << "Existing Poisson "<<id<<endl;
-            p.SetId(id);
-            p.SetLife(attExistingLife.get(ppt));
-            p.SetSpawn(attExistingSpawn.get(ppt));
-            p.SetDynamicTau(attMaxDeltaOnD.get(ppt));
-            p.SetNormal(attN.get(ppt));
-            p.SetCenterUV(attCenterUV.get(ppt));
-            //cout << "existing point "<<id<<" valid "<<attExistingActive.get(ppt)<<endl;
-            p.SetValid(attExistingActive.get(ppt));
-            p.SetMature(attExistingMature.get(ppt));
-            p.SetVelocity((attV.get(ppt)));
-            oldPoints.push_back(p);
-            newPatchesPoints.push_back(ppt);
-
-        }
-    }
-    //-----------------------------------------------------------
-
-    cout << "[Yu2011] deleting other groups for surface"<<endl;
-    int numberOfPoints = newPatchesPoints.size();
-
-    cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
-    Bridson2012PoissonDiskDistribution poissonDiskDistribution;
-    poissonDiskDistribution.SetNumberOfPoint(numberOfPoints);
-    poissonDiskDistribution.initializeGrid(oldPoints,params.poissondiskradius, params.poissonAngleNormalThreshold);
-
-    vector<PoissonDisk> PPoints = poissonDiskDistribution.PoissonDiskSampling(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
-
-    cout << "[Yu2011] poisson disk sample "<<PPoints.size()<< " point(s)"<<endl;
-
-    if(params.startFrame == params.frame)
-    {
-        //all PPpoints have to have a full life
-        vector<PoissonDisk>::iterator itPoisson;
-        for(itPoisson = PPoints.begin(); itPoisson != PPoints.end(); ++itPoisson)
-        {
-            (*itPoisson).SetLife(params.fadingTau);
-            //(*itPoisson).SetSpawn(params.fadingTau);
+            attMaxDeltaOnD.set(ppt,0);
+            attExistingLife.set(ppt,params.fadingTau);
         }
     }
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
-    return PPoints;
+
 }
 
 
@@ -282,15 +235,10 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     fpreal patchRadius = (fpreal)gridwidth;
 
     //================================ CREATE PATCH GROUPS ==============================
-    GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
+    //GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
     GA_GroupType pointGroupType = GA_GROUP_POINT;
     const GA_GroupTable *pointGTable = deformableGridsGdp->getGroupTable(pointGroupType);
 
-    if (grpMarker->entries() == 0)
-    {
-        cout << this->approachName << " tracker group is empty"<<endl;
-        return;
-    }
 
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
@@ -320,12 +268,9 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
     GA_Offset surfacePointOffset;
     int patchNumber = 0;
-    //vector<GA_Offset>::iterator it;
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
-        //for(it = trackers.begin(); it != trackers.end(); ++it)
         {
-            //ppt = *it;
             patchNumber = attId.get(ppt);
             int active = attActive.get(ppt);
             float life = attLife.get(ppt);
@@ -374,7 +319,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 if (dotP < params.angleNormalThreshold)
                     continue;
 
-
                 patchP = surfaceGdp->getPos3(surfacePointOffset);
                 //------------------------------------ RAY -----------------------------------------
                 //project patchP on trackers set
@@ -386,9 +330,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                     //we can't project the point on the surface
                     continue;
                 }
-
-
-
                 patchGroup->addOffset(surfacePointOffset);
                 patchIdsAtt->get(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
                 int exist = patchArrayData.find(patchNumber);
@@ -406,7 +347,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             neighborhood.clear();
         }
     }
-    cout << "Create primitive group" << endl;
+    //cout << "Create primitive group" << endl;
 
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
@@ -451,7 +392,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 //                                                  UpdateUsingBridson2012PoissonDisk
 //======================================================================================================================================
 
-void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray)
+void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray)
 {
     cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
     std::clock_t startUpdatePatches;
@@ -463,27 +404,22 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
     GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
     GA_RWHandleI attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
+    GA_RWHandleI attIsMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-    GA_PointGroup *markerGroup = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
+
 
     GA_Offset ppt;
     int beforeAddingNumber = numberOfPatches;
 
     //--------------------------- ADDING A NEW PATCH ON NEWLY ADDED POISSON DISK --------------------------------------------
     {
-        GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {   
             int spawn = attSpawn.get(ppt);
             int active = attActive.get(ppt);
             if (active == 1 && spawn == 1) //to avoid new detached patches ?
             {
-                vector<GA_Offset> newPatchPoints;
-                vector<GA_Offset> newTrackers;
-                newTrackers.push_back(ppt);
-                newPatchPoints.push_back(ppt);
-                //CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newTrackers,surfaceTree);
-                //AddPatchesUsingBarycentricCoordinates(gdp,surfaceGdp,trackersGdp,params, surfaceTree, ray);
-                numberOfPatches++;
+                //numberOfPatches++;
             }
             //we compute update excluding the time for adding a new patc since it is already computed inside these functions
             startUpdatePatches = std::clock();
@@ -502,18 +438,17 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
     set<int> toDelete;
     //--------------------------- DELETE DEAD PATCH --------------------------------------------
     {
-        GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
             int id = attId.get(ppt);
             float life = attLife.get(ppt);
             int active = attActive.get(ppt);
             if (active == 0 && life <= 0.0f && params.frame != params.startFrame)
             {
-                cout << "Deleting patch "<<id<<endl;
+                //cout << "Deleting patch "<<id<<" mature "<<attIsMature.get(ppt)<<endl;
                 toDelete.insert(id);
                 numberOfPatches--;
                 numberOfConcealedPatches++;
-
 
                 string str = std::to_string(id);
                 string groupName = "grid"+str;
@@ -523,18 +458,24 @@ void Yu2011::UpdateDistributionUsingBridson2012PoissonDisk(GU_Detail *gdp,GU_Det
                 //cout << "Is patch "<<patchId<<" exists? Then we should delete "<<groupName<<endl;
 
                 //delete this grid
-                gdp->deletePoints(*pointGrp,mode);
+                //gdp->deletePoints(*pointGrp,mode);
+                //cout << "delete point group "<<groupName<<endl;
                 gdp->destroyPointGroup(pointGrp);
-                gdp->destroyPrimitiveGroup(primGroup);
+                if (primGroup != 0x0)
+                {
+                    gdp->destroyPrimitiveGroup(primGroup);
+                }
             }
         }
     }
     {
-        GA_FOR_ALL_GROUP_PTOFF(trackersGdp,markerGroup,ppt)
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
             int id = attId.get(ppt);
             if (toDelete.count(id) > 0)
             {
+
+                //cout << "Delete point "<<id<<endl;
                 grpToDestroy->addOffset(ppt);
             }
         }

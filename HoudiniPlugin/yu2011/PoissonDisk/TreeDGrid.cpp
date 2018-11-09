@@ -2,36 +2,54 @@
 
 using namespace Mokko;
 
-bool TreeDGrid::RespectCriterion( PoissonDisk Point, float MinDist, float CellSize, int &numberOfClosePoint, float angleNormalThreshold )
+bool TreeDGrid::RespectCriterion(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float MinDist, float killDistance, float CellSize, int &numberOfClosePoint, float angleNormalThreshold, GA_Offset exclude )
 {
 
     //brute force
-    std::vector< PoissonDisk >::iterator it;
+    //std::vector< PoissonDisk >::iterator it;
     numberOfClosePoint = 0;
-    for(it = gridPoints.begin(); it != gridPoints.end(); it++)
-    {
-        PoissonDisk P = *it;
 
-        //is it on the same plane ?
-        float dotP = dot(P.GetNormal(), Point.GetNormal());
+    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
+    GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
+
+    tree.findAllCloseIdx(newPointPosition,
+                         MinDist*2,
+                         close_particles_indices);
+
+    int l = close_particles_indices.entries();
+    GA_Offset neighbor;
+
+    bool tooClose = false;
+
+    for(int j=0; j<l;j++ )
+    {
+
+        neighbor = close_particles_indices.array()[j];
+        if (attActive.get(neighbor) == 0)
+            continue;
+        if (neighbor == exclude)
+            continue;
+
+        UT_Vector3 pos = trackersGdp->getPos3(neighbor);
+        UT_Vector3 n = attN.get(neighbor);
+        float dotP = dot(n, newPointNormal);
         bool samePlane = dotP > angleNormalThreshold;
-        bool notToClose = distance3d( P.GetPosition(), Point.GetPosition() ) > MinDist ;
+        bool notToClose = distance3d( pos, newPointPosition ) > killDistance ;
+        bool inNeighboorhood = distance3d( pos, newPointPosition ) < MinDist;
 
         //It is too close to the current point ?
         if(samePlane && !notToClose)
         {
-            numberOfClosePoint++;
+            tooClose = true;
             //return false;
         }
-        else // then it is on the same plane, but not too close
-        {
-            //neighbors.push_back(P);
-        }
+
+        if(inNeighboorhood && samePlane)
+            numberOfClosePoint++;
     }
-    //Point.SetDensity(numberOfClosePoint);
-    if (numberOfClosePoint > 0)
-        return false;
-    return true;
+
+    return !tooClose;
 }
 
 
