@@ -547,7 +547,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             area = prim->calcArea();
             attInitArea.set(prim->getMapOffset(),area);
         }
-
+        /*
         if(pointGroup->entries() == 0)
         {
             //delete prim point and prim group
@@ -557,6 +557,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             deformableGridsGdp->destroyPrimitiveGroup(primGroup);
             DeleteTracker(trackersGdp,id);
         }
+        */
     }
 }
 
@@ -855,7 +856,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         //cout << "Max Delta on D "<<maxDeltaOnD<<endl;
     }
 
-
+    /*
     //GA_GroupType groupType = GA_GROUP_POINT;
     const GA_GroupTable *pointGtable = deformableGridsgdp->getGroupTable(groupType);
     //GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
@@ -903,7 +904,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
             deformableGridsgdp->destroyPrimitiveGroup(primitiveGrp);
         }
     }
-
+    */
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 }
 

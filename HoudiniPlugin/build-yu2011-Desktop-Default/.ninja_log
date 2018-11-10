@@ -126,3 +126,12 @@
 2140	2246	0	CMakeFiles/Yu2011.dir/sesitag.C.o	1a375e3d8e753432
 2140	24823	0	CMakeFiles/Yu2011.dir/PoissonDisk/Bridson2012PoissonDiskDistribution.cpp.o	825f37cde8777cbc
 24825	25165	0	Yu2011.so	b63a9f7908543d9b
+152	4378	0	sesitag.C	3b79769bfc33e08
+4381	4526	0	CMakeFiles/Yu2011.dir/sesitag.C.o	1a375e3d8e753432
+4381	21510	0	CMakeFiles/Yu2011.dir/Strategies/StrategyPatchSurfaceSynthesis/ParticleTracker.cpp.o	99f4be3d7aa99ac0
+4381	25194	0	CMakeFiles/Yu2011.dir/Strategies/StrategyPatchSurfaceSynthesis/DeformableGrids.cpp.o	ed040970eb2919d2
+25195	26131	0	Yu2011.so	b63a9f7908543d9b
+76	4013	0	sesitag.C	3b79769bfc33e08
+4014	4218	0	CMakeFiles/Yu2011.dir/sesitag.C.o	1a375e3d8e753432
+4014	30553	0	CMakeFiles/Yu2011.dir/Strategies/StrategyPatchSurfaceSynthesis/Yu2011.cpp.o	825e83d901935c0b
+30555	31008	0	Yu2011.so	b63a9f7908543d9b

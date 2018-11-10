@@ -445,7 +445,7 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
             int active = attActive.get(ppt);
             if (active == 0 && life <= 0.0f && params.frame != params.startFrame)
             {
-                //cout << "Deleting patch "<<id<<" mature "<<attIsMature.get(ppt)<<endl;
+                cout << "Deleting deformable grid "<<id<<" mature "<<attIsMature.get(ppt)<<endl;
                 toDelete.insert(id);
                 numberOfPatches--;
                 numberOfConcealedPatches++;
@@ -458,7 +458,7 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
                 //cout << "Is patch "<<patchId<<" exists? Then we should delete "<<groupName<<endl;
 
                 //delete this grid
-                //gdp->deletePoints(*pointGrp,mode);
+                gdp->deletePoints(*pointGrp,mode);
                 //cout << "delete point group "<<groupName<<endl;
                 gdp->destroyPointGroup(pointGrp);
                 if (primGroup != 0x0)
@@ -475,7 +475,7 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
             if (toDelete.count(id) > 0)
             {
 
-                //cout << "Delete point "<<id<<endl;
+                cout << "Delete poisson disk point "<<id<<endl;
                 grpToDestroy->addOffset(ppt);
             }
         }

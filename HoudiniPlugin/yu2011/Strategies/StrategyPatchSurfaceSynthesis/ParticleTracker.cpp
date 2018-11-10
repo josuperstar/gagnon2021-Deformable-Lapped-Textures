@@ -50,25 +50,6 @@ bool ParticleTracker::SynthesisSurface(GU_Detail *trackerGdp, ParametersDeformab
 
 }
 
-void ParticleTracker::DeleteTracker(GU_Detail* trackers,int trackerId)
-{
-    GA_RWHandleI attId(trackers->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackers->newPointGroup("ToDelete");
-
-    GA_Offset ppt;
-    GA_FOR_ALL_PTOFF(trackers,ppt)
-    {
-        int id = attId.get(ppt);
-        if (id == trackerId)
-        {
-            grpToDestroy->addOffset(ppt);
-        }
-    }
-
-    GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-    trackers->deletePoints(*grpToDestroy,mode);
-    trackers->destroyPointGroup(grpToDestroy);
-}
 
 
 //================================================================================================
