@@ -11,6 +11,7 @@ bool TreeDGrid::RespectCriterion(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &
 
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
+
     GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
 
     tree.findAllCloseIdx(newPointPosition,

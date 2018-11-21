@@ -28,6 +28,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
+
     // Find first vdb primitive of input 0
     GEO_Primitive* prim;
     GEO_PrimVDB* phi = 0x0;
@@ -52,7 +53,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
     //this->initializeGrid(points, diskRadius);
 
-
+    GA_RWHandleI    attDeleteFaster(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
@@ -66,6 +67,12 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
         bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, pointPosition, pointNormal, diskRadius, killDistance, cellSize, numberOfClosePoint, angleNormalThreshold, ppt);
         attDensity.set(ppt,numberOfClosePoint);
+        int deleteFaster = attDeleteFaster.get(ppt);
+
+        if (numberOfClosePoint > 3 && deleteFaster == 0)
+        {
+            attDeleteFaster.set(ppt, 1);
+        }
 
         if (attActive.get(ppt) == 0)
             continue;
@@ -227,7 +234,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
                 //cout << "P = "<<p<< " distance "<<newPointDistance<< " poissonDiskRadius"<<poissonDiskRadius<<endl;
 
-                if (abs(newPointDistance) > poissonDiskRadius)
+                if (abs(newPointDistance) > poissonDiskRadius/3)
                 {
                     //cout << "random point is outside of range"<<endl;
                     continue;

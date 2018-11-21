@@ -237,8 +237,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     //================================ CREATE PATCH GROUPS ==============================
     //GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
     GA_GroupType pointGroupType = GA_GROUP_POINT;
-    const GA_GroupTable *pointGTable = deformableGridsGdp->getGroupTable(pointGroupType);
-
 
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
@@ -348,11 +346,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         }
     }
     //cout << "Create primitive group" << endl;
-
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
-
-        //for(it = trackers.begin(); it != trackers.end(); ++it)
         {
 
             patchNumber = attId.get(ppt);
@@ -407,32 +402,12 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
     GA_RWHandleI attIsMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
 
-
     GA_Offset ppt;
     int beforeAddingNumber = numberOfPatches;
 
-    //--------------------------- ADDING A NEW PATCH ON NEWLY ADDED POISSON DISK --------------------------------------------
-    {
-        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
-        {   
-            int spawn = attSpawn.get(ppt);
-            int active = attActive.get(ppt);
-            if (active == 1 && spawn == 1) //to avoid new detached patches ?
-            {
-                //numberOfPatches++;
-            }
-            //we compute update excluding the time for adding a new patc since it is already computed inside these functions
-            startUpdatePatches = std::clock();
-            this->updatePatchesTime += (std::clock() - startUpdatePatches) / (double) CLOCKS_PER_SEC;
-        }
-    }
-
     GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");
-
     GA_GroupType groupType = GA_GROUP_POINT;
-
     const GA_GroupTable *gtable = gdp->getGroupTable(groupType);
-
     GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *gPrimTable = gdp->getGroupTable(primGroupType);
     set<int> toDelete;
@@ -455,14 +430,16 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
                 GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
                 GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(groupName.c_str());
 
-                //cout << "Is patch "<<patchId<<" exists? Then we should delete "<<groupName<<endl;
-
-                //delete this grid
-                gdp->deletePoints(*pointGrp,mode);
-                //cout << "delete point group "<<groupName<<endl;
-                gdp->destroyPointGroup(pointGrp);
+                if (pointGrp != 0x0)
+                {
+                    cout << "delete points "<<endl;
+                    gdp->deletePoints(*pointGrp,mode);
+                    cout << "delete point group "<<groupName<<endl;
+                    gdp->destroyPointGroup(pointGrp);
+                }
                 if (primGroup != 0x0)
                 {
+                    cout << "delete point group "<<groupName<<endl;
                     gdp->destroyPrimitiveGroup(primGroup);
                 }
             }
@@ -474,7 +451,6 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
             int id = attId.get(ppt);
             if (toDelete.count(id) > 0)
             {
-
                 cout << "Delete poisson disk point "<<id<<endl;
                 grpToDestroy->addOffset(ppt);
             }

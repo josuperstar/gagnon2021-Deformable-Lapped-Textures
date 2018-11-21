@@ -4,7 +4,7 @@ uuid = "ef6377e8-6cfa-4870-a409-b2e2d1a32d6d"
 
 description = "Yu 2011 Lagrangian Texture Advection"
 
-version = "1.2.6"
+version = "1.2.7"
 
 authors = [ "Jonathan Gagnon" ]
 

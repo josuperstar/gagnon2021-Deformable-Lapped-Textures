@@ -391,8 +391,8 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             point.y() = j;
             point.z() = 0;
 
-            unsigned int pixelPositionX = i;
-            unsigned int pixelPositionY = j;
+            int pixelPositionX = i;
+            int pixelPositionY = j;
 
             while (pixelPositionX >= w)
                 pixelPositionX -= w;
@@ -407,7 +407,10 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
             UT_Vector3 a = surfaceTexturePosition[0];
             UT_Vector3 b = surfaceTexturePosition[1];
             UT_Vector3 c = surfaceTexturePosition[2];
-            if (IsPointInTriangle(point,a,b,c) ||  notUsedYet)
+
+            bool inTriangle = IsPointInTriangle(point,a,b,c);
+
+            if (inTriangle || notUsedYet)
             {
                 //test color
                 color.R = 1;
@@ -436,15 +439,15 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                                           params);
 
                 diffuseImageBlendingYu2011Equation4->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq4);
-                diffuseImageBlendingYu2011Equation3->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq3);
+                //diffuseImageBlendingYu2011Equation3->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq3);
                 //======================== End Test encapsulated function =====================
                 if (computeDisplacement)
                 {
-                    displacementMapEquation3->SetColor(pixelPositionX,h-pixelPositionY,0,displacementSumEq3);
+                    //displacementMapEquation3->SetColor(pixelPositionX,h-pixelPositionY,0,displacementSumEq3);
                     displacementMapEquation4->SetColor(pixelPositionX,h-pixelPositionY,0,displacementSumEq4);
                 }
 
-                if (IsPointInTriangle(point,surfaceTexturePosition[0],surfaceTexturePosition[1],surfaceTexturePosition[2]))
+                if (inTriangle)
                     this->pixelUsed[pixelPositionX][pixelPositionY] = true;
             }
         }
@@ -456,7 +459,7 @@ void HoudiniAtlas::SaveAtlas()
 {
     //write the image to the disk
     diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
-    diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equationtree.png");
+    //diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equationtree.png");
     diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.png");
     diffuseImageBlendingYu2011Equation4->growRegions(diffuseImageBlendingYu2011Equation4->image,diffuseImageBlendingYu2011Equation4->image,1); //
     diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.padded.png");
@@ -467,9 +470,9 @@ void HoudiniAtlas::SaveAtlas()
         displacementMapEquation4->SaveImageAs(outputFilename+"displacementequationfour.png"); //HARDCODED NAME !!!
         displacementMapEquation4->growRegions(displacementMapEquation4->image,displacementMapEquation4->image,1); //
         displacementMapEquation4->SaveImageAs(outputFilename+".displacementequationfour.padded.png");
-        displacementMapEquation3->SaveImageAs(outputFilename+"displacementequationtree.png"); //HARDCODED NAME !!!
-        displacementMapEquation3->growRegions(displacementMapEquation3->image,displacementMapEquation3->image,1); //
-        displacementMapEquation3->SaveImageAs(outputFilename+".displacementequationtree.padded.png");
+        //displacementMapEquation3->SaveImageAs(outputFilename+"displacementequationtree.png"); //HARDCODED NAME !!!
+        //displacementMapEquation3->growRegions(displacementMapEquation3->image,displacementMapEquation3->image,1); //
+        //displacementMapEquation3->SaveImageAs(outputFilename+".displacementequationtree.padded.png");
         cout << "Save texture atlas"<<outputFilename+"displacement.png"<<endl;
     }
 }

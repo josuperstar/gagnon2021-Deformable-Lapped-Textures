@@ -161,7 +161,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         if (spawn != 1 || attActive.get(ppt) == 0)
             continue;
 
-        //cout << "Create Grid "<<id<<endl;
+        cout << "Create Grid "<<id;
 
         GU_Detail tempGdp;
         set<GA_Offset> tempGdpListOffset;
@@ -484,8 +484,10 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         this->gridMeshCreation += (std::clock() - startMeshCreation) / (double) CLOCKS_PER_SEC;
 
         if (close_particles_count == 0)
+        {
+            cout << " not ok"<<endl;
             continue;
-
+        }
         GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
 
         //=====================================================================================
@@ -558,6 +560,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             DeleteTracker(trackersGdp,id);
         }
         */
+        cout << " ok"<<endl;
     }
 }
 
@@ -589,6 +592,9 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_RWHandleV3   attCd(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
     GA_RWHandleF    attAlpha(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
     GA_RWHandleI    attGridId(deformableGridsgdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleF    attDP0(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
+    GA_RWHandleF    attDPi(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dPi",1));
+    GA_RWHandleF    attDeltaOnD(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
 
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
@@ -596,13 +602,10 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_RWHandleF    attRandT(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
 
-    GA_RWHandleV3 refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3   refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
 
-    GA_RWHandleF    attDP0(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
-    GA_RWHandleF    attDPi(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dPi",1));
-    GA_RWHandleF    attDeltaOnD(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
 
     if (attV.isInvalid())
     {
@@ -651,9 +654,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     int id;
     int active;
     float life;
-    set<int> toDelete;
-    set<int> patchAdvected;
-
 
     GA_FOR_ALL_PTOFF(trackersGdp,trackerPpt)
     {
@@ -667,12 +667,8 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         distortionParams.randT = randT;
 
         life = attLife.get(trackerPpt);
-
         float gridAlpha = (float)life/(float)params.fadingTau;
-
         UT_Vector3 trackerPosition = trackersGdp->getPos3(trackerPpt);
-
-        patchAdvected.insert(id);
 
         string str = std::to_string(id);
         string groupName = "grid"+str;
@@ -688,15 +684,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         {
             if (life <= 0)
             {
-                GA_FOR_ALL_GROUP_PTOFF(deformableGridsgdp,pointGrp,ppt)
-                {
-                    //cout << this->approachName<<" "<< "Deleting "<<id<<endl;
-                    grpToDestroy->addOffset(ppt);
-                    attCd.set(ppt,UT_Vector3(0,0,1));
-                    //change the alpha of the deformable grid:
-                    attAlpha.set(ppt,gridAlpha);
-                }
-                toDelete.insert(id);
+                //we don't deal with dead patches.
             }
             else
             {
@@ -711,10 +699,8 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                         GA_Size numberOfPrimitives = deformableGridsgdp->getPrimitivesReferencingPoint(primitivesList,ppt);
                         if (numberOfPrimitives == 0)
                         {
-                            grpToDestroy->addOffset(ppt);
                             continue;
                         }
-                        //toAdd = true;
                         v = attV.get(ppt);
                         N = attN.get(ppt);
                         p = deformableGridsgdp->getPos3(ppt);
@@ -766,13 +752,11 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 UT_Vector3 n0 = refAttN.get(pointOffset0);
                                 UT_Vector3 v0 = refAttV.get(pointOffset0);
 
-
                                 GA_Offset vertexOffset1 = prim->getVertexOffset(1);
                                 GA_Offset pointOffset1  = surfaceGdp->vertexPoint(vertexOffset1);
                                 UT_Vector3 n1 = refAttN.get(pointOffset1);
                                 UT_Vector3 v1 = refAttV.get(pointOffset1);
                                 //UT_Vector3 v1 = attUV.get(vertexOffset1);
-
 
                                 GA_Offset vertexOffset2 = prim->getVertexOffset(2);
                                 GA_Offset pointOffset2  = surfaceGdp->vertexPoint(vertexOffset2);
@@ -794,8 +778,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 //for debuging purposes
                                 attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
-                                //since the vertex of the grid is not projected on the surface, we should delete it
-                                grpToDestroy->addOffset(ppt);
                             }
                         }
 
@@ -810,7 +792,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                         averageDeltaOnD += deltaOnD;
                         if(maxDeltaOnD < deltaOnD)
                             maxDeltaOnD = deltaOnD;
-
 
                         attDP0.set(ppt,distance3d(p1,trackerPosition));
                         //--------------- Compute average position for the grid ----------------
@@ -855,56 +836,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         attMaxDeltaOnD.set(trackerPpt,averageDeltaOnD);
         //cout << "Max Delta on D "<<maxDeltaOnD<<endl;
     }
-
-    /*
-    //GA_GroupType groupType = GA_GROUP_POINT;
-    const GA_GroupTable *pointGtable = deformableGridsgdp->getGroupTable(groupType);
-    //GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
-    const GA_GroupTable *primitiveGtable = deformableGridsgdp->getGroupTable(primGroupType);
-    GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-
-    GA_PrimitiveGroup *primGroup;
-    //delete grid without trackers
-    GA_FOR_ALL_PRIMGROUPS(deformableGridsgdp,primGroup)
-    {
-        //"grid" has 4 letters
-        string groupName = primGroup->getName().toStdString();
-        string groupString = groupName;
-        groupString.replace(0,4,"");
-
-        int patchId = std::stoi( groupString );
-        //cout << "Is patch "<<patchId<<" exists? Then we should delete "<<groupName<<endl;
-        if (patchAdvected.count(patchId) == 0)
-        {
-            //delete this grid
-            pointGrp = (GA_PointGroup*)pointGtable->find(groupName.c_str());
-            deformableGridsgdp->deletePoints(*pointGrp,mode);
-            deformableGridsgdp->destroyPointGroup(pointGrp);
-            deformableGridsgdp->destroyPrimitiveGroup(primGroup);
-        }
-    }
-
-    deformableGridsgdp->deletePoints(*grpToDestroy,mode);
-
-    //GA_PointGroup* pointGrp;
-    GA_PrimitiveGroup* primitiveGrp;
-    int patchId;
-    set<int>::iterator itGrid;
-    for(itGrid = toDelete.begin(); itGrid != toDelete.end(); ++itGrid)
-    {
-        patchId = *itGrid;
-        string str = std::to_string(patchId);
-        string groupName = "grid"+str;
-        pointGrp = (GA_PointGroup*)pointGtable->find(groupName.c_str());
-        primitiveGrp = (GA_PrimitiveGroup*)primitiveGtable->find(groupName.c_str());
-        if (pointGrp)
-        {
-            //gdp->deletePoints(*pointGrp,mode);
-            deformableGridsgdp->destroyPointGroup(pointGrp);
-            deformableGridsgdp->destroyPrimitiveGroup(primitiveGrp);
-        }
-    }
-    */
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 }
 
