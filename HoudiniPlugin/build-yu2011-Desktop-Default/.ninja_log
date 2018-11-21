@@ -113,3 +113,7 @@
 2078	2179	0	CMakeFiles/Yu2011.dir/sesitag.C.o	1a375e3d8e753432
 2078	33441	0	CMakeFiles/Yu2011.dir/PoissonDisk/Bridson2012PoissonDiskDistribution.cpp.o	825f37cde8777cbc
 33442	33889	0	Yu2011.so	b63a9f7908543d9b
+94	2486	0	sesitag.C	3b79769bfc33e08
+2488	2650	0	CMakeFiles/Yu2011.dir/sesitag.C.o	1a375e3d8e753432
+2488	24230	0	CMakeFiles/Yu2011.dir/PoissonDisk/Bridson2012PoissonDiskDistribution.cpp.o	825f37cde8777cbc
+24231	24646	0	Yu2011.so	b63a9f7908543d9b

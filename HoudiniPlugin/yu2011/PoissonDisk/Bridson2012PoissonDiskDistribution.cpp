@@ -73,6 +73,10 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         {
             attDeleteFaster.set(ppt, 1);
         }
+        else if(deleteFaster == 1 && numberOfClosePoint <= 3)
+        {
+            attDeleteFaster.set(ppt, 0);
+        }
 
         if (attActive.get(ppt) == 0)
             continue;
