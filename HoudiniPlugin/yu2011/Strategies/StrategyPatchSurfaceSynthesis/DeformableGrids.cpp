@@ -317,8 +317,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             }
         }
 
-        //cout << "Create primitives"<<endl;
-        //cout << "There is "<<primList.size() <<" primitives"<<endl;
+        cout << "Create primitives"<<endl;
+        cout << "There is "<<primList.size() <<" primitives"<<endl;
         set<GA_Offset>::iterator itPrim;
         for(itPrim = primList.begin(); itPrim != primList.end(); ++itPrim)
         {
@@ -449,7 +449,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             UT_Vector3 q2 = trianglePoints[1];
             UT_Vector3 q3 = trianglePoints[2];
 
-            float area = ((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f;
+            float area = abs(((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f);
             attArea.set(prim_poly_ptr->getMapOffset(),area);
 
             if (area != 0.0f)
@@ -513,7 +513,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         srand(seed+2);
         float tz = (((double) rand()/(RAND_MAX)))*randomScale;
 
-
         {
             GA_Offset gppt;
             GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
@@ -549,7 +548,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             area = prim->calcArea();
             attInitArea.set(prim->getMapOffset(),area);
         }
-        /*
+
         if(pointGroup->entries() == 0)
         {
             //delete prim point and prim group
@@ -557,9 +556,11 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             deformableGridsGdp->deletePoints(*pointGroup,mode);
             deformableGridsGdp->destroyPointGroup(pointGroup);
             deformableGridsGdp->destroyPrimitiveGroup(primGroup);
-            DeleteTracker(trackersGdp,id);
+            attTrackerLife.set(ppt,0);
+            attActive.set(ppt,0);
+            //DeleteTracker(trackersGdp,id);
         }
-        */
+
         cout << " ok"<<endl;
     }
 }

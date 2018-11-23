@@ -68,7 +68,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, pointPosition, pointNormal, diskRadius, killDistance, cellSize, numberOfClosePoint, angleNormalThreshold, ppt);
         attDensity.set(ppt,numberOfClosePoint);
         int deleteFaster = attDeleteFaster.get(ppt);
-
+        //-------------- deleting faster logic ------------------
         if (numberOfClosePoint > 3 && deleteFaster == 0)
         {
             attDeleteFaster.set(ppt, 1);
@@ -77,7 +77,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         {
             attDeleteFaster.set(ppt, 0);
         }
-
+        //-------------------------------------------------------
         if (attActive.get(ppt) == 0)
             continue;
 

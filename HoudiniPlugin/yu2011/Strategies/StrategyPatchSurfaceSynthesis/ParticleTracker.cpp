@@ -194,16 +194,17 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
         //or that are too close to each other
         int deleteFaster = attDeleteFaster.get(ppt);
-        if (active == 0 && deleteFaster == 1)
+        int isMature = attIsMature.get(ppt);
+        if (active == 0 && deleteFaster == 1 && isMature == 1)
         {
             currentLife -= density;
         }
-        else if(active == 0 && deleteFaster == 0)
+        else if(active == 0 && deleteFaster == 0 && isMature == 1)
         {
             currentLife -= 1;
         }
         /*
-         * int isMature = attIsMature.get(ppt);
+         *
         if (active == 0 && (currentSpawn >= params.fadingTau) && isMature == 1)
         {
             cout << "point "<<id<< " current life "<<currentLife << " -= "<<1<<endl;
@@ -213,7 +214,8 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //fade in
         else if (currentSpawn < params.fadingTau)
         {
-            currentLife++;
+            //currentLife++;
+            currentLife += 1+density;
         }
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;
@@ -234,7 +236,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         float life = currentLife;
         attLife.set(ppt,life);
 
-        float temporalComponetKt = ((float)life-1)/params.fadingTau;
+        float temporalComponetKt = ((float)life)/params.fadingTau;
 
         attBlend.set(ppt,temporalComponetKt);
         attSpawn.set(ppt,currentSpawn);
