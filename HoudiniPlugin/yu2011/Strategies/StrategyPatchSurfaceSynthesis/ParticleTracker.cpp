@@ -194,12 +194,14 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
         //or that are too close to each other
         int deleteFaster = attDeleteFaster.get(ppt);
-        int isMature = attIsMature.get(ppt);
-        if (active == 0 && deleteFaster == 1 && isMature == 1)
+        bool isMature = (currentSpawn >= params.fadingTau);
+        if (isMature)
+            attIsMature.set(ppt,1);
+        if (active == 0 && deleteFaster == 1 && isMature)
         {
             currentLife -= density;
         }
-        else if(active == 0 && deleteFaster == 0 && isMature == 1)
+        else if(active == 0 && deleteFaster == 0 && isMature)
         {
             currentLife -= 1;
         }
