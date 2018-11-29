@@ -171,13 +171,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         TrackerN = attN.get(ppt);
         UT_Vector3 p = trackersGdp->getPos3(ppt);
-        UT_Vector3 pt = trackersGdp->getPos3(ppt+1);
-
-        TrackerN.normalize();
-        UT_Vector3 T = pt-p;
-        T.normalize();
-        UT_Vector3 S = cross(TrackerN,T);
-        S.normalize();
 
         std::clock_t startMeshCreation;
         startMeshCreation = std::clock();
@@ -254,26 +247,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 pointsLink[neighbor] = newPoint;
                 tempPointsLink[neighbor] = tempNewPoint;
 
-                //------------- UV Orthogonal Projection ---------------
-
-                // Transform into local patch space (where STN is aligned with XYZ at the origin)
-                const UT_Vector3 relativePosistion = pos-p;
-                UT_Vector3 triangleSpacePos;
-                triangleSpacePos.x() = relativePosistion.dot(S);
-                triangleSpacePos.y() = relativePosistion.dot(T);
-                triangleSpacePos.z() = relativePosistion.dot(TrackerN);
-
-                UT_Vector3 uv;
-                uv.x() = triangleSpacePos.x();
-                uv.y() = triangleSpacePos.y();
-                uv.z() = 0;
-
-                float mid = 0.5;
-                uv /= scaling;
-                uv += mid;
-                if (attUV.isValid())
-                    attUV.set(newPoint,uv);
-
                 //----------------- Dynamic Tau ------------------------
                 float dP0 = distance3d(p,pos);
                 attDP0.set(newPoint,dP0);
@@ -317,8 +290,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             }
         }
 
-        //cout << "Create primitives"<<endl;
-        //cout << "There is "<<primList.size() <<" primitives"<<endl;
+        cout << "Create primitives"<<endl;
+        cout << "There is "<<primList.size() <<" primitives"<<endl;
         set<GA_Offset>::iterator itPrim;
         for(itPrim = primList.begin(); itPrim != primList.end(); ++itPrim)
         {
@@ -449,7 +422,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             UT_Vector3 q2 = trianglePoints[1];
             UT_Vector3 q3 = trianglePoints[2];
 
-            float area = ((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f;
+            float area = abs(((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f);
             attArea.set(prim_poly_ptr->getMapOffset(),area);
 
             if (area != 0.0f)
@@ -513,7 +486,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         srand(seed+2);
         float tz = (((double) rand()/(RAND_MAX)))*randomScale;
 
-
         {
             GA_Offset gppt;
             GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
@@ -549,7 +521,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             area = prim->calcArea();
             attInitArea.set(prim->getMapOffset(),area);
         }
-        /*
+
         if(pointGroup->entries() == 0)
         {
             //delete prim point and prim group
@@ -557,9 +529,11 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             deformableGridsGdp->deletePoints(*pointGroup,mode);
             deformableGridsGdp->destroyPointGroup(pointGroup);
             deformableGridsGdp->destroyPrimitiveGroup(primGroup);
-            DeleteTracker(trackersGdp,id);
+            attTrackerLife.set(ppt,0);
+            attActive.set(ppt,0);
+            //DeleteTracker(trackersGdp,id);
         }
-        */
+
         cout << " ok"<<endl;
     }
 }
