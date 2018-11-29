@@ -171,13 +171,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         TrackerN = attN.get(ppt);
         UT_Vector3 p = trackersGdp->getPos3(ppt);
-        UT_Vector3 pt = trackersGdp->getPos3(ppt+1);
-
-        TrackerN.normalize();
-        UT_Vector3 T = pt-p;
-        T.normalize();
-        UT_Vector3 S = cross(TrackerN,T);
-        S.normalize();
 
         std::clock_t startMeshCreation;
         startMeshCreation = std::clock();
@@ -253,26 +246,6 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 tempPointList.push_back(tempNewPoint);
                 pointsLink[neighbor] = newPoint;
                 tempPointsLink[neighbor] = tempNewPoint;
-
-                //------------- UV Orthogonal Projection ---------------
-
-                // Transform into local patch space (where STN is aligned with XYZ at the origin)
-                const UT_Vector3 relativePosistion = pos-p;
-                UT_Vector3 triangleSpacePos;
-                triangleSpacePos.x() = relativePosistion.dot(S);
-                triangleSpacePos.y() = relativePosistion.dot(T);
-                triangleSpacePos.z() = relativePosistion.dot(TrackerN);
-
-                UT_Vector3 uv;
-                uv.x() = triangleSpacePos.x();
-                uv.y() = triangleSpacePos.y();
-                uv.z() = 0;
-
-                float mid = 0.5;
-                uv /= scaling;
-                uv += mid;
-                if (attUV.isValid())
-                    attUV.set(newPoint,uv);
 
                 //----------------- Dynamic Tau ------------------------
                 float dP0 = distance3d(p,pos);
