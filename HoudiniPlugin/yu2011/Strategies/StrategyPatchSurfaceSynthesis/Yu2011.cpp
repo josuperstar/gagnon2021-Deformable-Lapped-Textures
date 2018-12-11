@@ -163,7 +163,7 @@ bool Yu2011::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params
 //================================================================================================
 
 
-void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *trackersGdp, GA_PointGroup *markerGroup ,ParametersDeformablePatches params)
+void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *trackersGdp, GA_PointGroup *markerGroup , ParametersDeformablePatches params)
 {
 
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
@@ -196,7 +196,7 @@ void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail 
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
 
-    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
+    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
 
     cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
 
@@ -224,6 +224,8 @@ void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail 
 
 void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
 {
+
+    cout << "[AddPatchesUsingBarycentricCoordinates]" << endl;
 
     std::clock_t addPatchesStart;
     addPatchesStart = std::clock();
@@ -256,6 +258,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
         return;
     }
 
+
+    set<int> patchTreated;
     float thresholdDistance = params.maximumProjectionDistance;
 
     GA_Offset ppt;
@@ -293,6 +297,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
             string str = std::to_string(patchNumber);
             UT_String patchGroupName("patch"+str);
+            cout << "Create patch "<<patchGroupName<<endl;
             GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
             UT_String gridGroupName("grid"+str);
             GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
@@ -345,14 +350,22 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             neighborhood.clear();
         }
     }
-    //cout << "Create primitive group" << endl;
+
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
 
             patchNumber = attId.get(ppt);
+            if (patchTreated.count(patchNumber) > 0)
+            {
+                cout << "We already treated patch "<< patchNumber << endl;
+                return;
+            }
+            patchTreated.insert(patchNumber);
+
             int active = attActive.get(ppt);
             float life = attLife.get(ppt);
+
 
             if (active == 0 && life <= 0 )
                 continue;
@@ -362,12 +375,17 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 continue;
 
             string str = std::to_string(patchNumber);
+
             UT_String pointGroupName("patch"+str);
+            cout << "Create primitive group" << str <<endl;
             GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(pointGroupName);
             GA_GroupType groupType = GA_GROUP_POINT;
             const GA_GroupTable *gtable = surfaceGdp->getGroupTable(groupType);
             GA_OffsetArray primitives;
             GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(primGrp->getName());
+            if (pointGrp == 0x0)
+                continue;
+
             GA_FOR_ALL_GROUP_PTOFF(surfaceGdp,pointGrp,ppt)
             {
                 surfaceGdp->getPrimitivesReferencingPoint(primitives,ppt);

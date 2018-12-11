@@ -63,7 +63,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 {
 
     bool useDynamicTau = params.useDynamicTau;
-    //cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk based on "<<existingPoissonDisks.size()<<" poisson disk, with useDynamicTau at "<<useDynamicTau<<endl;
+    cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau<<endl;
 
     if (surfaceGroup == 0x0)
         return;
@@ -209,14 +209,6 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         {
             currentLife -= 1;
         }
-        /*
-         *
-        if (active == 0 && (currentSpawn >= params.fadingTau) && isMature == 1)
-        {
-            cout << "point "<<id<< " current life "<<currentLife << " -= "<<1<<endl;
-            currentLife -= 1;
-        }
-        */
         //fade in
         else if (currentSpawn < params.fadingTau)
         {
@@ -420,7 +412,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
             else
             {
                 //delete this point because we can't project it, probably because of a sudden topological change.
-                //cout << "delete "<<id<<" because we can't project it, probably because of a sudden topological change."<<endl;
+                cout << "delete "<<id<<" because we can't project it, probably because of a sudden topological change."<<endl;
                 AttCd.set(ppt,UT_Vector3(1,0,0));
 
                 //detached poisson disks have to be deleted directly, not fading out.

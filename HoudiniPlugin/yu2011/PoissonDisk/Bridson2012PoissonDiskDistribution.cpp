@@ -8,7 +8,7 @@
 #include <openvdb/tools/Interpolation.h>
 #include <openvdb/tools/GridOperators.h>
 #include <openvdb/math/Transform.h>
-
+#include <Core/Deformations/ParametersDeformablePatches.h>
 using namespace Mokko;
 using namespace std;
 
@@ -20,7 +20,7 @@ using namespace std;
 //================================================================================================
 
 
-void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold)
+void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params)
 {
     cout << "[Bridson2012PoissonDiskDistribution] on level set using a threshold of "<<angleNormalThreshold<<endl;
 
@@ -65,7 +65,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
             this->maxId = attId.get(ppt);
 
 
-        bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, pointPosition, pointNormal, diskRadius, killDistance, cellSize, numberOfClosePoint, angleNormalThreshold, ppt);
+        bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, pointPosition, pointNormal, killDistance,  numberOfClosePoint, ppt, params);
         attDensity.set(ppt,numberOfClosePoint);
         int deleteFaster = attDeleteFaster.get(ppt);
         int numberOfNeighbourThreshold = 1;
@@ -229,7 +229,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
                 float rz = (((double) rand()/(RAND_MAX)-offset));
 
                 openvdb::Vec3f randomPosition(rx,ry,rz);
-                randomPosition *= poissonDiskRadius/10;
+                randomPosition *= params.CellSize;
 
                 openvdb::Vec3f p = worldCellPos+randomPosition;
 
@@ -239,7 +239,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
                 //cout << "P = "<<p<< " distance "<<newPointDistance<< " poissonDiskRadius"<<poissonDiskRadius<<endl;
 
-                if (abs(newPointDistance) > poissonDiskRadius/3)
+                if (abs(newPointDistance) > params.CellSize)
                 {
                     //cout << "random point is outside of range"<<endl;
                     continue;
@@ -262,13 +262,13 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
                 //=================================================================
                 int numberOfClosePoint;
                 //cout << "Trying to fit "<<newPointPosition<<endl;
-                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius,poissonDiskRadius, cellSize, numberOfClosePoint, angleNormalThreshold, -1);
+                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius, numberOfClosePoint, -1, params);
                 if (meetPoissonDiskCriterion)
                 {
                     //=================================================================
                     //6:          S ← S ∪ {p}
                     //=================================================================
-                    bool isValid = this->InsertPoissonDisk(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius, poissonDiskRadius, false, angleNormalThreshold);
+                    bool isValid = this->InsertPoissonDisk(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius , numberOfClosePoint, params);
                     if (isValid)
                     {
                         break;
@@ -345,12 +345,12 @@ openvdb::Vec3f Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvd
 //================================================================================================
 
 
-bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N, float diskRadius, float killDistance , bool existingPoint, float angleNormalThreshold)
+bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
 {
 
     //get next available id
     long numberOfPoints = this->maxId+1;
-    int numberOfClosePoint;
+    //int numberOfClosePoint;
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
@@ -372,14 +372,9 @@ bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGd
     GA_Offset newPoint = trackersGdp->appendPoint();
     trackersGdp->setPos3(newPoint, p);
     attN.set(newPoint,N);
-    if (!backgroundGrid.RespectCriterion(trackersGdp, tree, p, N, diskRadius, killDistance, cellSize,numberOfClosePoint, angleNormalThreshold, -1))
-    {
-        attActive.set(newPoint,false);
-    }
-    else
-    {
-        attActive.set(newPoint,true);
-    }
+
+    attActive.set(newPoint,true);
+
     attDensity.set(newPoint,numberOfClosePoint);
     attId.set(newPoint,id);
     attSpawn.set(newPoint,0);

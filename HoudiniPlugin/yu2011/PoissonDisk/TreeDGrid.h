@@ -7,7 +7,7 @@
 //#include <GA_ElementGroup.h>
 #include <vector>
 #include "PoissonDisk/PoissonDisk.h"
-
+#include <Core/Deformations/ParametersDeformablePatches.h>
 
 
 using namespace std;
@@ -60,7 +60,7 @@ class TreeDGrid
 public:
     TreeDGrid(){}
 
-    bool RespectCriterion(GU_Detail* trackers, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float MinDist, float killDistance, float CellSize, int &numberOfClosePoint, float angleNormalThreshold, GA_Offset exclude);
+    bool RespectCriterion(GU_Detail* trackers, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal,  float killDistance, int &numberOfClosePoint, GA_Offset exclude , ParametersDeformablePatches params);
 
 };
 
