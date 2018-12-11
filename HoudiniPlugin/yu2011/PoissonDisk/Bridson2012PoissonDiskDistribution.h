@@ -12,7 +12,7 @@
 #include <openvdb/openvdb.h>
 #include <GU/GU_PrimVDB.h>
 #include <openvdb/tools/Interpolation.h>
-
+#include <Core/Deformations/ParametersDeformablePatches.h>
 
 using namespace std;
 namespace Mokko {
@@ -41,7 +41,7 @@ public:
         //backgroundGrid.~TreeDGrid();
 
     }
-    void PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold);
+    void PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params);
     void SetNumberOfPoint(int data){this->numberOfPoints = data;}
     void initializeGrid(GEO_PointTreeGAOffset &tree, GU_Detail *trackerGdp, float diskRadius,  float angleNormalThreshold);
 
@@ -51,7 +51,7 @@ public:
 private:
 
     openvdb::Vec3f projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad );
-    bool InsertPoissonDisk(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float diskRadius, float killDistance , bool existingPoint, float angleNormalThreshold);
+    bool InsertPoissonDisk(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
 
 
     float poissonDiskRadius;    //radius

@@ -7,7 +7,7 @@
 
 # =============================================================================
 # Project: Yu2011
-# Configuration: RELEASE
+# Configuration: DEBUG
 # =============================================================================
 # =============================================================================
 
@@ -42,7 +42,7 @@ rule CXX_SHARED_LIBRARY_LINKER__Yu2011
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /automount/sun-01/tools/common/cmake/3.11.1/bin/cmake -H/home/jgagnon/workspace/yu2011LagrangianTextureAdvection/HoudiniPlugin/yu2011 -B/home/jgagnon/workspace/yu2011LagrangianTextureAdvection/HoudiniPlugin/build-yu2011-Desktop-Default
+  command = /automount/unity-01/tools/common/cmake/3.11.1/bin/cmake -H/home/jgagnon/workspace/yu2011LagrangianTextureAdvection/HoudiniPlugin/yu2011 -B/home/jgagnon/workspace/yu2011LagrangianTextureAdvection/HoudiniPlugin/build-yu2011-Desktop-Default
   description = Re-running CMake...
   generator = 1
 

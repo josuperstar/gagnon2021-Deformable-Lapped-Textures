@@ -136,7 +136,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     GA_Offset newPoint;
     UT_Vector3Array         triangleArrayData;
     float life = 1.0f;
-
+    float cs = params.CellSize;
+    float r = params.poissondiskradius;
     string groupName = "grids";
     GA_PointGroup *grpGrid = deformableGridsGdp->newPointGroup(groupName.c_str());
 
@@ -188,7 +189,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
         tree.findAllCloseIdx(trackerPositition,
-                             gridwidth/2.0f,
+                             gridwidth,
                              close_particles_indices);
 
         GA_Offset surfaceClosestPoint = tree.findNearestIdx(trackerPositition);
@@ -213,6 +214,31 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                     nbDistorted++;
                     continue;
                 }
+
+
+                //respect poisson disk criterion
+                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+                UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
+                //=====================================================
+                UT_Vector3 pNp          = p - pos;
+                pNp.normalize();
+                UT_Vector3 n            = attN.get(neighbor);
+                n.normalize();
+                float dotP              = dot(pNp, N);
+                float dotN              = dot(n,N);
+
+                float d              = distance3d( pos, p );
+                float dp                = abs(dotP);
+
+                float k        = (1-dp)*r*2;
+                if (k < cs)
+                    k = cs;
+                bool insideBigEllipse    = d < k;
+                if (!insideBigEllipse)
+                    continue;
+                //=====================================================
+
+
                 //--------create new points ------------
                 newPoint = deformableGridsGdp->appendPointOffset();
                 tempNewPoint = tempGdp.appendPointOffset();
@@ -223,7 +249,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                     closestPoint = tempNewPoint;
                 }
 
-                UT_Vector3 pos = surfaceGdp->getPos3(neighbor);
+
                 deformableGridsGdp->setPos3(newPoint,surfaceGdp->getPos3(neighbor));
                 tempGdp.setPos3(tempNewPoint,surfaceGdp->getPos3(neighbor));
                 pointGroup->addOffset(newPoint);
@@ -468,6 +494,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         bool flattening = true;
         if (flattening)
         {
+            cout << "UV Flattening"<<endl;
             this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling );
         }
 
@@ -1005,19 +1032,10 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
     }
 
     GA_PrimitiveGroup *primGroup = 0;
-    static int lenomquejeveux = 0;
-    //cout << "marque ce tu veux" << ++lenomquejeveux << std::endl;
-    //rescale uv on every primitive
-    //GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
     GA_Range range = (deformableGridsGdp)->getPrimitiveRange((primGroup));
-    bool isValid = range.isValid();
-    bool isEmpty = range.isEmpty();
-    GA_Size entries = range.getEntries();
-    GA_Size maxEntries = range.getMaxEntries();
     GA_Iterator begin = range.begin();
     GA_Iterator end = range.end();
     GA_Iterator itTest(range);
-    GU_Detail::GB_MACRO_PRIM_TYPE* wtf = static_cast<GU_Detail::GB_MACRO_PRIM_TYPE *>((deformableGridsGdp)->getPrimitive(*itTest));
 
     for (GA_Iterator it((deformableGridsGdp)->getPrimitiveRange(primGroup)); (!it.atEnd() || (prim = nullptr)) &&
             ((prim)=GA_Detail::GB_MACRO_CAST((deformableGridsGdp), (deformableGridsGdp)->getPrimitive(*it)));

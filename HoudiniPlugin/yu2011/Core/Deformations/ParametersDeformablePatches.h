@@ -24,12 +24,7 @@ struct ParametersDeformablePatches
     float uvTransfertRadius;
     float normalTransfertRadius;
     int deleteConcealedPatches;
-    int gridResolution;
     int computeDistortion;
-    float dilatationMin;
-    float dilatationMax;
-    float squeezeMin;
-    float squeezeMax;
     float distortionRatioThreshold; //the amount of distorted vertex allow per grid
     float angleNormalThreshold;     //the angle (dot product) with the normal of the tracker below which the vertex is considered as distorted
     float poissonAngleNormalThreshold;
@@ -50,6 +45,7 @@ struct ParametersDeformablePatches
     float UVScaling; //scaling used for the patch definition of uv.
     bool useDynamicTau;
     float Yu2011Beta;
+    float CellSize;
 };
 }
 
