@@ -52,6 +52,7 @@ private:
 
     openvdb::Vec3f projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad );
     bool InsertPoissonDisk(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
+    bool RespectCriterion(GU_Detail* trackers, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal,  float killDistance, int &numberOfClosePoint, GA_Offset exclude , ParametersDeformablePatches params);
 
 
     float poissonDiskRadius;    //radius

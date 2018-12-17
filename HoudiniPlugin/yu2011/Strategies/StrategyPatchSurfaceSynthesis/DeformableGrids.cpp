@@ -162,7 +162,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         if (spawn != 1 || attActive.get(ppt) == 0)
             continue;
 
-        cout << "Create Grid "<<id;
+        //cout << "Create Grid "<<id;
 
         GU_Detail tempGdp;
         set<GA_Offset> tempGdpListOffset;
@@ -220,6 +220,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
                 UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
                 //=====================================================
+                /*
                 UT_Vector3 pNp          = p - pos;
                 pNp.normalize();
                 UT_Vector3 n            = attN.get(neighbor);
@@ -236,6 +237,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 bool insideBigEllipse    = d < k;
                 if (!insideBigEllipse)
                     continue;
+                */
                 //=====================================================
 
 
@@ -316,8 +318,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             }
         }
 
-        cout << "Create primitives"<<endl;
-        cout << "There is "<<primList.size() <<" primitives"<<endl;
+        //cout << "Create primitives"<<endl;
+        //cout << "There is "<<primList.size() <<" primitives"<<endl;
         set<GA_Offset>::iterator itPrim;
         for(itPrim = primList.begin(); itPrim != primList.end(); ++itPrim)
         {
@@ -484,7 +486,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         if (close_particles_count == 0)
         {
-            cout << " not ok"<<endl;
+            //cout << " not ok"<<endl;
             continue;
         }
         GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
@@ -494,7 +496,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         bool flattening = true;
         if (flattening)
         {
-            cout << "UV Flattening"<<endl;
+            //cout << "UV Flattening"<<endl;
             this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling );
         }
 
@@ -552,7 +554,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         if(pointGroup->entries() == 0)
         {
             //delete prim point and prim group
-            cout <<"[DeformableGrids]CreateGridBasedOnMesh: delete patch "<< pointGroup->getName()<<endl;
+            cout <<"[DeformableGrids]CreateGridBasedOnMesh: delete patch because there is no point"<< pointGroup->getName()<<endl;
             deformableGridsGdp->deletePoints(*pointGroup,mode);
             deformableGridsGdp->destroyPointGroup(pointGroup);
             deformableGridsGdp->destroyPrimitiveGroup(primGroup);
@@ -561,7 +563,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             //DeleteTracker(trackersGdp,id);
         }
 
-        cout << " ok"<<endl;
+        //cout << " ok"<<endl;
     }
 }
 
