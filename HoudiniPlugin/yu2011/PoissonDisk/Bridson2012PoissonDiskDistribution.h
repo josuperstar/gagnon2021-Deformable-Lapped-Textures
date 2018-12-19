@@ -7,8 +7,6 @@
 //#include <GA_ElementGroup.h>
 #include <vector>
 
-#include "TreeDGrid.h"
-
 #include <openvdb/openvdb.h>
 #include <GU/GU_PrimVDB.h>
 #include <openvdb/tools/Interpolation.h>
@@ -58,12 +56,11 @@ private:
     float poissonDiskRadius;    //radius
     int k;      //the limit of samples to choose before rejection in the algorithm, typically k = 30
     int numberOfPoints;
-    TreeDGrid backgroundGrid;
+
 
     int n = 3; // n-dimensional
     int t; // number of attemps
     float cellSize;
-    DefaultPRNG Generator;
     bool Circle = true;
 
     long maxId = 0;

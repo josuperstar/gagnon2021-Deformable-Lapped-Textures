@@ -190,9 +190,14 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //d_V =0 if V ∈ grid boundary 1 otherwise
         float d_V = 1.0f;
 
+        //test
+        maxDUV = params.poissondiskradius/2;
         if (d_P > maxDUV)
             d_V = 0.0f;
         float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;
+
+        //cout << "Ks "<<K_s<<endl;
+        //cout << "d_V "<<d_V<<endl;
 
         //K_s should be between 0 and 1
         if (K_s < 0)

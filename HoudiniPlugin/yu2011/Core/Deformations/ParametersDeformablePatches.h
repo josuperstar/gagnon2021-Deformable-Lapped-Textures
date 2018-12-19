@@ -2,7 +2,6 @@
 #define __ParametersDeformablePatches_h__
 
 using namespace std;
-using namespace Mokko;
 
 namespace Mokko {
 struct ParametersDeformablePatches
