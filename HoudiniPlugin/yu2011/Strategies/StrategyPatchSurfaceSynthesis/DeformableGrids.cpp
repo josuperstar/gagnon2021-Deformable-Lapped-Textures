@@ -189,7 +189,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
         tree.findAllCloseIdx(trackerPositition,
-                             gridwidth,
+                             gridwidth*2,
                              close_particles_indices);
 
         GA_Offset surfaceClosestPoint = tree.findNearestIdx(trackerPositition);
@@ -220,24 +220,21 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
                 UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
                 //=====================================================
-                /*
+
                 UT_Vector3 pNp          = p - pos;
                 pNp.normalize();
-                UT_Vector3 n            = attN.get(neighbor);
-                n.normalize();
                 float dotP              = dot(pNp, N);
-                float dotN              = dot(n,N);
 
                 float d              = distance3d( pos, p );
                 float dp                = abs(dotP);
 
-                float k        = (1-dp)*r*2;
+                float k        = (1-dp)*r*1.5;
                 if (k < cs)
                     k = cs;
                 bool insideBigEllipse    = d < k;
                 if (!insideBigEllipse)
                     continue;
-                */
+
                 //=====================================================
 
 

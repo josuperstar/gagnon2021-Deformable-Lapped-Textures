@@ -159,13 +159,13 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
         openvdb::Vec3f cellPosition(x,y,z);
         openvdb::Vec3f worldCellPos = gridSurface->transform().indexToWorld(cellPosition);
-        //float boundaryDist = samplerSurface.wsSample(worldCellPos);
+        float boundaryDist = samplerSurface.wsSample(worldCellPos);
         //openvdb::Vec3f p    = it.getCoord();
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
             //if it is not close to the surface, continue
-            //if (abs(boundaryDist) > poissonDiskRadius/3) // We should use a threshold defined by the user
-            //    continue;
+            if (abs(boundaryDist) > params.CellSize) // We should use a threshold defined by the user
+                continue;
             //=================================================================
             //2:  for t attempts do
             //=================================================================
@@ -347,7 +347,7 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         n.normalize();
         float dotP              = dot(pNp, newPointNormal);
         float dotN              = dot(n,newPointNormal);
-        bool samePlane          = dotN > params.angleNormalThreshold;
+        bool samePlane          = dotN > params.poissonAngleNormalThreshold;
         float d              = distance3d( pos, newPointPosition );
         float dp                = abs(dotP);
 
@@ -360,8 +360,8 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
             k2 = cs;
 
         //hack to test old approch, apparently, it create too much point on corner when we do the update.
-        k = r;
-        k2 = killDistance;
+        //k = r;
+        //k2 = killDistance;
 
         bool outsideOfSmallEllipse          = d > k2;
         bool insideBigEllipse               = d < k;
