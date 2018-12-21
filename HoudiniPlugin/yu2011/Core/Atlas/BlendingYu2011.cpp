@@ -68,6 +68,10 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
     //================================= SUMARIZE ========================================
     // compute color according to the list of patch
     //for each pixel patch loop
+
+    //give more weight to the first patch and decrease afterward
+
+    int k = sortedPatches.size();
     vector<int>::iterator itPatch;
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
     {
@@ -185,17 +189,26 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
         float d_P = distance3d(positionInPolygon,centerUV);
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
-        float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
-
+        //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
+        float minDUV = 0.125/2;
+        float maxDUV = 0.25/2; //blending region
+        //float maxDUV = 0.5f;
         //d_V =0 if V ∈ grid boundary 1 otherwise
         float d_V = 1.0f;
 
         //test
-        maxDUV = params.poissondiskradius/2;
+        //maxDUV = params.poissondiskradius/2;
         if (d_P > maxDUV)
             d_V = 0.0f;
-        float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;
 
+        float C_s = 0.0f;
+        if (d_P > minDUV && d_P <= maxDUV)
+            C_s = 1-((d_P-minDUV)/(maxDUV-minDUV));
+        if (d_P <= minDUV)
+            C_s = 1.0f;
+
+        //float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;
+        float K_s = C_s*d_V*Q_V;
         //cout << "Ks "<<K_s<<endl;
         //cout << "d_V "<<d_V<<endl;
 
@@ -229,7 +242,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights
         //The weight for each vertex is defined as the product of a spatial component and a temporal component
-        float w_v = K_s * K_t;
+        float w_v = K_s * K_t * k;
 
         //--------------------------------------------------------
         //Section 3.5.1
@@ -267,6 +280,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             displacementSumEq4.G += w_v*(displacement.G - displaceMean.G);
             displacementSumEq4.B += w_v*(displacement.B - displaceMean.B);
         }
+        k--;
     }
     //========================= END SUM ==================================
 
@@ -332,11 +346,11 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         Clamp(displacementSumEq4);
     }
 
-    float Af = sumW;
+    float Af = sqw;
     if (Af > 1)
         Af = 1;
     //If we don't use the alpha, we are having black spot where sumW is 0
-    //R2.A = Af;
+    //R_eq4.A = Af;
     //R1.A = Af;
     //we need to invertigate why we need to check that:
     Clamp(R_eq4);

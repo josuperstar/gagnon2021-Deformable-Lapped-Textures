@@ -359,9 +359,9 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         if (k2 < cs)
             k2 = cs;
 
-        //hack to test old approch
-        //k = r;
-        //k2 = killDistance;
+        //hack to test old approch, apparently, it create too much point on corner when we do the update.
+        k = r;
+        k2 = killDistance;
 
         bool outsideOfSmallEllipse          = d > k2;
         bool insideBigEllipse               = d < k;
