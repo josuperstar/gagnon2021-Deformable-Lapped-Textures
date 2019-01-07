@@ -261,7 +261,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
     set<int> patchTreated;
     float thresholdDistance = params.maximumProjectionDistance;
-
+    float cs = params.CellSize;
+    float r = params.poissondiskradius;
     GA_Offset ppt;
     UT_Vector3 N;
     UT_Vector3 NN;
@@ -290,7 +291,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             // Close particles indices
             GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
             surfaceTree.findAllCloseIdx(position,
-                                 patchRadius*1.2,
+                                 patchRadius*2,
                                  surfaceNeighborhoodVertices);
 
             unsigned close_particles_count = surfaceNeighborhoodVertices.entries();
@@ -323,6 +324,30 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                     continue;
 
                 patchP = surfaceGdp->getPos3(surfacePointOffset);
+
+
+                //respect poisson disk criterion
+                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+                UT_Vector3 pos          = patchP;
+                //=====================================================
+
+                UT_Vector3 pNp          = position - pos;
+                pNp.normalize();
+                dotP              = dot(pNp, N);
+
+                float d              = distance3d( pos, position );
+                float dp                = abs(dotP);
+
+                float k        = (1-dp)*r*2;
+                if (k < cs)
+                    k = cs;
+                bool insideBigEllipse    = d < k;
+                if (!insideBigEllipse)
+                    continue;
+
+                //=====================================================
+
+
                 //------------------------------------ RAY -----------------------------------------
                 //project patchP on trackers set
                 GU_MinInfo mininfo;

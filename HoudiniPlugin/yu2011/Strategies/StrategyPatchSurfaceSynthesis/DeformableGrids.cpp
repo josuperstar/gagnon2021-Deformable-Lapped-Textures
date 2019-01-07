@@ -228,7 +228,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 float d              = distance3d( pos, p );
                 float dp                = abs(dotP);
 
-                float k        = (1-dp)*r*1.5;
+                float k        = (1-dp)*r*2;
                 if (k < cs)
                     k = cs;
                 bool insideBigEllipse    = d < k;
@@ -910,8 +910,15 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
 
     int numberOfIslands = flattener.getNumIslands();
 
+    if (numberOfIslands == 0)
+    {
+        cout << "There is no possible island in the flattening."<<endl;
+        return;
+    }
+
     if (numberOfIslands > 1)
     {
+        //retry to flatten the uv
         set<GA_Offset> connectedOffset;
 
         if (closestPoint == -1)
@@ -952,10 +959,9 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
 
         if (numberOfIslands > 1)
         {
-            cout << "The flattening is not workking with conenctivity test"<<endl;
+            cout << "The flattening is not working with conenctivity test"<<endl;
             return;
         }
-
     }
     UT_Vector3 uvCenter(0.5,0.5,0);
     int nbUv = 0;
@@ -1086,6 +1092,7 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
     GA_Offset ppt;
     GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,ppt)
     {
+        /*
         if (attIsTreated.get(ppt) == 0)
         {
             pointGroup->removeOffset(ppt);
@@ -1093,10 +1100,11 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
         }
         else
         {
+        */
             UT_Vector3 uv = attUV.get(ppt);
             uv += translation;
             attUV.set(ppt,uv);
-        }
+        //}
     }
     deformableGridsGdp->deletePoints(*toDestroy,mode);
 
