@@ -28,7 +28,8 @@ public:
                       GA_Offset tracker, GA_Offset closestPoint,
                       GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
                       set<GA_Offset> &pointsAround,
-                      float scaling);
+                      float scaling,
+                      ParametersDeformablePatches params);
 
     const string gridGroupName = "grids";
 
