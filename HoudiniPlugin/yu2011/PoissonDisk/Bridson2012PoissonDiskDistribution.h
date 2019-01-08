@@ -7,8 +7,6 @@
 //#include <GA_ElementGroup.h>
 #include <vector>
 
-#include "TreeDGrid.h"
-
 #include <openvdb/openvdb.h>
 #include <GU/GU_PrimVDB.h>
 #include <openvdb/tools/Interpolation.h>
@@ -52,17 +50,17 @@ private:
 
     openvdb::Vec3f projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad );
     bool InsertPoissonDisk(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
+    bool RespectCriterion(GU_Detail* trackers, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal,  float killDistance, int &numberOfClosePoint, GA_Offset exclude , ParametersDeformablePatches params);
 
 
     float poissonDiskRadius;    //radius
     int k;      //the limit of samples to choose before rejection in the algorithm, typically k = 30
     int numberOfPoints;
-    TreeDGrid backgroundGrid;
+
 
     int n = 3; // n-dimensional
     int t; // number of attemps
     float cellSize;
-    DefaultPRNG Generator;
     bool Circle = true;
 
     long maxId = 0;

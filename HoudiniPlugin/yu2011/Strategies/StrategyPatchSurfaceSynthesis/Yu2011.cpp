@@ -261,7 +261,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
     set<int> patchTreated;
     float thresholdDistance = params.maximumProjectionDistance;
-
+    float cs = params.CellSize;
+    float r = params.poissondiskradius;
     GA_Offset ppt;
     UT_Vector3 N;
     UT_Vector3 NN;
@@ -290,14 +291,14 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             // Close particles indices
             GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
             surfaceTree.findAllCloseIdx(position,
-                                 patchRadius*1.2,
+                                 patchRadius*2,
                                  surfaceNeighborhoodVertices);
 
             unsigned close_particles_count = surfaceNeighborhoodVertices.entries();
 
             string str = std::to_string(patchNumber);
             UT_String patchGroupName("patch"+str);
-            cout << "Create patch "<<patchGroupName<<endl;
+            //cout << "Create patch "<<patchGroupName<<endl;
             GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
             UT_String gridGroupName("grid"+str);
             GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
@@ -323,6 +324,30 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                     continue;
 
                 patchP = surfaceGdp->getPos3(surfacePointOffset);
+
+
+                //respect poisson disk criterion
+                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+                UT_Vector3 pos          = patchP;
+                //=====================================================
+
+                UT_Vector3 pNp          = position - pos;
+                pNp.normalize();
+                dotP              = dot(pNp, N);
+
+                float d              = distance3d( pos, position );
+                float dp                = abs(dotP);
+
+                float k        = (1-dp)*r*2;
+                if (k < cs)
+                    k = cs;
+                bool insideBigEllipse    = d < k;
+                if (!insideBigEllipse)
+                    continue;
+
+                //=====================================================
+
+
                 //------------------------------------ RAY -----------------------------------------
                 //project patchP on trackers set
                 GU_MinInfo mininfo;
@@ -345,7 +370,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                     attNumberOfPatch.set(surfacePointOffset,numberOfPatch);
                 }
                 patchIdsAtt->set(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
-
             }
             neighborhood.clear();
         }
@@ -354,7 +378,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
-
             patchNumber = attId.get(ppt);
             if (patchTreated.count(patchNumber) > 0)
             {
@@ -366,7 +389,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             int active = attActive.get(ppt);
             float life = attLife.get(ppt);
 
-
             if (active == 0 && life <= 0 )
                 continue;
 
@@ -375,9 +397,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 continue;
 
             string str = std::to_string(patchNumber);
-
             UT_String pointGroupName("patch"+str);
-            cout << "Create primitive group" << str <<endl;
+            //cout << "Create primitive group" << str <<endl;
             GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(pointGroupName);
             GA_GroupType groupType = GA_GROUP_POINT;
             const GA_GroupTable *gtable = surfaceGdp->getGroupTable(groupType);
@@ -438,7 +459,7 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
             int active = attActive.get(ppt);
             if (active == 0 && life <= 0.0f && params.frame != params.startFrame)
             {
-                cout << "Deleting deformable grid "<<id<<" mature "<<attIsMature.get(ppt)<<endl;
+                //cout << "Deleting deformable grid "<<id<<" mature "<<attIsMature.get(ppt)<<endl;
                 toDelete.insert(id);
                 numberOfPatches--;
                 numberOfConcealedPatches++;
@@ -450,14 +471,14 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
 
                 if (pointGrp != 0x0)
                 {
-                    cout << "delete points "<<endl;
+                    //cout << "delete points "<<endl;
                     gdp->deletePoints(*pointGrp,mode);
-                    cout << "delete point group "<<groupName<<endl;
+                    //cout << "delete point group "<<groupName<<endl;
                     gdp->destroyPointGroup(pointGrp);
                 }
                 if (primGroup != 0x0)
                 {
-                    cout << "delete point group "<<groupName<<endl;
+                    //cout << "delete point group "<<groupName<<endl;
                     gdp->destroyPrimitiveGroup(primGroup);
                 }
             }
@@ -469,7 +490,7 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail
             int id = attId.get(ppt);
             if (toDelete.count(id) > 0)
             {
-                cout << "Delete poisson disk point "<<id<<endl;
+                //cout << "Delete poisson disk point "<<id<<endl;
                 grpToDestroy->addOffset(ppt);
             }
         }

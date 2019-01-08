@@ -84,7 +84,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     {
         strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-        strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
+        //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
     }
     else

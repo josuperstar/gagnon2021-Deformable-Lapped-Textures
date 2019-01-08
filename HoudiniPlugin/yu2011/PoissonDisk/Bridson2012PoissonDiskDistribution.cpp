@@ -19,6 +19,44 @@ using namespace std;
 
 //================================================================================================
 
+/*
+We assume the surface geometry is given as a signed distance function:
+this permits fast projection of points to the surface. Pseudocode
+is provided in Algorithm 1. In the outer loop we search
+for “seed” sample points on the surface, checking every grid cell
+that intersects the surface (i.e. where the level set changes sign) so
+we don’t miss any components: in a cell we take up to t attempts,
+projecting random points from the cell to the surface and stopping
+when one satisfies the Poisson disk criterion, i.e. is at least distance
+r from existing samples. Once we have a seed sample, we continue
+sampling from it, taking a step of size e · r from the previous sample
+along a random tangential direction d, again projecting to the
+surface and checking the Poisson disk criterion. Parameters t = 30
+and e = 1.085 worked well, but could be further tuned.
+*/
+
+//Input: Level set φ, radius r, # attempts t, extension e
+//Output: Sample set S
+
+/*
+1: for all grid cells C where φ changes sign do
+2:  for t attempts do
+3:      Generate random point p in C
+4:      Project p to surface of φ
+5:      if p meets the Poisson Disk criterion in S then
+6:          S ← S ∪ {p}
+7:          Break
+8:  if no point was found in C then
+9:      Continue
+10: while new samples are found do
+11:     Generate random tangential direction d to surface at p
+12:     q ← p + d · e · r
+13:     Project q to surface of φ
+14:     if q meets the Poisson Disk criterion in S then
+15:         S ← S ∪ {q}
+16:         p ← q
+*/
+
 
 void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params)
 {
@@ -44,14 +82,11 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         return;
     }
 
-    float a = 0.25;
+    float a = 0.25; //promote this variable to the user interface
     this->poissonDiskRadius = diskRadius;
     float killDistance = (1-a)*diskRadius;
 
     cout << "[Bridson2012PoissonDiskDistribution] We have a valid vdb"<<endl;
-
-
-    //this->initializeGrid(points, diskRadius);
 
     GA_RWHandleI    attDeleteFaster(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
     GA_Offset ppt;
@@ -64,21 +99,9 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         if (attId.get(ppt) > this->maxId)
             this->maxId = attId.get(ppt);
 
-
-        bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, pointPosition, pointNormal, killDistance,  numberOfClosePoint, ppt, params);
+        bool meetPoissonDiskCriterion = this->RespectCriterion(trackersGdp,tree, pointPosition, pointNormal, killDistance,  numberOfClosePoint, ppt, params);
         attDensity.set(ppt,numberOfClosePoint);
-        int deleteFaster = attDeleteFaster.get(ppt);
-        int numberOfNeighbourThreshold = 1;
-        //-------------- deleting faster logic ------------------
-        if (numberOfClosePoint > numberOfNeighbourThreshold && deleteFaster == 0)
-        {
-            attDeleteFaster.set(ppt, 1);
-        }
-        else if(deleteFaster == 1 && numberOfClosePoint <= numberOfNeighbourThreshold)
-        {
-            attDeleteFaster.set(ppt, 0);
-        }
-        //-------------------------------------------------------
+
         if (attActive.get(ppt) == 0)
             continue;
 
@@ -87,64 +110,17 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         {
             cout << "We should delete point "<<attId.get(ppt)<<", is in kill distance" <<killDistance<<endl;
         }
-        //cout << "existing "<<attId.get(ppt)<<" "<<meetPoissonDiskCriterion<<endl;
     }
 
-    /*
-    We assume the surface geometry is given as a signed distance function:
-    this permits fast projection of points to the surface. Pseudocode
-    is provided in Algorithm 1. In the outer loop we search
-    for “seed” sample points on the surface, checking every grid cell
-    that intersects the surface (i.e. where the level set changes sign) so
-    we don’t miss any components: in a cell we take up to t attempts,
-    projecting random points from the cell to the surface and stopping
-    when one satisfies the Poisson disk criterion, i.e. is at least distance
-    r from existing samples. Once we have a seed sample, we continue
-    sampling from it, taking a step of size e · r from the previous sample
-    along a random tangential direction d, again projecting to the
-    surface and checking the Poisson disk criterion. Parameters t = 30
-    and e = 1.085 worked well, but could be further tuned.
-    */
-
     t = 30;
-    //Input: Level set φ, radius r, # attempts t, extension e
-    //Output: Sample set S
-
-    /*
-    1: for all grid cells C where φ changes sign do
-    2:  for t attempts do
-    3:      Generate random point p in C
-    4:      Project p to surface of φ
-    5:      if p meets the Poisson Disk criterion in S then
-    6:          S ← S ∪ {p}
-    7:          Break
-    8:  if no point was found in C then
-    9:      Continue
-    10: while new samples are found do
-    11:     Generate random tangential direction d to surface at p
-    12:     q ← p + d · e · r
-    13:     Project q to surface of φ
-    14:     if q meets the Poisson Disk criterion in S then
-    15:         S ← S ∪ {q}
-    16:         p ← q
-    */
-
-    // Get the grids
-    //std::cout << "getStorageType: " << phi->getStorageType() << std::endl;
-    //std::cout << "getTypleSize: " << phi->getTupleSize() << std::endl;
-    //std::cout << "getGridName: " << phi->getGridName() << std::endl;
 
     openvdb::GridBase::Ptr ptr = phi->getGridPtr();
-    cout << "ptr "<<ptr<<endl;
     openvdb::FloatGrid::Ptr gridSurface = openvdb::gridPtrCast<openvdb::FloatGrid>(ptr);
-    //openvdb::FloatGrid::ConstPtr gridSurface = openvdb::gridConstPtrCast<openvdb::FloatGrid>(phi->getGridPtr());
-    cout << "gridSurface "<< gridSurface<<endl;
     if(!gridSurface)
     {
         cout << "[Bridson2012PoissonDiskDistribution] Surface grid can't be converted in FloatGrid"<<endl;
         return;
     }
-
     if ((gridSurface->getGridClass() != openvdb::GRID_LEVEL_SET))
     {
         cout<< "[Bridson2012PoissonDiskDistribution] Surface grid is not a Level-set FloatGrid!"<<endl;
@@ -155,22 +131,15 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     //                         OPEN VDB ACCESSORS
     //=================================================================
 
-
-    //openvdb::tools::PointSampler
-
     // Create the gradient field
     openvdb::tools::Gradient<openvdb::FloatGrid> gradientOperator(*gridSurface);
     openvdb::VectorGrid::ConstPtr gridGradient = gradientOperator.process();
     //gridGradient->setName(ssGrad.str());
-
     openvdb::VectorGrid::ConstAccessor accessorGradient = gridGradient->getConstAccessor();
-
     openvdb::tools::GridSampler<openvdb::VectorGrid::ConstAccessor, openvdb::tools::BoxSampler>
             samplerGradient(accessorGradient, gridGradient->transform());
-
      // Get the sampler for the boundary grid (tri-linear filtering, in surface grid index space)
     openvdb::FloatGrid::Accessor accessorSurface = gridSurface->getAccessor();
-
     openvdb::tools::GridSampler<openvdb::FloatGrid::Accessor, openvdb::tools::BoxSampler>
             samplerSurface(accessorSurface, gridSurface->transform());
 
@@ -179,15 +148,9 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     //=================================================================
     //int i = 0;
 
-    //cout << "[Bridson2012PoissonDiskDistribution]"<<"There is "<< this->backgroundGrid.GetNumberOfPoissonDisk() << " Poisson disk" <<endl;
-
-    bool useJustOnePoint = false;
     cout << "[Bridson2012PoissonDiskDistribution] Step 1: for all grid cells C where φ changes sign do"<<endl;
     for (openvdb::FloatGrid::ValueOnCIter gridCellIt = gridSurface->cbeginValueOn(); gridCellIt; ++gridCellIt)
     {
-        if (useJustOnePoint)
-            continue;
-
         float x = gridCellIt.getCoord().x();
         float y = gridCellIt.getCoord().y();
         float z = gridCellIt.getCoord().z();
@@ -195,29 +158,23 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         float offset = 0.5;
 
         openvdb::Vec3f cellPosition(x,y,z);
-        float dist = *gridCellIt;
-        //shall we take the middle of the cell ?
-
         openvdb::Vec3f worldCellPos = gridSurface->transform().indexToWorld(cellPosition);
         float boundaryDist = samplerSurface.wsSample(worldCellPos);
-
         //openvdb::Vec3f p    = it.getCoord();
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
             //if it is not close to the surface, continue
-            //if (abs(boundaryDist) > poissonDiskRadius/3) // We should use a threshold defined by the user
-            //    continue;
+            if (abs(boundaryDist) > params.CellSize) // We should use a threshold defined by the user
+                continue;
             //=================================================================
             //2:  for t attempts do
             //=================================================================
-            //cout << "Step 2:  for t attempts do"<<endl;
             bool ableToInsertPoint = false;
             for(int i =0; i < t; i++)
             {
                 //=================================================================
                 //3:      Generate random point p in C
                 //=================================================================
-                //cout << "Generate random point p in C"<<endl;
                 int seed = i;
                 //we want it to oscillate between -0.5 and 0.5
 
@@ -233,13 +190,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
                 openvdb::Vec3f p = worldCellPos+randomPosition;
 
-                //cout << "P = "<<p<<endl;
-
                 float newPointDistance = samplerSurface.wsSample(p);
-
-                //cout << "P = "<<p<< " distance "<<newPointDistance<< " poissonDiskRadius"<<poissonDiskRadius<<endl;
-
-                if (abs(newPointDistance) > params.CellSize)
+                if (abs(newPointDistance) > params.poissondiskradius)
                 {
                     //cout << "random point is outside of range"<<endl;
                     continue;
@@ -256,13 +208,12 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
                 grad.normalize();
                 UT_Vector3 newPointNormal = UT_Vector3(grad.x(),grad.y(),grad.z());
 
-
                 //=================================================================
                 //5:      if p meets the Poisson Disk criterion in S then
                 //=================================================================
                 int numberOfClosePoint;
                 //cout << "Trying to fit "<<newPointPosition<<endl;
-                bool meetPoissonDiskCriterion = backgroundGrid.RespectCriterion(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius, numberOfClosePoint, -1, params);
+                bool meetPoissonDiskCriterion = this->RespectCriterion(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius, numberOfClosePoint, -1, params);
                 if (meetPoissonDiskCriterion)
                 {
                     //=================================================================
@@ -273,11 +224,6 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
                     {
                         break;
                     }
-                    //cout << "meet poisson disk criterion but can't insert point because it is not valid ..."<<endl;
-                }
-                else
-                {
-                    //cout << "Does not meet poisson disk criterion"<<endl;
                 }
             }
             if (!ableToInsertPoint)
@@ -286,30 +232,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
             }
         }
     }
-    //return allpoints;
     return;
 }
-
-
-
-
-//================================================================================================
-
-//                                      INITIALIZE GRID
-
-//================================================================================================
-
-//Step 0
-
-/*
-Initialize an n-dimensional background grid for storing
-samples and accelerating spatial searches. We pick the cell size to
-be bounded by r/√n
-n, so that each grid cell will contain at most
-one sample, and thus the grid can be implemented as a simple ndimensional
-array of integers: the default −1 indicates no sample, a
-non-negative integer gives the index of the sample located in a cell.
-*/
 
 
 
@@ -348,9 +272,6 @@ openvdb::Vec3f Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvd
 bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
 {
 
-    //get next available id
-    long numberOfPoints = this->maxId+1;
-    //int numberOfClosePoint;
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
@@ -359,8 +280,6 @@ bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGd
     GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
-
-    //cout << "Insert Poisson Disk "<< p<<endl;
 
     if (trackersGdp->getNumPoints() > this->maxId) //existing points
     {
@@ -372,9 +291,7 @@ bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGd
     GA_Offset newPoint = trackersGdp->appendPoint();
     trackersGdp->setPos3(newPoint, p);
     attN.set(newPoint,N);
-
     attActive.set(newPoint,true);
-
     attDensity.set(newPoint,numberOfClosePoint);
     attId.set(newPoint,id);
     attSpawn.set(newPoint,0);
@@ -386,3 +303,77 @@ bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGd
     return true;
 }
 
+//================================================================================================
+
+//                                      RESPECT CRITERION
+
+//================================================================================================
+
+bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint,   GA_Offset exclude, ParametersDeformablePatches params )
+{
+    numberOfClosePoint = 0;
+
+    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
+
+    GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
+
+    tree.findAllCloseIdx(newPointPosition,
+                         params.poissondiskradius*2,
+                         close_particles_indices);
+
+    int l = (int)close_particles_indices.entries();
+    GA_Offset neighbor;
+    bool tooClose = false;
+
+    float cs    = params.CellSize;
+    float r     = params.poissondiskradius;
+
+    newPointNormal.normalize();
+    float kd = killDistance;
+
+    for(int j=0; j<l;j++)
+    {
+        neighbor = close_particles_indices.array()[j];
+        if (attActive.get(neighbor) == 0)
+            continue;
+        if (neighbor == exclude)
+            continue;
+
+        UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+        UT_Vector3 pNp          = pos - newPointPosition;
+        pNp.normalize();
+        UT_Vector3 n            = attN.get(neighbor);
+        n.normalize();
+        float dotP              = dot(pNp, newPointNormal);
+        float dotN              = dot(n,newPointNormal);
+        bool samePlane          = dotN > params.poissonAngleNormalThreshold;
+        float d              = distance3d( pos, newPointPosition );
+        float dp                = abs(dotP);
+
+        float k        = (1-dp)*r;
+        if (k < cs)
+            k = cs;
+
+        float k2   = (1-dp)*kd;
+        if (k2 < cs)
+            k2 = cs;
+
+        //hack to test old approch, apparently, it create too much point on corner when we do the update.
+        //k = r;
+        //k2 = killDistance;
+
+        bool outsideOfSmallEllipse          = d > k2;
+        bool insideBigEllipse               = d < k;
+
+        //It is too close to the current point ?
+        if(samePlane && !outsideOfSmallEllipse)
+        {
+            tooClose = true;
+        }
+
+        if(insideBigEllipse && samePlane)
+            numberOfClosePoint++;
+    }
+    return !tooClose;
+}

@@ -188,22 +188,35 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
         //========================================================================
 
-        int density = attDensity.get(ppt);
+
 
         //========================= UPDATE ===============================
         //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
         //or that are too close to each other
 
         int maxNumberOfNeighbour = 10;
-
-
+        int density = attDensity.get(ppt);
+        //-------------- deleting faster logic ------------------
+        //Can we move this to the ParticleTracker update ?
         int deleteFaster = attDeleteFaster.get(ppt);
+        int numberOfNeighbourThreshold = 4; // TODO: promote this variable
+        if (density > numberOfNeighbourThreshold && deleteFaster == 0)
+        {
+            attDeleteFaster.set(ppt, 1);
+        }
+        else if(deleteFaster == 1 && density <= numberOfNeighbourThreshold)
+        {
+            attDeleteFaster.set(ppt, 0);
+        }
+        //-------------------------------------------------------
+
+        //int deleteFaster = attDeleteFaster.get(ppt);
         bool isMature = (currentSpawn >= params.fadingTau);
         if (isMature)
             attIsMature.set(ppt,1);
         if (active == 0 && deleteFaster == 1 && isMature)
         {
-            currentLife -= ((float)density/(float)maxNumberOfNeighbour)*params.fadingTau;
+            currentLife -= ((float)density);
         }
         else if(active == 0 && deleteFaster == 0 && isMature)
         {

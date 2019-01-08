@@ -21,6 +21,7 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
     //GA_RWHandleF    attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
     GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
+    GA_RWHandleF    attMaxQt(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxQt", 1));
 
     bool killParticle = false;
     bool overDistorted = false;
@@ -29,7 +30,7 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
         float area;
         int nbVertex;
 
-
+        float minQt = 10000.0f;
         GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
         {
             //move this into a function
@@ -118,9 +119,14 @@ void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *defo
                 {
                     overDistorted = true;
                 }
+
+                if (minQt > Qt)
+                    minQt = Qt;
+
             }
             //====================================================================
         }
+        attMaxQt.set(trackerPpt,minQt);
     }
     if (killParticle)
     {
