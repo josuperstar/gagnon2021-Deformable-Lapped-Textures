@@ -51,6 +51,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
     //Equation 2, Quality of a triangle
     GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
+    GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
     UT_Vector3 pixelPositionOnSurface;
 
     //We don't work with an image with no width of height
@@ -136,6 +137,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //Q_v quality of the vertex, value from 0 to 1
         float   Q_t = attQt.get(prim->getMapOffset());
 
+
         float   Q_V = Q_t;
 
         //-----------------------------------------------------------------
@@ -194,8 +196,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         float maxDUV = 0.25*0.5; //blending region
         //float maxDUV = 0.5f;
         //d_V =0 if V ∈ grid boundary 1 otherwise
-        float d_V = 1.0f;
-
+        //float d_V = 1.0f;
+        int     d_V = 1-attBorder.get(prim->getMapOffset());
         //test
         //maxDUV = params.poissondiskradius/2;
         if (d_P > maxDUV)

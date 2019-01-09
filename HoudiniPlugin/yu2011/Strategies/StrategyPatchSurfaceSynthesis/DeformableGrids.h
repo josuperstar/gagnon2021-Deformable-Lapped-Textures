@@ -30,6 +30,7 @@ public:
                       set<GA_Offset> &pointsAround,
                       float scaling,
                       ParametersDeformablePatches params);
+    void FlagBoundaries(GU_Detail *deformableGridsGdp);
 
     const string gridGroupName = "grids";
 
