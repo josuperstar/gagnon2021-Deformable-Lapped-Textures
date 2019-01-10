@@ -8,9 +8,7 @@ version = "1.3.9"
 
 authors = [ "Jonathan Gagnon" ]
 
-variants = [
-             ["houdini-16"]
-            ]
+
 
 #eventually QT, OpenCV ?
 #requires = [ "houtools-1+<2", "x264-1+<2" ]
