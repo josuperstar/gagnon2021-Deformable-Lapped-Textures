@@ -14,9 +14,6 @@ variants = [
              ["houdini-17"]
             ]
 
-#eventually QT, OpenCV ?
-#requires = [ "houtools-1+<2", "x264-1+<2" ]
-
 def commands():
 
 

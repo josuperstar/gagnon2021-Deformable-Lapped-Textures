@@ -4,8 +4,6 @@ cmake_minimum_required(VERSION 2.8)
 
 project (Yu2011)
 
-
-
 set(ProjectName Yu2011)
 
 set(ProjectSource .)
@@ -43,29 +41,9 @@ if (OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 #    add_definitions(-D_GLIBCXX_PARALLEL) # Currently multiplying compute time by three
 endif()
+
 find_package(HDK)
-
-#find_package(CGAL QUIET COMPONENTS Core )
-
-#if ( CGAL_FOUND )
-
-#  include( ${CGAL_USE_FILE} )
-
-#  include( CGAL_CreateSingleSourceCGALProgram )
-
-#  include_directories (BEFORE "../../include")
-
-
-#else()
-
-#    message(STATUS "This program requires the CGAL library, and will not be compiled.")
-
-#endif()
-
 find_package(ANN)
-
-
-
 
 ############## HOUDINI ###################
 
@@ -80,11 +58,7 @@ MESSAGE(${HDK_INCLUDE_DIRS})
 set(CMAKE_MODULE_PATH "${PROJECT_BINARY_DIR}")
 
 
-
 ################# SOURCE ##################
-
-
-
 
 file(GLOB source ${ProjectSource}/*.h ${ProjectSource}/*.C ${ProjectSource}/*.cpp ${ProjectSource}/*.hpp ${ProjectSource}/Set/*.h
             ${ProjectSource}/Set/SpacialGrid.hpp
@@ -111,7 +85,6 @@ add_definitions(${HDK_DEFINITIONS})
 ########### INCLUDES #################
 
 include_directories(${HDK_INCLUDE_DIRS})
-
 include_directories(${ProjectSource})
 include_directories(${Math})
 include_directories(${Set})
@@ -122,7 +95,6 @@ include_directories(${HoudiniPlugins})
 include_directories(${ANN_INCLUDE_DIR})
 
 #ADD_SUBDIRECTORY(${Images} "${ProjectSource}/Images")
-
 #ADD_SUBDIRECTORY(${Images} "${CMAKE_CURRENT_BINARY_DIR}/src/Images")
 #ADD_SUBDIRECTORY(${Math} "${CMAKE_CURRENT_BINARY_DIR}/src/Math")
 
@@ -153,13 +125,10 @@ endif (APPLE)
 
 
 #External Libraries
-#add_library(fluidsCore libfluidsCore)
-
 
 # this tells cmake to buid the DSO
 
 add_library(${ProjectName} ${LTYPE} ${source}  sesitag.C)
-
 # houdini doesn't want the DSO to have "lib" as it's prefix
 set_target_properties(${ProjectName} PROPERTIES PREFIX "")
 
@@ -169,24 +138,18 @@ if (APPLE)
 endif (APPLE)
 
 
-
-#LINK_DIRECTORIES(/prod/tools/rd/libx264/lib)
-#add_library(libx264 SHARED IMPORTED)
-#set_target_properties( libx264 PROPERTIES IMPORTED_LOCATION /prod/tools/rd/libx264/lib/libx264.so )
-
 add_library(image SHARED IMPORTED)
-set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/libImages.so )
+#set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/libImages.so )
+set_target_properties( image PROPERTIES IMPORTED_LOCATION /home/jgagnon/packages/rd_image/1.1.1/./libImages.so )
 
 
 #target_link_libraries (${ProjectName} ${FluidsCore})
 MESSAGE("-------------------- Target_link_libraries --------------")
 target_link_libraries(${ProjectName}
-	${HDK_LIBRARIES}
-        image
-       # math
-	${OpenCV_LIBS}
-        #libx264
-     ${ANN_LIBRARIES}
+	       ${HDK_LIBRARIES}
+          image
+	       ${OpenCV_LIBS}
+         ${ANN_LIBRARIES}
 )
 
 # finally tell cmake where to put the results
