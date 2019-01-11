@@ -171,8 +171,8 @@ endif (APPLE)
 
 
 #LINK_DIRECTORIES(/prod/tools/rd/libx264/lib)
-add_library(libx264 SHARED IMPORTED)
-set_target_properties( libx264 PROPERTIES IMPORTED_LOCATION /prod/tools/rd/libx264/lib/libx264.so )
+#add_library(libx264 SHARED IMPORTED)
+#set_target_properties( libx264 PROPERTIES IMPORTED_LOCATION /prod/tools/rd/libx264/lib/libx264.so )
 
 add_library(image SHARED IMPORTED)
 set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/libImages.so )
@@ -185,7 +185,7 @@ target_link_libraries(${ProjectName}
         image
        # math
 	${OpenCV_LIBS}
-        libx264
+        #libx264
      ${ANN_LIBRARIES}
 )
 
