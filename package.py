@@ -4,12 +4,13 @@ uuid = "ef6377e8-6cfa-4870-a409-b2e2d1a32d6d"
 
 description = "Yu 2011 Lagrangian Texture Advection"
 
-version = "1.3.13"
+version = "1.3.14"
 
 authors = [ "Jonathan Gagnon" ]
 
 variants = [
-             ["houdini-16"]
+             ["houdini-16"],
+             ["houdini-17"]
             ]
 
 #eventually QT, OpenCV ?
