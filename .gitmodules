@@ -1,12 +1,12 @@
-[submodule "HoudiniPlugin/yu2011/Eigen"]
-	path = HoudiniPlugin/yu2011/Eigen
-	url = gitrd:/prod/r_d/git/framework/src/Eigen/eigen-eigen-3.2.1.git
 [submodule "HoudiniPlugin/yu2011/Math"]
 	path = HoudiniPlugin/yu2011/Math
-	url = gitrd:/prod/r_d/git/framework/src/Math.git
+	url = https://github.com/josuperstar/math.git
 [submodule "HoudiniPlugin/yu2011/Set"]
 	path = HoudiniPlugin/yu2011/Set
-	url = gitrd:/prod/r_d/git/framework/src/Set.git
+	url = https://github.com/josuperstar/set.git
 [submodule "HoudiniPlugin/yu2011/Images"]
 	path = HoudiniPlugin/yu2011/Images
-	url = git@git:rd/image.git
+	url = https://github.com/josuperstar/images.git
+[submodule "HoudiniPlugin/yu2011/Eigen"]
+	path = HoudiniPlugin/yu2011/Eigen
+	url = https://github.com/josuperstar/Eigen.git
