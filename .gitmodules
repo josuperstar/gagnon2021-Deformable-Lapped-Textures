@@ -1,0 +1,12 @@
+[submodule "HoudiniPlugin/yu2011/math"]
+	path = HoudiniPlugin/yu2011/Math
+	url = https://github.com/josuperstar/math.git
+[submodule "HoudiniPlugin/yu2011/Eigen"]
+	path = HoudiniPlugin/yu2011/Eigen
+	url = https://github.com/josuperstar/Eigen.git
+[submodule "HoudiniPlugin/yu2011/set"]
+	path = HoudiniPlugin/yu2011/Set
+	url = https://github.com/josuperstar/set.git
+[submodule "HoudiniPlugin/yu2011/images"]
+	path = HoudiniPlugin/yu2011/Images
+	url = https://github.com/josuperstar/images.git
