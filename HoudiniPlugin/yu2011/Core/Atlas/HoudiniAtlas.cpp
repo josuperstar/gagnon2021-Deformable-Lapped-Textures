@@ -92,6 +92,12 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         return false;
     }
 
+    GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
+    if (attBorder.isInvalid())
+    {
+        cout << "[HoudiniAtlas::BuildAtlas] There is no border attribute."<<endl;
+    }
+
     diffuseImageBlendingGagnon = new ImageCV();
     diffuseImageBlendingGagnon->CreateImage(w,h,-1);
 

@@ -52,6 +52,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
     //Equation 2, Quality of a triangle
     GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
+    if (attBorder.isInvalid())
+        return R_eq4;
     UT_Vector3 pixelPositionOnSurface;
 
     //We don't work with an image with no width of height
