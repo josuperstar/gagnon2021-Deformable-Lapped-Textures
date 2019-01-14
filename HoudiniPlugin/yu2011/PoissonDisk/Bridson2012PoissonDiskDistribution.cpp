@@ -82,6 +82,10 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         return;
     }
 
+    cout << "Grid name: " << phi->getGridName() << std::endl;
+    cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
+    cout << "JSON: " << phi->getJSON() << std::endl;
+
     float a = 0.25; //promote this variable to the user interface
     this->poissonDiskRadius = diskRadius;
     float killDistance = (1-a)*diskRadius;
@@ -113,6 +117,10 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     }
 
     t = 30;
+
+    cout << "Grid name: " << phi->getGridName() << std::endl;
+    cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
+    cout << "JSON: " << phi->getJSON() << std::endl;
 
     openvdb::GridBase::Ptr ptr = phi->getGridPtr();
     openvdb::FloatGrid::Ptr gridSurface = openvdb::gridPtrCast<openvdb::FloatGrid>(ptr);
