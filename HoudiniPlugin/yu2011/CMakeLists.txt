@@ -11,7 +11,7 @@ set(Set Set)
 set(Math  Math)
 set(Eigen eigen)
 set(Images Images)
-set(ANN  "/prod/tools/rd/ann1.1.2/include/ANN")
+#set(ANN  "/prod/tools/rd/ann1.1.2/include/ANN")
 set(HoudiniPlugins HoudiniPlugins)
 project(${ProjectName})
 set(HDK "/prod/software/sidefx/hfs17.0.416")
@@ -149,7 +149,7 @@ target_link_libraries(${ProjectName}
 	       ${HDK_LIBRARIES}
           image
 	       ${OpenCV_LIBS}
-         ${ANN_LIBRARIES}
+         #${ANN_LIBRARIES}
 )
 
 # finally tell cmake where to put the results
