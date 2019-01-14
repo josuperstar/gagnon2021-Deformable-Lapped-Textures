@@ -23,6 +23,6 @@ def commands():
     env.HOUDINI_PATH.append("{root}")
 
     #command( "source %s/prod/tools/rd/enable" % root)
-    #source("/prod/tools/rd/enable")
-    source("{root}/setup/setenvironment.sh")
-    #setenv( "CMAKE_PREFIX_PATH" , "/prod/tools/rd/opencv-3.1.0-noqt" )
+    source("/prod/tools/rd/enable")
+    #source("{root}/setup/setenvironment.sh")
+    setenv( "CMAKE_PREFIX_PATH" , "/prod/tools/rd/opencv-3.1.0-noqt" )

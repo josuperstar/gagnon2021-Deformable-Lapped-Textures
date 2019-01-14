@@ -29,7 +29,6 @@ set(HDKCONFIG "${PROJECT_SOURCE_DIR}/../hdk-config.py")
 MESSAGE("------------testing---------------")
 ############# FIND PACKAGE ###############
 find_package(HDK)
-
 #set(OpenCV_DIR "/prod/tools/rd/opencv-3.1.0-noqt/share/OpenCV")
 find_package(OpenCV REQUIRED core highgui)     # OpenCV root path must be in CMAKE_PREFIX_PATH environment variable.
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -131,7 +130,7 @@ endif (APPLE)
 
 add_library(image SHARED IMPORTED)
 #set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/libImages.so )
-set_target_properties( image PROPERTIES IMPORTED_LOCATION /home/jgagnon/packages/rd_image/1.1.0/./libImages.so )
+set_target_properties( image PROPERTIES IMPORTED_LOCATION /home/jgagnon/packages/rd_image/1.2.0/./libImages.so )
 
 
 #target_link_libraries (${ProjectName} ${FluidsCore})
