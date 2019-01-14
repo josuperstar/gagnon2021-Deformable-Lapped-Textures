@@ -24,6 +24,9 @@ export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/prod/tools/rd/libx264/lib/pkgconfig
 # Git auto-complete
 source /prod/tools/rd/git-2.11.0/share/git-completion.bash
 
+export OpenCV_DIR=/prod/tools/rd/opencv-3.1.0-noqt/share/OpenCV
+
+
 #====================================================================================
 #HOUDINI
 export HDK=/prod/software/sidefx/hfs17.0.416
