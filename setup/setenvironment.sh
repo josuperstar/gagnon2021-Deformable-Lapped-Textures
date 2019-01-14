@@ -2,15 +2,45 @@
 export PATH=/prod/tools/common/cmake/3.11.1/bin/:$PATH
 export PATH=/prod/tools/common/qt/5.10.1/5.10.1/gcc_64/bin:$PATH
 export PATH=/prod/tools/common/qt/5.10.1/Tools/QtCreator/bin:$PATH
+#export PATH=/prod/tools/rd/ffmpeg-2.8.6/bin:$PATH
+#export PATH=/prod/tools/rd/git-2.11.0/bin:$PATH
+#export PATH=/prod/tools/rd/jabref-2.10/bin:$PATH
+#export PATH=/prod/tools/rd/texlive/bin/x86_64-linux:$PATH
+#export PATH=/prod/tools/rd/texmaker-4.5/bin:$PATH
+#export PATH=/prod/tools/rd/violet-2.1.0/bin:$PATH
+#export PATH=/prod/tools/rd/gnuplot-5.0.0/bin:$PATH
+#export PATH=/prod/tools/common/vlc-2.0.6/bin:$PATH
+#export PATH=/prod/tools/rd/weka-3.6.12:$PATH
+#export PATH=/prod/tools/rd/libreoffice-4.3.7/opt/libreoffice4.3/program:$PATH
+export PATH=/prod/tools/rd/python-2.7.10/bin:$PATH
+#export PATH=/prod/tools/rd/blender-2.78a:$PATH
+#export PATH=/prod/tools/rd/natron-2.1.2:$PATH
+
+export PATH=/prod/tools/rd/cuda-8.0.61/bin:$PATH
+
+# Library paths
+export LD_LIBRARY_PATH=/prod/tools/rd/ffmpeg-2.8.6/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=/prod/tools/rd/libx264/lib:$LD_LIBRARY_PATH
 
 
 # CMAKE FIND_PACKAGE paths
 export CMAKE_PREFIX_PATH=/prod/tools/rd/opencv-3.4.1:$CMAKE_PREFIX_PATH
-
+#export CMAKE_PREFIX_PATH=/prod/tools/rd/vtk-6.2.0:$CMAKE_PREFIX_PATH
+#export CMAKE_PREFIX_PATH=/prod/tools/rd/eigen-3.2.7:$CMAKE_PREFIX_PATH
+#export CMAKE_PREFIX_PATH=/prod/tools/common/boost_1_61_0:$CMAKE_PREFIX_PATH
+#export CMAKE_PREFIX_PATH=/prod/tools/common:$CMAKE_PREFIX_PATH
 
 # PYTHON
 export PYTHONPATH=/prod/tools/rd/opencv-3.2.0/lib/python2.7/site-packages:$PYTHONPATH
 
+# PKG_CONFIG_PATH
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/prod/tools/rd/ffmpeg-2.8.6/lib/pkgconfig
+export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/prod/tools/rd/libx264/lib/pkgconfig
+
+# Git auto-complete
+source /prod/tools/rd/git-2.11.0/share/git-completion.bash
+
+#====================================================================================
 #HOUDINI
 
 HOUDINI_PATH=/prod/software/sidefx/hfs17.0.416

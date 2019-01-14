@@ -11,7 +11,7 @@ set(Set Set)
 set(Math  Math)
 set(Eigen eigen)
 set(Images Images)
-#set(ANN  "/prod/tools/rd/ann1.1.2/include/ANN")
+
 set(HoudiniPlugins HoudiniPlugins)
 project(${ProjectName})
 set(HDK "/prod/software/sidefx/hfs17.0.416")
@@ -26,13 +26,10 @@ set(CMAKE_MODULE_PATH ${module_path})
 set(HDKCONFIG "${PROJECT_SOURCE_DIR}/../hdk-config.py")
 
 
-#target_link_libraries(RD_SurfaceTextureSynthesis CoreLib)
 MESSAGE("------------testing---------------")
 ############# FIND PACKAGE ###############
 find_package(HDK)
-#find_package(OpenCV)
 find_package(OpenCV REQUIRED core highgui)     # OpenCV root path must be in CMAKE_PREFIX_PATH environment variable.
-#find_package(OpenCV REQUIRED core)     # OpenCV root path must be in CMAKE_PREFIX_PATH environment variable.
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 find_package(OpenMP)
@@ -92,15 +89,7 @@ include_directories(${Set})
 include_directories(${Eigen})
 include_directories(${Images})
 include_directories(${HoudiniPlugins})
-include_directories(${ANN_INCLUDE_DIR})
 
-#ADD_SUBDIRECTORY(${Images} "${ProjectSource}/Images")
-#ADD_SUBDIRECTORY(${Images} "${CMAKE_CURRENT_BINARY_DIR}/src/Images")
-#ADD_SUBDIRECTORY(${Math} "${CMAKE_CURRENT_BINARY_DIR}/src/Math")
-
-
-#configure_file( version.h ${${ProjectSource}}/version.h )
-#include_directories( ${${ProjectSource}}/generated/ ) # Make sure it can be included...
 
 
 ########## LINKS ######################
@@ -147,13 +136,13 @@ set_target_properties( image PROPERTIES IMPORTED_LOCATION /home/jgagnon/packages
 MESSAGE("-------------------- Target_link_libraries --------------")
 target_link_libraries(${ProjectName}
 	       ${HDK_LIBRARIES}
-          image
+                image
 	       ${OpenCV_LIBS}
-         #${ANN_LIBRARIES}
+
 )
 
 # finally tell cmake where to put the results
 install(TARGETS ${ProjectName} LIBRARY DESTINATION dso)
 install(FILES ${ProjectName}.png DESTINATION config/Icons)
 MESSAGE("-------------------- Installation done --------------")
-#rez_install_files(${ProjectName}.so DESTINATION ${CMAKE_BINARY_DIR})
+

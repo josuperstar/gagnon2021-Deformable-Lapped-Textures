@@ -4,7 +4,7 @@ uuid = "ef6377e8-6cfa-4870-a409-b2e2d1a32d6d"
 
 description = "Yu 2011 Lagrangian Texture Advection"
 
-version = "1.3.16"
+version = "1.3.17"
 
 
 authors = [ "Jonathan Gagnon" ]
@@ -23,6 +23,6 @@ def commands():
     env.HOUDINI_PATH.append("{root}")
 
     #command( "source %s/prod/tools/rd/enable" % root)
-    source("/prod/tools/rd/enable")
-
-    setenv( "CMAKE_PREFIX_PATH" , "/prod/tools/rd/opencv-3.1.0-noqt" )
+    #source("/prod/tools/rd/enable")
+    source("{root}/setup/setenvironment.sh")
+    #setenv( "CMAKE_PREFIX_PATH" , "/prod/tools/rd/opencv-3.1.0-noqt" )
