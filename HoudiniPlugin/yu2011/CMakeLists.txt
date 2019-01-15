@@ -14,7 +14,7 @@ set(Images Images)
 
 set(HoudiniPlugins HoudiniPlugins)
 project(${ProjectName})
-set(HDK "/prod/software/sidefx/hfs17.0.416")
+#set(HDK "/prod/software/sidefx/hfs17.0.416")
 #set(HDK "/prod/software/sidefx/hfs16.5.439")
 #set(HDK "opt/hfs14.0.590")
 #set(HDK "/opt/hfs15.5.565")
@@ -41,7 +41,7 @@ if (OPENMP_FOUND)
 endif()
 
 find_package(HDK)
-find_package(ANN)
+#find_package(ANN)
 
 ############## HOUDINI ###################
 

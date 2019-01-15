@@ -15,7 +15,7 @@ export LD_LIBRARY_PATH=/prod/tools/rd/libx264/lib:$LD_LIBRARY_PATH
 export CMAKE_PREFIX_PATH=/prod/tools/rd/opencv-3.1.0-noqt:$CMAKE_PREFIX_PATH
 
 # PYTHON
-export PYTHONPATH=/prod/tools/rd/opencv-3.2.0/lib/python2.7/site-packages:$PYTHONPATH
+#export PYTHONPATH=/prod/tools/rd/opencv-3.2.0/lib/python2.7/site-packages:$PYTHONPATH
 
 # PKG_CONFIG_PATH
 export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/prod/tools/rd/ffmpeg-2.8.6/lib/pkgconfig

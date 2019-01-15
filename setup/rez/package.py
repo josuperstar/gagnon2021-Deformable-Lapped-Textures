@@ -4,7 +4,7 @@ uuid = "ef6377e8-6cfa-4870-a409-b2e2d1a32d6d"
 
 description = "Yu 2011 Lagrangian Texture Advection"
 
-version = "1.3.17"
+version = "1.3.18"
 
 
 authors = [ "Jonathan Gagnon" ]
@@ -15,8 +15,6 @@ variants = [
             ]
 
 def commands():
-
-
     env.HOUDINI_DSO_PATH.append("@/dso_^:@/dso:{root}/dso/")
     #we should move this to {root}/otl
     env.HOUDINI_OTLSCAN_PATH.append( "@/otls_^:@/otls:{root}/otl/;$HFS/houdini/otls")
