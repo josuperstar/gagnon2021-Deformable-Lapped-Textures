@@ -14,10 +14,7 @@ set(Images Images)
 
 set(HoudiniPlugins HoudiniPlugins)
 project(${ProjectName})
-#set(HDK "/prod/software/sidefx/hfs17.0.416")
-#set(HDK "/prod/software/sidefx/hfs16.5.439")
-#set(HDK "opt/hfs14.0.590")
-#set(HDK "/opt/hfs15.5.565")
+
 set(module_path ${PROJECT_SOURCE_DIR}/../cmake/)
 MESSAGE("--------------------SurfaceTextureSynthesis----------------------")
 MESSAGE("module_path" ${module_path})
@@ -29,7 +26,6 @@ set(HDKCONFIG "${PROJECT_SOURCE_DIR}/../hdk-config.py")
 MESSAGE("------------testing---------------")
 ############# FIND PACKAGE ###############
 find_package(HDK)
-#set(OpenCV_DIR "/prod/tools/rd/opencv-3.1.0-noqt/share/OpenCV")
 find_package(OpenCV REQUIRED core highgui)     # OpenCV root path must be in CMAKE_PREFIX_PATH environment variable.
 include_directories(${OpenCV_INCLUDE_DIRS})
 
@@ -37,11 +33,10 @@ find_package(OpenMP)
 if (OPENMP_FOUND)
     set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
-#    add_definitions(-D_GLIBCXX_PARALLEL) # Currently multiplying compute time by three
 endif()
 
 find_package(HDK)
-#find_package(ANN)
+
 
 ############## HOUDINI ###################
 
@@ -86,7 +81,6 @@ include_directories(${HDK_INCLUDE_DIRS})
 include_directories(${ProjectSource})
 include_directories(${Math})
 include_directories(${Set})
-#include_directories(${ProjectSource}/../WaterComputation/)
 include_directories(${Eigen})
 include_directories(${Images})
 include_directories(${HoudiniPlugins})
@@ -130,7 +124,8 @@ endif (APPLE)
 
 add_library(image SHARED IMPORTED)
 #set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/libImages.so )
-set_target_properties( image PROPERTIES IMPORTED_LOCATION /home/jgagnon/packages/rd_image/1.2.0/./libImages.so )
+set(IMAGESLAB /home/jgagnon/packages/rd_image/1.2.0/libImages.so)
+set_target_properties( image PROPERTIES IMPORTED_LOCATION "${IMAGESLAB}" )
 
 
 #target_link_libraries (${ProjectName} ${FluidsCore})
@@ -139,7 +134,6 @@ target_link_libraries(${ProjectName}
 	       ${HDK_LIBRARIES}
                 image
 	       ${OpenCV_LIBS}
-
 )
 
 # finally tell cmake where to put the results
