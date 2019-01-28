@@ -121,9 +121,13 @@ if (APPLE)
     set_target_properties(${ProjectName} PROPERTIES SUFFIX ".dylib")
 endif (APPLE)
 
+#LINK_DIRECTORIES(/prod/tools/rd/libx264/lib)
+add_library(libx264 SHARED IMPORTED)
+set_target_properties( libx264 PROPERTIES IMPORTED_LOCATION /prod/tools/rd/libx264/lib/libx264.so )
 
 add_library(image SHARED IMPORTED)
-set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.2.0/./libImages.so )
+#set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.2.0/./libImages.so )
+set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/./libImages.so )
 #set(IMAGESLAB /home/jgagnon/packages/rd_image/1.2.0/libImages.so)
 #set_target_properties( image PROPERTIES IMPORTED_LOCATION "${IMAGESLAB}" )
 
@@ -134,6 +138,7 @@ target_link_libraries(${ProjectName}
 	       ${HDK_LIBRARIES}
                 image
 	       ${OpenCV_LIBS}
+               libx264
 )
 
 # finally tell cmake where to put the results
