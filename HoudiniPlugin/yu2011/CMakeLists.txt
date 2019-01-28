@@ -123,9 +123,9 @@ endif (APPLE)
 
 
 add_library(image SHARED IMPORTED)
-#set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/libImages.so )
-set(IMAGESLAB /home/jgagnon/packages/rd_image/1.2.0/libImages.so)
-set_target_properties( image PROPERTIES IMPORTED_LOCATION "${IMAGESLAB}" )
+set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.2.0/./libImages.so )
+#set(IMAGESLAB /home/jgagnon/packages/rd_image/1.2.0/libImages.so)
+#set_target_properties( image PROPERTIES IMPORTED_LOCATION "${IMAGESLAB}" )
 
 
 #target_link_libraries (${ProjectName} ${FluidsCore})
