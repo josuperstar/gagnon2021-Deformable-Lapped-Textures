@@ -172,7 +172,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
             //if it is not close to the surface, continue
-            if (abs(boundaryDist) > params.CellSize) // We should use a threshold defined by the user
+            if (abs(boundaryDist) > params.CellSize/5.0f) // We should use a threshold defined by the user
                 continue;
             //=================================================================
             //2:  for t attempts do
