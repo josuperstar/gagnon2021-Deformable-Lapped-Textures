@@ -338,9 +338,9 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 float d              = distance3d( pos, position );
                 float dp                = abs(dotP);
 
-                float k        = (1-dp)*r*2;
-                if (k < cs)
-                    k = cs;
+                float k        = (1-dp)*r*3;
+                if (k < cs*2)
+                    k = cs*2;
                 bool insideBigEllipse    = d < k;
                 if (!insideBigEllipse)
                     continue;
