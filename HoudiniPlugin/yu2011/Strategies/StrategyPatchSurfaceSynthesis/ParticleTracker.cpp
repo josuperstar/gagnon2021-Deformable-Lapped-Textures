@@ -185,6 +185,13 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
             N                   = n0+u*(n1-n0)+v*(n2-n0);
             velocity = v0+u*(v1-v0)+v*(v2-v0);
         }
+        else
+        {
+            //can't project, we delete
+            attLife.set(ppt,0);
+            attActive.set(ppt,0);
+        }
+
 
         //========================================================================
 
@@ -256,7 +263,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         float randt = (((double) rand() / (RAND_MAX)));
         attRandT.set(ppt,randt);
 
-        numberOfPatches++;
+        //numberOfPatches++;
     }
 }
 
@@ -425,7 +432,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
             else
             {
                 //delete this point because we can't project it, probably because of a sudden topological change.
-                cout << "delete "<<id<<" because we can't project it, probably because of a sudden topological change."<<endl;
+                //cout << "delete "<<id<<" because we can't project it, probably because of a sudden topological change."<<endl;
                 AttCd.set(ppt,UT_Vector3(1,0,0));
 
                 //detached poisson disks have to be deleted directly, not fading out.

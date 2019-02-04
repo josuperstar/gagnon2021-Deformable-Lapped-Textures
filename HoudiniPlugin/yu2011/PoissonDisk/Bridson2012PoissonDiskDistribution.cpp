@@ -112,11 +112,12 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         attActive.set(ppt,meetPoissonDiskCriterion);
         if (!meetPoissonDiskCriterion)
         {
-            cout << "We should delete point "<<attId.get(ppt)<<", is in kill distance" <<killDistance<<endl;
+            //cout << "We should delete point "<<attId.get(ppt)<<", is in kill distance" <<killDistance<<endl;
         }
     }
 
-    t = 30;
+    //t = 30;
+    t = 100;
 
     cout << "Grid name: " << phi->getGridName() << std::endl;
     cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
@@ -172,7 +173,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
             //if it is not close to the surface, continue
-            if (abs(boundaryDist) > params.CellSize/5.0f) // We should use a threshold defined by the user
+            if (abs(boundaryDist) > params.CellSize) // We should use a threshold defined by the user
                 continue;
             //=================================================================
             //2:  for t attempts do
@@ -339,6 +340,8 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
 
     newPointNormal.normalize();
     float kd = killDistance;
+    UT_Vector3 defaultDirection(1,0,0);
+    UT_Vector3 S,T;
 
     for(int j=0; j<l;j++)
     {
@@ -351,12 +354,35 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
         UT_Vector3 pNp          = pos - newPointPosition;
         pNp.normalize();
-        UT_Vector3 n            = attN.get(neighbor);
-        n.normalize();
+        UT_Vector3 N            = attN.get(neighbor);
+        N.normalize();
+
+        S = cross(N,defaultDirection);
+        S.normalize();
+        T = cross(S,N);
+        T.normalize();
+
+
+        // Transform into local patch space (where STN is aligned with XYZ at the origin)
+        const UT_Vector3 relativePosistion = pos - newPointPosition;
+        UT_Vector3 poissonDiskSpace;
+        poissonDiskSpace.x() = relativePosistion.dot(S);
+        poissonDiskSpace.y() = relativePosistion.dot(T);
+        poissonDiskSpace.z() = relativePosistion.dot(N);
+
+
+        //GA_Offset testPoint = trackersGdp->appendPoint();
+        //trackersGdp->setPos3(testPoint, poissonDiskSpace);
+
+        //cout << "Poisson disk space "<< poissonDiskSpace<<endl;
+
+        //-------------------------------------------------
         float dotP              = dot(pNp, newPointNormal);
-        float dotN              = dot(n,newPointNormal);
+        float dotN              = dot(N,newPointNormal);
         bool samePlane          = dotN > params.poissonAngleNormalThreshold;
-        float d              = distance3d( pos, newPointPosition );
+        /*
+
+        float d                 = distance3d( pos, newPointPosition );
         float dp                = abs(dotP);
 
         float k        = (1-dp)*r;
@@ -371,8 +397,37 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         //k = r;
         //k2 = killDistance;
 
-        bool outsideOfSmallEllipse          = d > k2;
-        bool insideBigEllipse               = d < k;
+        //bool outsideOfSmallEllipse          = d > k2;
+        //bool insideBigEllipse               = d < k;
+        */
+
+        //(x/a)2 + (y/b)2 + (z/c)2 = 1
+        float x = poissonDiskSpace.x();
+        float y = poissonDiskSpace.y();
+        float z = poissonDiskSpace.z();
+        float a = r;
+        float b = r;
+        float c = cs;
+
+        float smallEllipse = (x/a/2)*(x/a/2) + (y/b/2)*(y/b/2) + (z/c/2)*(z/c/2);
+        float bigEllipse = (x/a)*(x/a) + (y/b)*(y/b) + (z/c)*(z/c);
+
+        bool outsideOfSmallEllipse = false;
+        bool insideBigEllipse = false;
+
+        UT_Vector3 origin = {0,0,0};
+        float dOrigin = distance3d(origin,poissonDiskSpace);
+
+        //if (dOrigin > kd)
+        //    outsideOfSmallEllipse = true;
+
+        if (bigEllipse <= 1)
+            insideBigEllipse = true;
+        if (smallEllipse > 1)
+            outsideOfSmallEllipse = true;
+
+        //if (dOrigin < poissonDiskRadius)
+        //    insideBigEllipse = true;
 
         //It is too close to the current point ?
         if(samePlane && !outsideOfSmallEllipse)
@@ -382,6 +437,8 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
 
         if(insideBigEllipse && samePlane)
             numberOfClosePoint++;
+
+        //cout << "ellipse "<<bigEllipse<<endl;
     }
     return !tooClose;
 }
