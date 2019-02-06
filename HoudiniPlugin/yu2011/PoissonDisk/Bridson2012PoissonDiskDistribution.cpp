@@ -116,8 +116,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         }
     }
 
-    //t = 30;
-    t = 100;
+    t = 30;
+    //t = 100;
 
     cout << "Grid name: " << phi->getGridName() << std::endl;
     cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
@@ -346,8 +346,7 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
     for(int j=0; j<l;j++)
     {
         neighbor = close_particles_indices.array()[j];
-        if (attActive.get(neighbor) == 0)
-            continue;
+
         if (neighbor == exclude)
             continue;
 
@@ -371,35 +370,10 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         poissonDiskSpace.z() = relativePosistion.dot(N);
 
 
-        //GA_Offset testPoint = trackersGdp->appendPoint();
-        //trackersGdp->setPos3(testPoint, poissonDiskSpace);
-
-        //cout << "Poisson disk space "<< poissonDiskSpace<<endl;
-
         //-------------------------------------------------
-        float dotP              = dot(pNp, newPointNormal);
+
         float dotN              = dot(N,newPointNormal);
         bool samePlane          = dotN > params.poissonAngleNormalThreshold;
-        /*
-
-        float d                 = distance3d( pos, newPointPosition );
-        float dp                = abs(dotP);
-
-        float k        = (1-dp)*r;
-        if (k < cs)
-            k = cs;
-
-        float k2   = (1-dp)*kd;
-        if (k2 < cs)
-            k2 = cs;
-
-        //hack to test old approch, apparently, it create too much point on corner when we do the update.
-        //k = r;
-        //k2 = killDistance;
-
-        //bool outsideOfSmallEllipse          = d > k2;
-        //bool insideBigEllipse               = d < k;
-        */
 
         //(x/a)2 + (y/b)2 + (z/c)2 = 1
         float x = poissonDiskSpace.x();
@@ -409,28 +383,25 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         float b = r;
         float c = cs;
 
-        float smallEllipse = (x/a/2)*(x/a/2) + (y/b/2)*(y/b/2) + (z/c/2)*(z/c/2);
+        float a2 = kd;
+        float b2 = kd;
+        float c2 = cs;
+
+        float smallEllipse = (x/a2)*(x/a2) + (y/b2)*(y/b2) + (z/c2)*(z/c2);
         float bigEllipse = (x/a)*(x/a) + (y/b)*(y/b) + (z/c)*(z/c);
 
         bool outsideOfSmallEllipse = false;
         bool insideBigEllipse = false;
 
         UT_Vector3 origin = {0,0,0};
-        float dOrigin = distance3d(origin,poissonDiskSpace);
-
-        //if (dOrigin > kd)
-        //    outsideOfSmallEllipse = true;
 
         if (bigEllipse <= 1)
             insideBigEllipse = true;
         if (smallEllipse > 1)
             outsideOfSmallEllipse = true;
 
-        //if (dOrigin < poissonDiskRadius)
-        //    insideBigEllipse = true;
-
         //It is too close to the current point ?
-        if(samePlane && !outsideOfSmallEllipse)
+        if(samePlane && !outsideOfSmallEllipse && attActive.get(neighbor) == 1)
         {
             tooClose = true;
         }

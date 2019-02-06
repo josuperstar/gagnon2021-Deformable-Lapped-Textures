@@ -80,25 +80,34 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     //----------------------------------
 
 
+    bool usingOnlyPoissonDisk = false;
+
+
     if(params.startFrame == params.frame)
     {
         strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
-        //strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
+        if (!usingOnlyPoissonDisk)
+            strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
     }
     else
     {
         strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
-        //strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,surfaceGdp);
+        if (!usingOnlyPoissonDisk)
+            strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,surfaceGdp);
         strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-        //strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
+        if (!usingOnlyPoissonDisk)
+            strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
         strategy.DeleteUnusedPatches(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
 
     }
-    //For the blending computation, we create uv array per vertex that we called patch
-    //strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
+    if (!usingOnlyPoissonDisk)
+    {
+        //For the blending computation, we create uv array per vertex that we called patch
+        strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
+    }
 
     //=======================================================================
 

@@ -206,7 +206,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //-------------- deleting faster logic ------------------
         //Can we move this to the ParticleTracker update ?
         int deleteFaster = attDeleteFaster.get(ppt);
-        int numberOfNeighbourThreshold = 4; // TODO: promote this variable
+        int numberOfNeighbourThreshold = 1; // TODO: promote this variable
         if (density > numberOfNeighbourThreshold && deleteFaster == 0)
         {
             attDeleteFaster.set(ppt, 1);
@@ -234,7 +234,10 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         {
             //currentLife++;
             currentLife += 1+density;
-            currentSpawn+= 1+density;
+            if (currentSpawn == 0)
+                currentSpawn+= 1;
+            else
+                currentSpawn+= 1+density;
         }
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;

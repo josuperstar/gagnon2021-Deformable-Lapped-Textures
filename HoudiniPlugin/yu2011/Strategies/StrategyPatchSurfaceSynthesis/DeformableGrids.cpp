@@ -135,6 +135,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     UT_Vector3 trackerPositition;
     GA_Offset newPoint;
     UT_Vector3Array         triangleArrayData;
+    UT_Vector3 defaultDirection(1,0,0);
     float life = 1.0f;
     float cs = params.CellSize;
     float r = params.poissondiskradius;
@@ -190,7 +191,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 
         GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
         tree.findAllCloseIdx(trackerPositition,
-                             gridwidth*2,
+                             params.poissondiskradius*2,
                              close_particles_indices);
 
         GA_Offset surfaceClosestPoint = tree.findNearestIdx(trackerPositition);
@@ -201,6 +202,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         map<GA_Offset,GA_Offset> tempPointsLink;
         unsigned close_particles_count = close_particles_indices.entries();
         int nbDistorted = 0;
+        UT_Vector3 S,T;
         if (close_particles_count > 0)
         {
             GA_Offset neighbor;
@@ -221,7 +223,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
                 UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
                 //=====================================================
-
+                /*
                 UT_Vector3 pNp          = p - pos;
                 pNp.normalize();
                 float dotP              = dot(pNp, N);
@@ -236,6 +238,40 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 if (!insideBigEllipse)
                     continue;
 
+                */
+                /*
+                S = cross(TrackerN,defaultDirection);
+                S.normalize();
+                T = cross(S,TrackerN);
+                T.normalize();
+
+
+                // Transform into local patch space (where STN is aligned with XYZ at the origin)
+                const UT_Vector3 relativePosistion = pos - p;
+                UT_Vector3 poissonDiskSpace;
+                poissonDiskSpace.x() = relativePosistion.dot(S);
+                poissonDiskSpace.y() = relativePosistion.dot(T);
+                poissonDiskSpace.z() = relativePosistion.dot(TrackerN);
+
+                //-------------------------------------------------
+
+                float dotN              = dot(N,TrackerN);
+                bool samePlane          = dotN > params.poissonAngleNormalThreshold;
+
+                //(x/a)2 + (y/b)2 + (z/c)2 = 1
+                float x = poissonDiskSpace.x();
+                float y = poissonDiskSpace.y();
+                float z = poissonDiskSpace.z();
+                float s = 2.5;
+                float a = r*s;
+                float b = r*s;
+                float c = cs*s*3;
+
+
+                float ellipse = (x/a)*(x/a) + (y/b)*(y/b) + (z/c)*(z/c);
+                if (ellipse > 1 || !samePlane)
+                    continue;
+                */
                 //=====================================================
 
 
@@ -501,6 +537,10 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling, params );
         }
 
+
+
+
+
         //--------------------------------------------------
         //Take a random part of the input texture uv space
         //- compute a random translation
@@ -527,7 +567,31 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             }
         }
 
-        UT_Vector3 centerUV;
+        GU_RayIntersect ray(deformableGridsGdp);
+        ray.init();
+        GU_MinInfo mininfo;
+        ray.minimumPoint(p,mininfo);
+        //get pos of hit
+        UT_Vector4 hitPos;
+        mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+
+        //------------------------------PARAMETRIC COORDINATE -----------------------------------
+        GA_Offset primOffset = mininfo.prim->getMapOffset();
+        float u = mininfo.u1;
+        float v = mininfo.v1;
+        GEO_Primitive *primHit = deformableGridsGdp->getGEOPrimitive(primOffset);
+
+        GA_Offset vertexOffset0 = primHit->getVertexOffset(0);
+        GA_Offset pointOffset0  = deformableGridsGdp->vertexPoint(vertexOffset0);
+        UT_Vector3 v0 = attUV.get(pointOffset0);
+        GA_Offset vertexOffset1 = primHit->getVertexOffset(1);
+        GA_Offset pointOffset1  = deformableGridsGdp->vertexPoint(vertexOffset1);
+        UT_Vector3 v1 = attUV.get(pointOffset1);
+        GA_Offset vertexOffset2 = primHit->getVertexOffset(2);
+        GA_Offset pointOffset2  = deformableGridsGdp->vertexPoint(vertexOffset2);
+        UT_Vector3 v2 = attUV.get(pointOffset2);
+        UT_Vector3 centerUV = v0+u*(v1-v0)+v*(v2-v0);
+
         int i = 0;
         {
             GA_Offset gppt;
@@ -735,6 +799,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                             if (!mininfo.prim)
                             {
                                 cout << "No primitive to project on"<<endl;
+                                grpToDestroy->addOffset(ppt);
                                 continue;
                             }
                             const GEO_Primitive *geoPrim = mininfo.prim;
@@ -784,12 +849,21 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 //------------------------------------------------------------------------------------
 
                             }
-                            else
+                            else if (distance3d(p1,hitPos) < thresholdDistance*3)
                             {
                                 deformableGridsgdp->setPos3(ppt,p1);
                                 //for debuging purposes
                                 attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
+                                attActive.set(trackerPpt,0);
+
+                            }
+                            else
+                            {
+                                //too far from the surface
+                                grpToDestroy->addOffset(ppt);
+                                attActive.set(trackerPpt,0);
+                                attLife.set(trackerPpt,0);
                             }
                         }
 
@@ -843,7 +917,8 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
             averageDeltaOnD = params.fadingTau;
         if (averageDeltaOnD < 0.0f )
             averageDeltaOnD = 0.0f;
-
+        GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
+        deformableGridsgdp->deletePoints(*grpToDestroy,mode);
         //attMaxDeltaOnD.set(trackerPpt,maxDeltaOnD);
         attMaxDeltaOnD.set(trackerPpt,averageDeltaOnD);
         //cout << "Max Delta on D "<<maxDeltaOnD<<endl;

@@ -27,6 +27,9 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
     //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
 
+    GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
+    const GA_GroupTable *gPrimTable = deformableGrids->getGroupTable(primGroupType);
+
     float d = params.poissondiskradius;
     Pixel displaceMean;
     if(computeDisplacement)
@@ -90,6 +93,11 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         string groupName;
         groupName = "grid"+str;
 
+
+        //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+        //GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
+        //ray->init();
+
         //--------------------------------------------------
         //Can we project the pixel on the current patch ?
         //We may want to put this test outside this function, especially if we want to create a shader.
@@ -99,6 +107,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (it==rays.end())
             continue;
         rays[groupName]->minimumPoint(positionOnSurface,mininfo);
+        //ray->minimumPoint(positionOnSurface,mininfo);
         if (!mininfo.prim)
             continue;
         //--------------------------------------------------
@@ -113,6 +122,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //------------------------------PARAMETRIC COORDINATE -----------------------------------
         float u = mininfo.u1;
         float v = mininfo.v1;
+
         //get pos of hit
 
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
@@ -194,8 +204,9 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         float d_P = distance3d(positionInPolygon,centerUV);
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
-        float minDUV = 0.125*0.5;
-        float maxDUV = 0.25*0.5; //blending region
+        float s = 0.5f;
+        float minDUV = 0.125*s;
+        float maxDUV = 0.25*s; //blending region
         //float maxDUV = 0.5f;
         //d_V =0 if V ∈ grid boundary 1 otherwise
         //float d_V = 1.0f;
