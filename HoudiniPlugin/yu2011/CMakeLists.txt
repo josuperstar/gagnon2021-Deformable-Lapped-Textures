@@ -135,9 +135,9 @@ set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packag
 #target_link_libraries (${ProjectName} ${FluidsCore})
 MESSAGE("-------------------- Target_link_libraries --------------")
 target_link_libraries(${ProjectName}
-	       ${HDK_LIBRARIES}
+               ${HDK_LIBRARIES}
                 image
-	       ${OpenCV_LIBS}
+               ${OpenCV_LIBS}
                libx264
 )
 

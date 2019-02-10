@@ -340,6 +340,9 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
     newPointNormal.normalize();
     float kd = killDistance;
 
+    UT_Vector3 defaultDirection(1.0012,0.01231,0.0002);
+    UT_Vector3 S,T;
+
     for(int j=0; j<l;j++)
     {
         neighbor = close_particles_indices.array()[j];
@@ -349,6 +352,8 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
             continue;
 
         UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+
+        /*
         UT_Vector3 pNp          = pos - newPointPosition;
         pNp.normalize();
         UT_Vector3 n            = attN.get(neighbor);
@@ -373,7 +378,49 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
 
         bool outsideOfSmallEllipse          = d > k2;
         bool insideBigEllipse               = d < k;
+        */
+        UT_Vector3 N            = attN.get(neighbor);
+        N.normalize();
+        S = cross(N,defaultDirection);
+        S.normalize();
+        T = cross(S,N);
+        T.normalize();
 
+
+        // Transform into local patch space (where STN is aligned with XYZ at the origin)
+        const UT_Vector3 relativePosistion = pos - newPointPosition;
+        UT_Vector3 poissonDiskSpace;
+        poissonDiskSpace.x() = relativePosistion.dot(S);
+        poissonDiskSpace.y() = relativePosistion.dot(T);
+        poissonDiskSpace.z() = relativePosistion.dot(N);
+
+        float dotN              = dot(N,newPointNormal);
+        bool samePlane          = dotN > params.poissonAngleNormalThreshold;
+
+        //(x/a)2 + (y/b)2 + (z/c)2 = 1
+        float x = poissonDiskSpace.x();
+        float y = poissonDiskSpace.y();
+        float z = poissonDiskSpace.z();
+        float a = r;
+        float b = r;
+        float c = cs;
+
+        float a2 = kd;
+        float b2 = kd;
+        float c2 = cs;
+
+        float smallEllipse = (x/a2)*(x/a2) + (y/b2)*(y/b2) + (z/c2)*(z/c2);
+        float bigEllipse = (x/a)*(x/a) + (y/b)*(y/b) + (z/c)*(z/c);
+
+        bool outsideOfSmallEllipse = false;
+        bool insideBigEllipse = false;
+
+        UT_Vector3 origin = {0,0,0};
+
+        if (bigEllipse <= 1)
+            insideBigEllipse = true;
+        if (smallEllipse > 1)
+            outsideOfSmallEllipse = true;
         //It is too close to the current point ?
         if(samePlane && !outsideOfSmallEllipse)
         {
