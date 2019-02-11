@@ -112,7 +112,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         attActive.set(ppt,meetPoissonDiskCriterion);
         if (!meetPoissonDiskCriterion)
         {
-            cout << "We should delete point "<<attId.get(ppt)<<", is in kill distance" <<killDistance<<endl;
+            //cout << "We should delete point "<<attId.get(ppt)<<", is in kill distance" <<killDistance<<endl;
         }
     }
 
@@ -340,7 +340,7 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
     newPointNormal.normalize();
     float kd = killDistance;
 
-    UT_Vector3 defaultDirection(1.0012,0.01231,0.0002);
+    UT_Vector3 defaultDirection(1.012f,0.123f,0.002f);
     UT_Vector3 S,T;
 
     for(int j=0; j<l;j++)
@@ -353,32 +353,6 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
 
         UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
 
-        /*
-        UT_Vector3 pNp          = pos - newPointPosition;
-        pNp.normalize();
-        UT_Vector3 n            = attN.get(neighbor);
-        n.normalize();
-        float dotP              = dot(pNp, newPointNormal);
-        float dotN              = dot(n,newPointNormal);
-        bool samePlane          = dotN > params.poissonAngleNormalThreshold;
-        float d              = distance3d( pos, newPointPosition );
-        float dp                = abs(dotP);
-
-        float k        = (1-dp)*r;
-        if (k < cs)
-            k = cs;
-
-        float k2   = (1-dp)*kd;
-        if (k2 < cs)
-            k2 = cs;
-
-        //hack to test old approch, apparently, it create too much point on corner when we do the update.
-        //k = r;
-        //k2 = killDistance;
-
-        bool outsideOfSmallEllipse          = d > k2;
-        bool insideBigEllipse               = d < k;
-        */
         UT_Vector3 N            = attN.get(neighbor);
         N.normalize();
         S = cross(N,defaultDirection);
@@ -403,7 +377,7 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         float z = poissonDiskSpace.z();
         float a = r;
         float b = r;
-        float c = cs;
+        float c = cs*2;
 
         float a2 = kd;
         float b2 = kd;

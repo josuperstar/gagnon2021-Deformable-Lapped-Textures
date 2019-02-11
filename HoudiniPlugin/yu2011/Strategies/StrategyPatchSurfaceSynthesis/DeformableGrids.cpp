@@ -506,6 +506,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         //- compute a random translation
         //- scale up
         float scaleup = params.UVScaling;
+        if (scaleup == 0)
+            scaleup = 1;
         int seed = id;
         float offset = 0.5;
         float randomScale = scaleup/2.0f;
@@ -521,13 +523,19 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
             {
                 UT_Vector3 uv = attUV.get(gppt);
+                if (uv.x() != uv.x())
+                {
+                    //where have nan value
+                    uv = UT_Vector3(0,0,0);
+                }
+
                 uv += UT_Vector3(tx,ty,tz);
                 uv /= scaleup;
                 attUV.set(gppt,uv);
             }
         }
 
-        UT_Vector3 centerUV;
+        UT_Vector3 centerUV = UT_Vector3(0,0,0);
         int i = 0;
         {
             GA_Offset gppt;
@@ -1017,6 +1025,8 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
 
                 float d3d = distance3d(pos1,pos2);
                 float dUv = distance3d(uv1,uv2);
+                if (dUv == 0)
+                    continue;
                 ratioUv = d3d/dUv;
 
                 ratioAverage += ratioUv;
@@ -1027,8 +1037,14 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
         }
     }
 
+    if (nbUv == 0)
+        nbUv = 1;
     ratioUv = ratioAverage / nbUv;
     nbUv = 0;
+    if (ratioUv == 0)
+        ratioUv = 1;
+    if (scaling == 0)
+        scaling = 1;
 
     GA_FOR_ALL_PRIMITIVES(&tempGdp,prim)
     {
@@ -1111,7 +1127,8 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
     }
     //----------------- Center UV --------------------
     UT_Vector3 destCenter(0.5,0.5,0);
-    uvCenter /= nbUv;
+    if (nbUv != 0)
+        uvCenter /= nbUv;
 
     UT_Vector3 translation = destCenter - uvCenter;
 
