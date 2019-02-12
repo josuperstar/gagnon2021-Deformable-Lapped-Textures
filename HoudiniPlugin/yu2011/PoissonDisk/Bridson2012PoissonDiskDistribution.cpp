@@ -172,7 +172,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
             //if it is not close to the surface, continue
-            if (abs(boundaryDist) > params.CellSize/5.0f) // We should use a threshold defined by the user
+            if (abs(boundaryDist) > params.CellSize/2.0f) // We should use a threshold defined by the user
                 continue;
             //=================================================================
             //2:  for t attempts do
@@ -389,12 +389,11 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         bool outsideOfSmallEllipse = false;
         bool insideBigEllipse = false;
 
-        UT_Vector3 origin = {0,0,0};
-
         if (bigEllipse <= 1)
             insideBigEllipse = true;
         if (smallEllipse > 1)
             outsideOfSmallEllipse = true;
+
         //It is too close to the current point ?
         if(samePlane && !outsideOfSmallEllipse)
         {
