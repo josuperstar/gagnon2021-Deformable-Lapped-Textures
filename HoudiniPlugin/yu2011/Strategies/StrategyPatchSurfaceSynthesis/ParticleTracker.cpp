@@ -234,15 +234,15 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //fade in
         else if (currentSpawn < params.fadingTau)
         {
-            currentLife++;
-            currentSpawn++;
-            /*
+            //currentLife++;
+            //currentSpawn++;
+
             currentLife += 1.0f+(float)increment;
             if (currentSpawn == 0)
                 currentSpawn+= 1;
             else
                 currentSpawn+= 1+increment;
-            */
+
         }
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;
