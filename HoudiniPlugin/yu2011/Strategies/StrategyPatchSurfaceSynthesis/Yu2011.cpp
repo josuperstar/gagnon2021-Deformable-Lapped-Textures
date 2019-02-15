@@ -342,8 +342,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 if (k < cs*2)
                     k = cs*2;
                 bool insideBigEllipse    = d < k;
-                if (!insideBigEllipse)
-                    continue;
+                //if (!insideBigEllipse)
+                //    continue;
 
                 //=====================================================
 
