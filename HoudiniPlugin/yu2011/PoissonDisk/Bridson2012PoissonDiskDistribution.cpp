@@ -88,7 +88,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
     float a = 0.25; //promote this variable to the user interface
     this->poissonDiskRadius = diskRadius;
-    float killDistance = (1-a)*diskRadius;
+    float killDistance = (1-a)*diskRadius/2;
 
     cout << "[Bridson2012PoissonDiskDistribution] We have a valid vdb"<<endl;
 

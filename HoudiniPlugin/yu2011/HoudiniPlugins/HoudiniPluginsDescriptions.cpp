@@ -22,8 +22,8 @@ void newSopOperator(OP_OperatorTable *table)
                                         "Yu2011",
                                         Yu2011Plugin::myConstructor,
                                         Yu2011Plugin::myTemplateList,
-                                        4,
-                                        4,
+                                        5,
+                                        5,
                                         0));
 
     table->addOperator(new OP_Operator("hdk_AtlasYu2011",
