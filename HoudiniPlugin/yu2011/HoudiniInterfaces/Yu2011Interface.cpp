@@ -95,14 +95,14 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     }
     else
     {
-        strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
+        strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
         if (!usingOnlyPoissonDisk)
-            strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,surfaceGdp);
+            strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
         strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
-        strategy.DeleteUnusedPatches(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
+        strategy.DeleteUnusedPatches(gdp, trackersGdp,params);
 
     }
     if (!usingOnlyPoissonDisk)

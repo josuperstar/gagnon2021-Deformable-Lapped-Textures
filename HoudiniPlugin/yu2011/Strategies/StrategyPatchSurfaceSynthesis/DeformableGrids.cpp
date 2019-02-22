@@ -617,6 +617,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_RWHandleF    attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleF    attRandT(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+    GA_RWHandleV3   attNTracker(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
     GA_RWHandleV3   refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -650,6 +651,10 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     distortionParams.distortionWeightName = distortionWeightName;
     distortionParams.primLifeName = "life";
 
+    float cs = params.CellSize;
+    float r = params.poissondiskradius;
+
+    GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
     GA_PointGroup * grpToDestroy;
     grpToDestroy = (GA_PointGroup *)deformableGridsgdp->newPointGroup("GridPointToDelete");
 
@@ -671,6 +676,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     int active;
     float life;
 
+
     GA_FOR_ALL_PTOFF(trackersGdp,trackerPpt)
     {
         id = attId.get(trackerPpt);
@@ -685,6 +691,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         life = attLife.get(trackerPpt);
         float gridAlpha = (float)life/(float)params.fadingTau;
         UT_Vector3 trackerPosition = trackersGdp->getPos3(trackerPpt);
+        UT_Vector3 trackerN = attNTracker.get(trackerPpt);
 
         string str = std::to_string(id);
         string groupName = "grid"+str;
@@ -760,6 +767,26 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 p1 = hitPos;
                                 deformableGridsgdp->setPos3(ppt,p1);
 
+                                //respect poisson disk criterion
+                                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+
+                                //=====================================================
+
+                                UT_Vector3 pNp          = trackerPosition - hitPos;
+                                pNp.normalize();
+                                float dotP              = dot(pNp, trackerN);
+
+                                float d              = distance3d( trackerPosition, hitPos );
+                                float dp                = abs(dotP);
+
+                                float k        = (1-dp)*r*2;
+                                if (k < cs)
+                                    k = cs;
+                                bool insideBigEllipse    = d < k;
+                                if (!insideBigEllipse)
+                                    continue;
+
+
                                 //------------------------------PARAMETRIC COORDINATE -----------------------------------
                                 GA_Offset primOffset = mininfo.prim->getMapOffset();
                                 float u = mininfo.u1;
@@ -794,10 +821,13 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                             }
                             else
                             {
+                                //attLife.set(trackerPpt,0);
                                 deformableGridsgdp->setPos3(ppt,p1);
                                 //for debuging purposes
                                 attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
+                                grpToDestroy->addOffset(ppt);
+                                attActive.set(trackerPpt,0);
                             }
                         }
 
@@ -856,6 +886,10 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         attMaxDeltaOnD.set(trackerPpt,averageDeltaOnD);
         //cout << "Max Delta on D "<<maxDeltaOnD<<endl;
     }
+
+
+    deformableGridsgdp->deletePoints(*grpToDestroy,mode);
+
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 }
 
