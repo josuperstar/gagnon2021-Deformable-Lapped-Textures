@@ -1,59 +1,66 @@
-cmake_minimum_required(VERSION 2.8)
+# NOTE Change the project name and edit the list of source files to match your project.
+# For ANN, you have two options. You can:
+#  - install the libann-dev package
+#  - download ANN (http://www.cs.umd.edu/~mount/ANN/),
+#    extract in the project directory and compile it,
+#    then set ANN_DIR and register the library (uncomment the lines below),
+#    and change 'ann' to 'ANN' in target_link_libraries
+#  - set ANN_DIR to another directory containing the compiled ANN library,
+#    (for example /prod/tools/rd/ann1.1.2), and also
+#    register the include/lib directories and change target_link_libraries
 
-#include(RezBuild)
+# Specify the minimum required version of CMake to build the project
+cmake_minimum_required( VERSION 3.0 )
 
-project (Yu2011)
-
-set(ProjectName Yu2011)
-
+# Set the project name
+project( Gagnon2019 )
 set(ProjectSource .)
-set(Set Set)
-set(Math  Math)
-set(Eigen eigen)
-set(Images Images)
+# Set the path to the ANN library (uncomment if you are not using the package)
+#set( ANN_DIR "${CMAKE_CURRENT_LIST_DIR}/ann_1.1.2" )
+#set( ANN_DIR "/prod/tools/rd/ann1.1.2" )
 
-set(HoudiniPlugins HoudiniPlugins)
-project(${ProjectName})
+############################
+# Initialize Houdini (15+) #
+############################
 
-set(module_path ${PROJECT_SOURCE_DIR}/../cmake/)
-MESSAGE("--------------------SurfaceTextureSynthesis----------------------")
-MESSAGE("module_path" ${module_path})
-MESSAGE("CMAKE BINARY DIR" ${CMAKE_BINARY_DIR})
-set(CMAKE_MODULE_PATH ${module_path})
-set(HDKCONFIG "${PROJECT_SOURCE_DIR}/../hdk-config.py")
+if( DEFINED ENV{HFS} )
+        # Display the HFS environment variable
+        message( STATUS "HFS directory: " $ENV{HFS} )
 
-
-MESSAGE("------------testing---------------")
-############# FIND PACKAGE ###############
-find_package(HDK)
-find_package(OpenCV REQUIRED core highgui)     # OpenCV root path must be in CMAKE_PREFIX_PATH environment variable.
-include_directories(${OpenCV_INCLUDE_DIRS})
-
-find_package(OpenMP)
-if (OPENMP_FOUND)
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+        # Locate Houdini's libraries and header files
+        list( APPEND CMAKE_PREFIX_PATH "$ENV{HFS}/toolkit/cmake" )
+else()
+    message( STATUS "HFS not set, looking into CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH} )
+    if( NOT CMAKE_PREFIX_PATH )
+        message( FATAL_ERROR "Environment variable HFS undefined.
+            Please set CMAKE_PREFIX_PATH to HoudiniConfig.cmake path ({HFS}/toolkit/cmake)." )
+    endif()
 endif()
 
-find_package(HDK)
+# Register an imported library target named 'Houdini'
+# (this will use the HoudiniConfig.cmake file)
+# Note: if the environment variable HFS is not defined,
+# use -DCMAKE_PREFIX_PATH=/path/to/hfs/toolkit/cmake
+# (or any path to HoudiniConfig.cmake)
+find_package( Houdini REQUIRED )
 
+message( STATUS "Found Houdini " ${Houdini_VERSION_MAJOR} "." ${Houdini_VERSION_MINOR} "." ${Houdini_VERSION_PATCH} )
 
-############## HOUDINI ###################
+# We need version 15 minimum
+if( Houdini_VERSION_MAJOR LESS 15 )
+    message( FATAL_ERROR "Houdini 15+ required." )
+endif()
 
-# run our helper process to grab the compile and link flags from hcustom
-execute_process(COMMAND ${HDKCONFIG} --notag --cmake=${CMAKE_BINARY_DIR}/FindHDK.cmake)
+##########################
+# Initialize the sources #
+##########################
 
-MESSAGE("HDK=")
-#MESSAGE(${HDK})
-MESSAGE(${HDK_INCLUDE_DIRS})
+# Set the source path
+set( SRC_DIR src )
 
-# now get the HDK definitions from the FindHDK.cmake module that was just generated
-set(CMAKE_MODULE_PATH "${PROJECT_BINARY_DIR}")
-
-
-################# SOURCE ##################
-
-file(GLOB source ${ProjectSource}/*.h ${ProjectSource}/*.C ${ProjectSource}/*.cpp ${ProjectSource}/*.hpp ${ProjectSource}/Set/*.h
+# List the source files
+# (except the ones with the Houdini operators)
+file(GLOB SOURCES ${ProjectSource}/*.h ${ProjectSource}/*.C ${ProjectSource}/*.cpp ${ProjectSource}/*.hpp ${ProjectSource}/Set/*.h
             ${ProjectSource}/Set/SpacialGrid.hpp
             ${ProjectSource}/HoudiniPlugins/*
             ${ProjectSource}/HoudiniInterfaces/*
@@ -68,81 +75,56 @@ file(GLOB source ${ProjectSource}/*.h ${ProjectSource}/*.C ${ProjectSource}/*.cp
             ${ProjectSource}/PoissonDisk/*
 )
 
-set(CMAKE_INSTALL_PREFIX "${HDK_HIH_DIR}")
-
-
-# setup to compile in the correct HDK environment
-add_definitions(${HDK_DEFINITIONS})
-
-
-########### INCLUDES #################
-
-include_directories(${HDK_INCLUDE_DIRS})
 include_directories(${ProjectSource})
 include_directories(${Math})
 include_directories(${Set})
-include_directories(${Eigen})
 include_directories(${Images})
-include_directories(${HoudiniPlugins})
+##########################
+# Register the libraries #
+##########################
+
+# Register OpenCV
+
+# In Windows, the OPENCV_DIR environment variable should have been set
+# (see https://docs.opencv.org/master/d3/d52/tutorial_windows_install.html)
+# and can be used to find OpenCVConfig.cmake
+if( DEFINED ENV{OPENCV_DIR} )
+    message( STATUS "OpenCV directory: " $ENV{OPENCV_DIR} )
+    list( APPEND CMAKE_PREFIX_PATH "$ENV{OPENCV_DIR}/lib" )
+endif()
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
 
 
+# Add a library with the same name as the project
+set( library_name ${PROJECT_NAME} )
 
-########## LINKS ######################
+# If Houdini 16+
+if( NOT (Houdini_VERSION_MAJOR LESS 16) )
+    # Code generation for the embedded DS files in all node class definitions
+    houdini_generate_proto_headers( FILES ${PROTO_SOURCES} )
+endif()
 
-# Default to C++11
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Use all the source files
+add_library( ${library_name} SHARED ${SOURCES} )
 
-link_directories(${HDK_LIBRARY_DIRS})
-
-
-# this command calls hdk-config.py to build a special file that will be the repository of the taginfo
-add_custom_command(OUTPUT sesitag.C
-                   DEPENDS ${source}
-                   COMMAND ${HDKCONFIG} --tagfile=${CMAKE_CURRENT_BINARY_DIR}/sesitag.C)
-
-if (APPLE)
-    set(LTYPE MODULE)
-else (APPLE)
-    set(LTYPE SHARED)
-endif (APPLE)
-
-
-#External Libraries
-
-# this tells cmake to buid the DSO
-
-add_library(${ProjectName} ${LTYPE} ${source}  sesitag.C)
-# houdini doesn't want the DSO to have "lib" as it's prefix
-set_target_properties(${ProjectName} PROPERTIES PREFIX "")
-
-# unfortunately cmake's MODULE library type generates a ".so" file on OSX
-if (APPLE)
-    set_target_properties(${ProjectName} PROPERTIES SUFFIX ".dylib")
-endif (APPLE)
-
-#LINK_DIRECTORIES(/prod/tools/rd/libx264/lib)
-add_library(libx264 SHARED IMPORTED)
-set_target_properties( libx264 PROPERTIES IMPORTED_LOCATION /prod/tools/rd/libx264/lib/libx264.so )
-
-add_library(image SHARED IMPORTED)
-#set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.2.0/./libImages.so )
-set_target_properties( image PROPERTIES IMPORTED_LOCATION /prod/tools/rez/packages/int/rd_image/1.1.0/./libImages.so )
-#set(IMAGESLAB /home/jgagnon/packages/rd_image/1.2.0/libImages.so)
-#set_target_properties( image PROPERTIES IMPORTED_LOCATION "${IMAGESLAB}" )
-
-
-#target_link_libraries (${ProjectName} ${FluidsCore})
-MESSAGE("-------------------- Target_link_libraries --------------")
-target_link_libraries(${ProjectName}
-               ${HDK_LIBRARIES}
-                image
-               ${OpenCV_LIBS}
-               libx264
+# Link against the libraries,
+# and add required include directories and compile definitions
+target_link_libraries( ${library_name}
+    Houdini
+    ${OpenCV_LIBS}
 )
 
-# finally tell cmake where to put the results
-install(TARGETS ${ProjectName} LIBRARY DESTINATION dso)
-install(FILES ${ProjectName}.png DESTINATION config/Icons)
-MESSAGE("-------------------- Installation done --------------")
+# If Houdini 16+
+if( NOT (Houdini_VERSION_MAJOR LESS 16) )
+    # Include ${CMAKE_CURRENT_BINARY_DIR} for the generated headers
+    target_include_directories( ${library_name} PRIVATE
+        ${CMAKE_CURRENT_BINARY_DIR}
+    )
+endif()
 
+# Configure several common target properties
+# We set the output directory (INSTDIR) in the context of a Rez package,
+# otherwise we leave the default (Houdini's default dso directory)
+houdini_configure_target( ${library_name} )
+#houdini_configure_target( ${library_name} INSTDIR ${CMAKE_CURRENT_LIST_DIR}/dso )

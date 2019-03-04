@@ -353,7 +353,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 GU_MinInfo mininfo;
                 mininfo.init(thresholdDistance,0.0001);
                 ray.minimumPoint(patchP,mininfo);
-                if (mininfo.prim == 0x0)
+                if (!mininfo.prim.isClosed())
                 {
                     //we can't project the point on the surface
                     continue;

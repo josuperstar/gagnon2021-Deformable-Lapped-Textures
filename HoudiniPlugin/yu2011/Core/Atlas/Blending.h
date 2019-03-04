@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "Color.h"
+#include "Images/Color.h"
 #include "Images/ImageCV.h"
 
 #include <SOP/SOP_Node.h>
