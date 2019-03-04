@@ -2,15 +2,12 @@
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
-#include <UT/UT_DSOVersion.h>
 #include <UT/UT_Interrupt.h>
 #include <UT/UT_Matrix3.h>
 #include <UT/UT_Matrix4.h>
 #include <GU/GU_Detail.h>
 #include <GU/GU_PrimPoly.h>
 #include <PRM/PRM_Include.h>
-#include <OP/OP_Operator.h>
-#include <OP/OP_OperatorTable.h>
 #include <PRM/PRM_SpareData.h>
 #include <SOP/SOP_Guide.h>
 //#include "DeformablePatches.h"

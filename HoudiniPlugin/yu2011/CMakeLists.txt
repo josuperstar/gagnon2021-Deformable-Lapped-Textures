@@ -73,7 +73,8 @@ file(GLOB SOURCES ${ProjectSource}/*.h ${ProjectSource}/*.C ${ProjectSource}/*.c
             ${ProjectSource}/Core/Deformations/*
             ${ProjectSource}/Core/Atlas/*
             ${ProjectSource}/PoissonDisk/*
-			${ProjectSource}/Images/*
+            ${ProjectSource}/Images/*
+            ${ProjectSource}/Math/*
 )
 
 include_directories(${ProjectSource})
