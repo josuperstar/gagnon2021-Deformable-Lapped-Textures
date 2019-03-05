@@ -1,26 +1,13 @@
 # NOTE Change the project name and edit the list of source files to match your project.
-# For ANN, you have two options. You can:
-#  - install the libann-dev package
-#  - download ANN (http://www.cs.umd.edu/~mount/ANN/),
-#    extract in the project directory and compile it,
-#    then set ANN_DIR and register the library (uncomment the lines below),
-#    and change 'ann' to 'ANN' in target_link_libraries
-#  - set ANN_DIR to another directory containing the compiled ANN library,
-#    (for example /prod/tools/rd/ann1.1.2), and also
-#    register the include/lib directories and change target_link_libraries
 
 # Specify the minimum required version of CMake to build the project
 cmake_minimum_required( VERSION 3.0 )
 
 # Set the project name
 project( Gagnon2019 )
-set(ProjectSource .)
-# Set the path to the ANN library (uncomment if you are not using the package)
-#set( ANN_DIR "${CMAKE_CURRENT_LIST_DIR}/ann_1.1.2" )
-#set( ANN_DIR "/prod/tools/rd/ann1.1.2" )
 
 ############################
-# Initialize Houdini (15+) #
+# Initialize Houdini (16+) #
 ############################
 
 if( DEFINED ENV{HFS} )
@@ -30,25 +17,26 @@ if( DEFINED ENV{HFS} )
         # Locate Houdini's libraries and header files
         list( APPEND CMAKE_PREFIX_PATH "$ENV{HFS}/toolkit/cmake" )
 else()
+    # If the environment variable HFS is not defined,
+    # use -DCMAKE_PREFIX_PATH=/path/to/hfs/toolkit/cmake
+    # (or any path to HoudiniConfig.cmake)
     message( STATUS "HFS not set, looking into CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH} )
     if( NOT CMAKE_PREFIX_PATH )
         message( FATAL_ERROR "Environment variable HFS undefined.
-            Please set CMAKE_PREFIX_PATH to HoudiniConfig.cmake path ({HFS}/toolkit/cmake)." )
+            Please make sure the HFS environment variable is set or
+            set CMAKE_PREFIX_PATH to HoudiniConfig.cmake path ({HFS}/toolkit/cmake)." )
     endif()
 endif()
 
 # Register an imported library target named 'Houdini'
 # (this will use the HoudiniConfig.cmake file)
-# Note: if the environment variable HFS is not defined,
-# use -DCMAKE_PREFIX_PATH=/path/to/hfs/toolkit/cmake
-# (or any path to HoudiniConfig.cmake)
 find_package( Houdini REQUIRED )
 
 message( STATUS "Found Houdini " ${Houdini_VERSION_MAJOR} "." ${Houdini_VERSION_MINOR} "." ${Houdini_VERSION_PATCH} )
 
-# We need version 15 minimum
-if( Houdini_VERSION_MAJOR LESS 15 )
-    message( FATAL_ERROR "Houdini 15+ required." )
+# We need version 16 minimum
+if( Houdini_VERSION_MAJOR LESS 16 )
+    message( FATAL_ERROR "Houdini 16+ required." )
 endif()
 
 ##########################
@@ -56,31 +44,39 @@ endif()
 ##########################
 
 # Set the source path
-set( SRC_DIR src )
+set( SRC_DIR . )
 
 # List the source files
 # (except the ones with the Houdini operators)
-file(GLOB SOURCES ${ProjectSource}/*.h ${ProjectSource}/*.C ${ProjectSource}/*.cpp ${ProjectSource}/*.hpp ${ProjectSource}/Set/*.h
-            ${ProjectSource}/Set/SpacialGrid.hpp
-            ${ProjectSource}/HoudiniPlugins/*
-            ${ProjectSource}/HoudiniInterfaces/*
-            ${ProjectSource}/OldApproach/*
-            ${ProjectSource}/Strategies/*.[hHcC]*
-            ${ProjectSource}/Strategies/TextureSynthesis/*
-            ${ProjectSource}/Strategies/SurfaceTextureSynthesis/*
-            ${ProjectSource}/Strategies/StrategyPatchSurfaceSynthesis/*
-            ${ProjectSource}/Core/*.[hHcC]*
-            ${ProjectSource}/Core/Deformations/*
-            ${ProjectSource}/Core/Atlas/*
-            ${ProjectSource}/PoissonDisk/*
-            ${ProjectSource}/Images/*
-            ${ProjectSource}/Math/*
+# NOTE The use of GLOB is not recommended
+file( GLOB SOURCES
+    ${SRC_DIR}/*.h
+    ${SRC_DIR}/*.C
+    ${SRC_DIR}/*.cpp
+    ${SRC_DIR}/*.hpp
+    ${SRC_DIR}/Set/*.h
+    ${SRC_DIR}/Set/SpacialGrid.hpp
+    ${SRC_DIR}/HoudiniPlugins/*
+    ${SRC_DIR}/HoudiniInterfaces/*
+    ${SRC_DIR}/OldApproach/*
+    ${SRC_DIR}/Strategies/*.[hHcC]*
+    ${SRC_DIR}/Strategies/TextureSynthesis/*
+    ${SRC_DIR}/Strategies/SurfaceTextureSynthesis/*
+    ${SRC_DIR}/Strategies/StrategyPatchSurfaceSynthesis/*
+    ${SRC_DIR}/Core/*.[hHcC]*
+    ${SRC_DIR}/Core/Deformations/*
+    ${SRC_DIR}/Core/Atlas/*
+    ${SRC_DIR}/PoissonDisk/*
+    ${SRC_DIR}/Images/*
+    ${SRC_DIR}/Math/*
 )
 
-include_directories(${ProjectSource})
-include_directories(${Math})
-include_directories(${Set})
-include_directories(${Images})
+# TODO List the files containing DS definitions (*.C)
+# These will generate header files
+set( PROTO_SOURCES
+#    ${SRC_DIR}/*.C
+)
+
 ##########################
 # Register the libraries #
 ##########################
@@ -97,15 +93,11 @@ endif()
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-
 # Add a library with the same name as the project
 set( library_name ${PROJECT_NAME} )
 
-# If Houdini 16+
-if( NOT (Houdini_VERSION_MAJOR LESS 16) )
-    # Code generation for the embedded DS files in all node class definitions
-    houdini_generate_proto_headers( FILES ${PROTO_SOURCES} )
-endif()
+# Code generation for the embedded DS files in all node class definitions
+houdini_generate_proto_headers( FILES ${PROTO_SOURCES} )
 
 # Use all the source files
 add_library( ${library_name} SHARED ${SOURCES} )
@@ -117,16 +109,18 @@ target_link_libraries( ${library_name}
     ${OpenCV_LIBS}
 )
 
-# If Houdini 16+
-if( NOT (Houdini_VERSION_MAJOR LESS 16) )
-    # Include ${CMAKE_CURRENT_BINARY_DIR} for the generated headers
-    target_include_directories( ${library_name} PRIVATE
-        ${CMAKE_CURRENT_BINARY_DIR}
-    )
-endif()
+# Include ${CMAKE_CURRENT_BINARY_DIR} for the generated headers
+# and other dependencies
+target_include_directories( ${library_name} PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+    ${SRC_DIR}
+    ${Math}
+    ${Set}
+    ${Images}
+)
 
 # Configure several common target properties
-# We set the output directory (INSTDIR) in the context of a Rez package,
-# otherwise we leave the default (Houdini's default dso directory)
+# We leave the default (Houdini's default dso directory)
 houdini_configure_target( ${library_name} )
+# Otherwise, we can set the output directory (INSTDIR) manually
 #houdini_configure_target( ${library_name} INSTDIR ${CMAKE_CURRENT_LIST_DIR}/dso )
