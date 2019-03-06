@@ -204,6 +204,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         float d_P = distance3d(positionInPolygon,centerUV);
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
+
         float s = params.UVScaling;
         float minDUV = 0.125*s;
         float maxDUV = 0.25*s; //blending region

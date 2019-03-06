@@ -240,6 +240,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
             else
                 currentSpawn+= 1+increment;
 
+
         }
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;

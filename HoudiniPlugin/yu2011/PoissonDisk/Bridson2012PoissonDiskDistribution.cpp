@@ -117,6 +117,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     }
 
     t = 30;
+    //t = 100;
 
     cout << "Grid name: " << phi->getGridName() << std::endl;
     cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
@@ -173,6 +174,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         {
             //if it is not close to the surface, continue
             if (abs(boundaryDist) > params.CellSize/2.0f) // We should use a threshold defined by the user
+
                 continue;
             //=================================================================
             //2:  for t attempts do
@@ -339,6 +341,8 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
 
     newPointNormal.normalize();
     float kd = killDistance;
+    UT_Vector3 defaultDirection(1,0,0);
+    UT_Vector3 S,T;
 
     UT_Vector3 defaultDirection(1.012f,0.123f,0.002f);
     UT_Vector3 S,T;
@@ -346,15 +350,16 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
     for(int j=0; j<l;j++)
     {
         neighbor = close_particles_indices.array()[j];
-        if (attActive.get(neighbor) == 0)
-            continue;
+
         if (neighbor == exclude)
             continue;
 
         UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
 
+
         UT_Vector3 N            = attN.get(neighbor);
         N.normalize();
+
         S = cross(N,defaultDirection);
         S.normalize();
         T = cross(S,N);
@@ -368,6 +373,7 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         poissonDiskSpace.y() = relativePosistion.dot(T);
         poissonDiskSpace.z() = relativePosistion.dot(N);
 
+
         float dotN              = dot(N,newPointNormal);
         bool samePlane          = dotN > params.poissonAngleNormalThreshold;
 
@@ -377,7 +383,9 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         float z = poissonDiskSpace.z();
         float a = r;
         float b = r;
+
         float c = cs*2;
+
 
         float a2 = kd;
         float b2 = kd;
@@ -395,13 +403,15 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
             outsideOfSmallEllipse = true;
 
         //It is too close to the current point ?
-        if(samePlane && !outsideOfSmallEllipse)
+        if(samePlane && !outsideOfSmallEllipse && attActive.get(neighbor) == 1)
         {
             tooClose = true;
         }
 
         if(insideBigEllipse && samePlane)
             numberOfClosePoint++;
+
+        //cout << "ellipse "<<bigEllipse<<endl;
     }
     return !tooClose;
 }
