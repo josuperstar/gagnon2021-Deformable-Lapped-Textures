@@ -6,7 +6,7 @@
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
 #include <Math/Vec3.h>
-#include "Image.h"
+#include "Images/Image.h"
 #include "Set/SpatialGrid.h"
 #include <GU/GU_Flatten.h>
 #include <Core/Deformations/Yu2011Distortion.h>
@@ -30,7 +30,7 @@ public:
     ~Yu2011Interface();
 
     //==========================================================================
-    void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet,ParametersDeformablePatches params);
+    void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet, GU_Detail *surfaceLowRes, ParametersDeformablePatches params);
 
 private :
 

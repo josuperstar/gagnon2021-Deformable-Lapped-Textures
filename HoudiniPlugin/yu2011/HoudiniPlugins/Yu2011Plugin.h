@@ -7,7 +7,7 @@
 #include <GEO/GEO_PrimPart.h>
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
-#include "Image.h"
+#include "Images/Image.h"
 #include "Set/SpatialGrid.h"
 #include "HoudiniInterfaces/Yu2011Interface.h"
 

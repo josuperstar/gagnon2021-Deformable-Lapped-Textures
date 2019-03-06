@@ -3,15 +3,12 @@
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
-#include <UT/UT_DSOVersion.h>
 #include <UT/UT_Interrupt.h>
 #include <UT/UT_Matrix3.h>
 #include <UT/UT_Matrix4.h>
 #include <GU/GU_Detail.h>
 #include <GU/GU_PrimPoly.h>
 #include <PRM/PRM_Include.h>
-#include <OP/OP_Operator.h>
-#include <OP/OP_OperatorTable.h>
 #include <PRM/PRM_SpareData.h>
 #include <SOP/SOP_Guide.h>
 
@@ -100,7 +97,6 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
     GA_RWHandleF    attRandT(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     GA_RWHandleI    attDeleteFaster(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
-
     GA_RWHandleV3 refAttV(surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3 refAttN(surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
@@ -201,7 +197,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
         //or that are too close to each other
 
-        int maxNumberOfNeighbour = 10;
+        int maxNumberOfNeighbour = 5; // TODO promotve that variable
         int density = attDensity.get(ppt);
         //-------------- deleting faster logic ------------------
         //Can we move this to the ParticleTracker update ?
@@ -217,13 +213,16 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         }
         //-------------------------------------------------------
 
+        int increment = density;
+        if (maxNumberOfNeighbour <= density)
+            increment = maxNumberOfNeighbour;
         //int deleteFaster = attDeleteFaster.get(ppt);
         bool isMature = (currentSpawn >= params.fadingTau);
         if (isMature)
             attIsMature.set(ppt,1);
         if (active == 0 && deleteFaster == 1 && isMature)
         {
-            currentLife -= ((float)density);
+            currentLife -= ((float)increment);
         }
         else if(active == 0 && deleteFaster == 0 && isMature)
         {
@@ -233,16 +232,24 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         else if (currentSpawn < params.fadingTau)
         {
             //currentLife++;
-            currentLife += 1+density;
+            //currentSpawn++;
+
+            currentLife += 1.0f+(float)increment;
             if (currentSpawn == 0)
                 currentSpawn+= 1;
             else
-                currentSpawn+= 1+density;
+                currentSpawn+= 1+increment;
+
+
         }
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;
         if (currentLife < 0)
             currentLife = 0;
+
+        float deletionLife = params.fadingTau;
+        float blending = (float)currentLife/(float(deletionLife));
+        attBlend.set(ppt,blending);
 
         //==============================================
 
@@ -366,8 +373,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
                 fadeIn = fadeIn +1;
                 attFadeIn.set(ppt,fadeIn);
             }
-            float blending = (float)currentLife/(float(deletionLife)/(1+density));
-            temporalComponentKt.set(ppt,blending);
+
 
             //-----------------------------------------
             //advect

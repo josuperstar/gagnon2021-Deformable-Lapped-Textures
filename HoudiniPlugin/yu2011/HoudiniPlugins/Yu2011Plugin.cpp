@@ -256,13 +256,19 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     levelSet->clearAndDestroy();
     levelSet->copy(*levelSetRef);
 
+    const GU_Detail *surfaceLowResRef = inputGeo(4);
+    GU_Detail *surfaceLowRes = new GU_Detail();
+    surfaceLowRes->clearAndDestroy();
+    surfaceLowRes->copy(*surfaceLowResRef);
+
     Yu2011Interface interface;
     //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
-    interface.Synthesis(gdp,surfaceCopy,trackersCopy,levelSet, params);
+    interface.Synthesis(gdp,surfaceCopy,trackersCopy,levelSet,surfaceLowRes, params);
 
     delete trackersCopy;
     delete surfaceCopy;
     delete levelSet;
+    delete surfaceLowRes;
 
     unlockInputs();
     resetLocalVarRefs();
