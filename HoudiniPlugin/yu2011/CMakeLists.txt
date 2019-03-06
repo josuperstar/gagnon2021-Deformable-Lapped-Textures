@@ -6,39 +6,6 @@ cmake_minimum_required( VERSION 3.0 )
 # Set the project name
 project( Gagnon2019 )
 
-############################
-# Initialize Houdini (16+) #
-############################
-
-if( DEFINED ENV{HFS} )
-        # Display the HFS environment variable
-        message( STATUS "HFS directory: " $ENV{HFS} )
-
-        # Locate Houdini's libraries and header files
-        list( APPEND CMAKE_PREFIX_PATH "$ENV{HFS}/toolkit/cmake" )
-else()
-    # If the environment variable HFS is not defined,
-    # use -DCMAKE_PREFIX_PATH=/path/to/hfs/toolkit/cmake
-    # (or any path to HoudiniConfig.cmake)
-    message( STATUS "HFS not set, looking into CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH} )
-    if( NOT CMAKE_PREFIX_PATH )
-        message( FATAL_ERROR "Environment variable HFS undefined.
-            Please make sure the HFS environment variable is set or
-            set CMAKE_PREFIX_PATH to HoudiniConfig.cmake path ({HFS}/toolkit/cmake)." )
-    endif()
-endif()
-
-# Register an imported library target named 'Houdini'
-# (this will use the HoudiniConfig.cmake file)
-find_package( Houdini REQUIRED )
-
-message( STATUS "Found Houdini " ${Houdini_VERSION_MAJOR} "." ${Houdini_VERSION_MINOR} "." ${Houdini_VERSION_PATCH} )
-
-# We need version 16 minimum
-if( Houdini_VERSION_MAJOR LESS 16 )
-    message( FATAL_ERROR "Houdini 16+ required." )
-endif()
-
 ##########################
 # Initialize the sources #
 ##########################
@@ -71,17 +38,62 @@ file( GLOB SOURCES
     ${SRC_DIR}/Math/*
 )
 
-# TODO List the files containing DS definitions (*.C)
-# These will generate header files
-set( PROTO_SOURCES
-#    ${SRC_DIR}/*.C
+# The output library will have the same name as the project
+# and contain all the source files
+set( library_name ${PROJECT_NAME} )
+add_library( ${library_name} SHARED ${SOURCES} )
+
+# Add include directories
+target_include_directories( ${library_name} PRIVATE
+    ${SRC_DIR}
+    ${Math}
+    ${Set}
+    ${Images}
 )
 
 ##########################
 # Register the libraries #
 ##########################
 
-# Register OpenCV
+## Register Houdini (16+) ##
+
+if( DEFINED ENV{HFS} )
+    # Display the HFS environment variable
+    message( STATUS "HFS directory: " $ENV{HFS} )
+
+    # Locate Houdini's libraries and header files
+    list( APPEND CMAKE_PREFIX_PATH "$ENV{HFS}/toolkit/cmake" )
+else()
+    # If the environment variable HFS is not defined,
+    # use -DCMAKE_PREFIX_PATH=/path/to/hfs/toolkit/cmake
+    # (or any path to HoudiniConfig.cmake)
+    message( STATUS "HFS not set, looking into CMAKE_PREFIX_PATH: " ${CMAKE_PREFIX_PATH} )
+    if( NOT CMAKE_PREFIX_PATH )
+        message( FATAL_ERROR "Environment variable HFS undefined.
+            Please make sure the HFS environment variable is set or
+            set CMAKE_PREFIX_PATH to HoudiniConfig.cmake path ({HFS}/toolkit/cmake)." )
+    endif()
+endif()
+
+# Register an imported library target named 'Houdini'
+# (this will use the HoudiniConfig.cmake file)
+find_package( Houdini REQUIRED )
+message( STATUS "Found Houdini " ${Houdini_VERSION_MAJOR} "." ${Houdini_VERSION_MINOR} "." ${Houdini_VERSION_PATCH} )
+
+# We need version 16 minimum
+if( Houdini_VERSION_MAJOR LESS 16 )
+    message( FATAL_ERROR "Houdini 16+ required." )
+endif()
+
+# Link against the library
+target_link_libraries( ${library_name} Houdini )
+
+# Include ${CMAKE_CURRENT_BINARY_DIR} for the generated headers
+target_include_directories( ${library_name} PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+## Register OpenCV ##
 
 # In Windows, the OPENCV_DIR environment variable should have been set
 # (see https://docs.opencv.org/master/d3/d52/tutorial_windows_install.html)
@@ -91,33 +103,16 @@ if( DEFINED ENV{OPENCV_DIR} )
     list( APPEND CMAKE_PREFIX_PATH "$ENV{OPENCV_DIR}/lib" )
 endif()
 find_package( OpenCV REQUIRED )
-include_directories( ${OpenCV_INCLUDE_DIRS} )
 
-# Add a library with the same name as the project
-set( library_name ${PROJECT_NAME} )
+# Link against the libraries
+target_link_libraries( ${library_name} ${OpenCV_LIBS} )
 
-# Code generation for the embedded DS files in all node class definitions
-houdini_generate_proto_headers( FILES ${PROTO_SOURCES} )
+# Add the necessary include directories
+target_include_directories( ${library_name} PRIVATE ${OpenCV_INCLUDE_DIRS} )
 
-# Use all the source files
-add_library( ${library_name} SHARED ${SOURCES} )
-
-# Link against the libraries,
-# and add required include directories and compile definitions
-target_link_libraries( ${library_name}
-    Houdini
-    ${OpenCV_LIBS}
-)
-
-# Include ${CMAKE_CURRENT_BINARY_DIR} for the generated headers
-# and other dependencies
-target_include_directories( ${library_name} PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}
-    ${SRC_DIR}
-    ${Math}
-    ${Set}
-    ${Images}
-)
+#################
+# Houdini steps #
+#################
 
 # Configure several common target properties
 # We leave the default (Houdini's default dso directory)
