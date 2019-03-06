@@ -161,28 +161,16 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     {
         GA_PrimitiveGroup *primGroup;
 
-        if (useDeformableGrids)
+        cout << "buildin the ray map:";
+        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
         {
-            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-            {
-                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-                string name = primGroup->getName().toStdString();
-                GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
-                ray->init();
-                rays[name] = ray;
-            }
+            //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+            string name = primGroup->getName().toStdString();
+            GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
+            ray->init();
+            rays[name] = ray;
         }
-        else
-        {
-            GA_FOR_ALL_PRIMGROUPS(surface,primGroup)
-            {
-                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-                string name = primGroup->getName().toStdString();
-                GU_RayIntersect *ray = new GU_RayIntersect(surface,primGroup);
-                ray->init();
-                rays[name] = ray;
-            }
-        }
+        cout << " done"<<endl;
     }
 
     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
