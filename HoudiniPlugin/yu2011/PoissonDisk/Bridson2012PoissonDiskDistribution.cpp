@@ -341,8 +341,6 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
 
     newPointNormal.normalize();
     float kd = killDistance;
-    UT_Vector3 defaultDirection(1,0,0);
-    UT_Vector3 S,T;
 
     UT_Vector3 defaultDirection(1.012f,0.123f,0.002f);
     UT_Vector3 S,T;
