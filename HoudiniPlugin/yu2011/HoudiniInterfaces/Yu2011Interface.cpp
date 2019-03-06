@@ -3,15 +3,12 @@
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
-#include <UT/UT_DSOVersion.h>
 #include <UT/UT_Interrupt.h>
 #include <UT/UT_Matrix3.h>
 #include <UT/UT_Matrix4.h>
 #include <GU/GU_Detail.h>
 #include <GU/GU_PrimPoly.h>
 #include <PRM/PRM_Include.h>
-#include <OP/OP_Operator.h>
-#include <OP/OP_OperatorTable.h>
 #include <PRM/PRM_SpareData.h>
 #include <SOP/SOP_Guide.h>
 #include <stdio.h>
@@ -40,7 +37,7 @@ Yu2011Interface::~Yu2011Interface()
 {
 }
 
-void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
+void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
     Yu2011 strategy(surfaceGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
@@ -68,6 +65,8 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     ray.init();
     GEO_PointTreeGAOffset surfaceTree;
     surfaceTree.build(surfaceGdp, NULL);
+    GEO_PointTreeGAOffset surfaceLowResTree;
+    surfaceLowResTree.build(surfaceLowResGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
 
@@ -89,18 +88,18 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)
-            strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
+            strategy.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
     }
     else
     {
-        strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
+        strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
         if (!usingOnlyPoissonDisk)
-            strategy.AdvectGrids(gdp,trackersGdp,params,surfaceTree,surfaceGdp);
+            strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
         strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
-            strategy.CreateGridBasedOnMesh(gdp,surfaceGdp,trackersGdp, params,newPatchesPoints,surfaceTree);
-        strategy.DeleteUnusedPatches(gdp,surfaceGdp, trackersGdp,params,surfaceTree,ray);
+            strategy.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+        strategy.DeleteUnusedPatches(gdp, trackersGdp,params);
 
     }
     if (!usingOnlyPoissonDisk)

@@ -88,7 +88,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
     float a = 0.25; //promote this variable to the user interface
     this->poissonDiskRadius = diskRadius;
-    float killDistance = (1-a)*diskRadius;
+    float killDistance = (1-a)*diskRadius/2;
 
     cout << "[Bridson2012PoissonDiskDistribution] We have a valid vdb"<<endl;
 
@@ -173,7 +173,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         //if (boundaryDist <= 0.0)// && grad.length() > 0.0)
         {
             //if it is not close to the surface, continue
-            if (abs(boundaryDist) > params.CellSize) // We should use a threshold defined by the user
+            if (abs(boundaryDist) > params.CellSize/2.0f) // We should use a threshold defined by the user
+
                 continue;
             //=================================================================
             //2:  for t attempts do
@@ -343,6 +344,9 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
     UT_Vector3 defaultDirection(1,0,0);
     UT_Vector3 S,T;
 
+    UT_Vector3 defaultDirection(1.012f,0.123f,0.002f);
+    UT_Vector3 S,T;
+
     for(int j=0; j<l;j++)
     {
         neighbor = close_particles_indices.array()[j];
@@ -351,8 +355,8 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
             continue;
 
         UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-        UT_Vector3 pNp          = pos - newPointPosition;
-        pNp.normalize();
+
+
         UT_Vector3 N            = attN.get(neighbor);
         N.normalize();
 
@@ -370,8 +374,6 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         poissonDiskSpace.z() = relativePosistion.dot(N);
 
 
-        //-------------------------------------------------
-
         float dotN              = dot(N,newPointNormal);
         bool samePlane          = dotN > params.poissonAngleNormalThreshold;
 
@@ -381,7 +383,9 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
         float z = poissonDiskSpace.z();
         float a = r;
         float b = r;
-        float c = cs;
+
+        float c = cs*2;
+
 
         float a2 = kd;
         float b2 = kd;
@@ -392,8 +396,6 @@ bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp
 
         bool outsideOfSmallEllipse = false;
         bool insideBigEllipse = false;
-
-        UT_Vector3 origin = {0,0,0};
 
         if (bigEllipse <= 1)
             insideBigEllipse = true;

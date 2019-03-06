@@ -2,15 +2,12 @@
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
-#include <UT/UT_DSOVersion.h>
 #include <UT/UT_Interrupt.h>
 #include <UT/UT_Matrix3.h>
 #include <UT/UT_Matrix4.h>
 #include <GU/GU_Detail.h>
 #include <GU/GU_PrimPoly.h>
 #include <PRM/PRM_Include.h>
-#include <OP/OP_Operator.h>
-#include <OP/OP_OperatorTable.h>
 #include <PRM/PRM_SpareData.h>
 #include <SOP/SOP_Guide.h>
 #include <stdio.h>
@@ -342,8 +339,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 if (k < cs*2)
                     k = cs*2;
                 bool insideBigEllipse    = d < k;
-                if (!insideBigEllipse)
-                    continue;
+                //if (!insideBigEllipse)
+                //    continue;
 
                 //=====================================================
 
@@ -426,14 +423,14 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 //                                                  UpdateUsingBridson2012PoissonDisk
 //======================================================================================================================================
 
-void Yu2011::DeleteUnusedPatches(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray)
+void Yu2011::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
     cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
     std::clock_t startUpdatePatches;
     startUpdatePatches = std::clock();
 
     //--------------------------------------------------------------------------
-    GA_RWHandleF attSumAlpha(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"SumAlpha", 1));
+
     GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));

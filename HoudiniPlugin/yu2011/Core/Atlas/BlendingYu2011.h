@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include "Blending.h"
-#include "Color.h"
+#include "Images/Color.h"
 
 namespace Mokko {
 

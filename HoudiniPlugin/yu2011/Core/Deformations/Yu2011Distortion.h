@@ -6,7 +6,7 @@
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
 #include <Math/Vec3.h>
-#include "Image.h"
+#include "Images/Image.h"
 #include "Set/SpatialGrid.h"
 //#include "HoudiniInterfaces/TextureSynthesis.h"
 

@@ -3,15 +3,12 @@
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
-#include <UT/UT_DSOVersion.h>
 #include <UT/UT_Interrupt.h>
 #include <UT/UT_Matrix3.h>
 #include <UT/UT_Matrix4.h>
 #include <GU/GU_Detail.h>
 #include <GU/GU_PrimPoly.h>
 #include <PRM/PRM_Include.h>
-#include <OP/OP_Operator.h>
-#include <OP/OP_OperatorTable.h>
 #include <PRM/PRM_SpareData.h>
 #include <SOP/SOP_Guide.h>
 #include <stdio.h>
@@ -546,6 +543,8 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
         //- compute a random translation
         //- scale up
         float scaleup = params.UVScaling;
+        if (scaleup == 0)
+            scaleup = 1;
         int seed = id;
         float offset = 0.5;
         float randomScale = scaleup/2.0f;
@@ -561,36 +560,19 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
             GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
             {
                 UT_Vector3 uv = attUV.get(gppt);
+                if (uv.x() != uv.x())
+                {
+                    //where have nan value
+                    uv = UT_Vector3(0,0,0);
+                }
+
                 uv += UT_Vector3(tx,ty,tz);
                 uv /= scaleup;
                 attUV.set(gppt,uv);
             }
         }
 
-        GU_RayIntersect ray(deformableGridsGdp);
-        ray.init();
-        GU_MinInfo mininfo;
-        ray.minimumPoint(p,mininfo);
-        //get pos of hit
-        UT_Vector4 hitPos;
-        mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
-
-        //------------------------------PARAMETRIC COORDINATE -----------------------------------
-        GA_Offset primOffset = mininfo.prim->getMapOffset();
-        float u = mininfo.u1;
-        float v = mininfo.v1;
-        GEO_Primitive *primHit = deformableGridsGdp->getGEOPrimitive(primOffset);
-
-        GA_Offset vertexOffset0 = primHit->getVertexOffset(0);
-        GA_Offset pointOffset0  = deformableGridsGdp->vertexPoint(vertexOffset0);
-        UT_Vector3 v0 = attUV.get(pointOffset0);
-        GA_Offset vertexOffset1 = primHit->getVertexOffset(1);
-        GA_Offset pointOffset1  = deformableGridsGdp->vertexPoint(vertexOffset1);
-        UT_Vector3 v1 = attUV.get(pointOffset1);
-        GA_Offset vertexOffset2 = primHit->getVertexOffset(2);
-        GA_Offset pointOffset2  = deformableGridsGdp->vertexPoint(vertexOffset2);
-        UT_Vector3 v2 = attUV.get(pointOffset2);
-        UT_Vector3 centerUV = v0+u*(v1-v0)+v*(v2-v0);
+        UT_Vector3 centerUV = UT_Vector3(0,0,0);
 
         int i = 0;
         {
@@ -673,6 +655,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_RWHandleF    attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleF    attRandT(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+    GA_RWHandleV3   attNTracker(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
     GA_RWHandleV3   refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -706,6 +689,10 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     distortionParams.distortionWeightName = distortionWeightName;
     distortionParams.primLifeName = "life";
 
+    float cs = params.CellSize;
+    float r = params.poissondiskradius;
+
+    GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
     GA_PointGroup * grpToDestroy;
     grpToDestroy = (GA_PointGroup *)deformableGridsgdp->newPointGroup("GridPointToDelete");
 
@@ -727,6 +714,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     int active;
     float life;
 
+
     GA_FOR_ALL_PTOFF(trackersGdp,trackerPpt)
     {
         id = attId.get(trackerPpt);
@@ -741,6 +729,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         life = attLife.get(trackerPpt);
         float gridAlpha = (float)life/(float)params.fadingTau;
         UT_Vector3 trackerPosition = trackersGdp->getPos3(trackerPpt);
+        UT_Vector3 trackerN = attNTracker.get(trackerPpt);
 
         string str = std::to_string(id);
         string groupName = "grid"+str;
@@ -817,6 +806,26 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 p1 = hitPos;
                                 deformableGridsgdp->setPos3(ppt,p1);
 
+                                //respect poisson disk criterion
+                                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+
+                                //=====================================================
+
+                                UT_Vector3 pNp          = trackerPosition - hitPos;
+                                pNp.normalize();
+                                float dotP              = dot(pNp, trackerN);
+
+                                float d              = distance3d( trackerPosition, hitPos );
+                                float dp                = abs(dotP);
+
+                                float k        = (1-dp)*r*2;
+                                if (k < cs)
+                                    k = cs;
+                                bool insideBigEllipse    = d < k;
+                                if (!insideBigEllipse)
+                                    continue;
+
+
                                 //------------------------------PARAMETRIC COORDINATE -----------------------------------
                                 GA_Offset primOffset = mininfo.prim->getMapOffset();
                                 float u = mininfo.u1;
@@ -851,19 +860,14 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                             }
                             else if (distance3d(p1,hitPos) < thresholdDistance*3)
                             {
+                                //attLife.set(trackerPpt,0);
                                 deformableGridsgdp->setPos3(ppt,p1);
                                 //for debuging purposes
                                 attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
-                                attActive.set(trackerPpt,0);
-
-                            }
-                            else
-                            {
-                                //too far from the surface
                                 grpToDestroy->addOffset(ppt);
                                 attActive.set(trackerPpt,0);
-                                attLife.set(trackerPpt,0);
+
                             }
                         }
 
@@ -923,6 +927,10 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         attMaxDeltaOnD.set(trackerPpt,averageDeltaOnD);
         //cout << "Max Delta on D "<<maxDeltaOnD<<endl;
     }
+
+
+    deformableGridsgdp->deletePoints(*grpToDestroy,mode);
+
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 }
 
@@ -1092,6 +1100,8 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
 
                 float d3d = distance3d(pos1,pos2);
                 float dUv = distance3d(uv1,uv2);
+                if (dUv == 0)
+                    continue;
                 ratioUv = d3d/dUv;
 
                 ratioAverage += ratioUv;
@@ -1102,8 +1112,14 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
         }
     }
 
+    if (nbUv == 0)
+        nbUv = 1;
     ratioUv = ratioAverage / nbUv;
     nbUv = 0;
+    if (ratioUv == 0)
+        ratioUv = 1;
+    if (scaling == 0)
+        scaling = 1;
 
     GA_FOR_ALL_PRIMITIVES(&tempGdp,prim)
     {
@@ -1186,7 +1202,8 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
     }
     //----------------- Center UV --------------------
     UT_Vector3 destCenter(0.5,0.5,0);
-    uvCenter /= nbUv;
+    if (nbUv != 0)
+        uvCenter /= nbUv;
 
     UT_Vector3 translation = destCenter - uvCenter;
 

@@ -21,7 +21,7 @@ public:
 
     void PoissonDiskSampling(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackers, GA_PointGroup *markerGroup, ParametersDeformablePatches params);
     void AddPatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);
-    void DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackers ,ParametersDeformablePatches params,GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);
+    void DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
 
     double poissondisk;
     double  patchCreationTime;
