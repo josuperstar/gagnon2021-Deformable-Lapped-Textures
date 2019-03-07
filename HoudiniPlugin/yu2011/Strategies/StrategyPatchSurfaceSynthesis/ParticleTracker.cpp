@@ -222,11 +222,11 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
             attIsMature.set(ppt,1);
         if (active == 0 && deleteFaster == 1 && isMature)
         {
-            currentLife -= ((float)increment);
+            currentLife -= 1.0f+((float)increment);
         }
         else if(active == 0 && deleteFaster == 0 && isMature)
         {
-            currentLife -= 1;
+            currentLife -= 1.0f;
         }
         //fade in
         else if (currentSpawn < params.fadingTau)
