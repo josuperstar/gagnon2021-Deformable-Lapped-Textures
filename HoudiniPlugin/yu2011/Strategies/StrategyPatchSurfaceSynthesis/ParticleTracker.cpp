@@ -462,7 +462,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
     UT_StringArray *errors;
     string beforeUpdateString = params.trackersFilename + "advectedTrackers.bgeo";
     const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
-    trackersGdp->save(filename,options,errors);
+    //trackersGdp->save(filename,options,errors);
     //----------------------------------
 
 

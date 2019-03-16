@@ -470,6 +470,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
                 attDMax.set(prim_poly_ptr->getMapOffset(),gmax);
                 attDMin.set(prim_poly_ptr->getMapOffset(),gmin);
                 attDistortion.set(prim_poly_ptr->getMapOffset(),dt);
+                //cout << "set Qt "<<1.0<<endl;
                 attQt.set(prim_poly_ptr->getMapOffset(),1.0f);
             }
             //====================================================================
@@ -608,6 +609,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_RWHandleF    attDP0(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
     GA_RWHandleF    attDPi(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dPi",1));
     GA_RWHandleF    attDeltaOnD(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
+    GA_RWHandleF    attQt(deformableGridsgdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
 
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
@@ -654,7 +656,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
     GA_PointGroup * grpToDestroy;
     grpToDestroy = (GA_PointGroup *)deformableGridsgdp->newPointGroup("GridPointToDelete");
-
+    GA_PrimitiveGroup *primGrpToDestroy = (GA_PrimitiveGroup *)deformableGridsgdp->newPrimitiveGroup("PrimToDelete");
     GU_MinInfo mininfo;
     GU_RayIntersect ray(surfaceGdp);
     ray.init();
@@ -882,10 +884,29 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         //attMaxDeltaOnD.set(trackerPpt,maxDeltaOnD);
         attMaxDeltaOnD.set(trackerPpt,averageDeltaOnD);
         //cout << "Max Delta on D "<<maxDeltaOnD<<endl;
+
+
+
+        //delete too distorted primitives
+        GEO_Primitive *prim;
+        GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsgdp,primGroup,prim)
+        {
+            float qt = attQt.get(prim->getMapOffset());
+            if (qt < 0.001)
+                primGrpToDestroy->add(prim);
+        }
+
+
     }
 
 
+    cout << "Destroying groups"<<endl;
+    if (primGrpToDestroy != 0x0)
+    {
+        deformableGridsgdp->destroyPrimitiveGroup(primGrpToDestroy);
+    }
     deformableGridsgdp->deletePoints(*grpToDestroy,mode);
+    cout << "Ok"<<endl;
 
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
 }
