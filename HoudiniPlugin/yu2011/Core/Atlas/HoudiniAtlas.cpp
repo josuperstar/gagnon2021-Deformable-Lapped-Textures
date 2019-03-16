@@ -464,16 +464,16 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
 void HoudiniAtlas::SaveAtlas()
 {
     //write the image to the disk
-    diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
+    //diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
     //diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equationtree.png");
-    diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.png");
+    //diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.png");
     diffuseImageBlendingYu2011Equation4->growRegions(diffuseImageBlendingYu2011Equation4->image,diffuseImageBlendingYu2011Equation4->image,1); //
     diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.padded.png");
     cout << "Save texture atlas"<<outputFilename<<endl;
     if (computeDisplacement)
     {
         //write the image to the disk
-        displacementMapEquation4->SaveImageAs(outputFilename+"displacementequationfour.png"); //HARDCODED NAME !!!
+        //displacementMapEquation4->SaveImageAs(outputFilename+"displacementequationfour.png"); //HARDCODED NAME !!!
         displacementMapEquation4->growRegions(displacementMapEquation4->image,displacementMapEquation4->image,1); //
         displacementMapEquation4->SaveImageAs(outputFilename+".displacementequationfour.padded.png");
         //displacementMapEquation3->SaveImageAs(outputFilename+"displacementequationtree.png"); //HARDCODED NAME !!!
