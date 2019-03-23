@@ -26,6 +26,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 {
 
     //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
+    bool useLocalRayIntersect = false;
 
     GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *gPrimTable = deformableGrids->getGroupTable(primGroupType);
@@ -93,20 +94,27 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         string groupName;
         groupName = "grid"+str;
 
-
-        //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-        //GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
-        //ray->init();
-
+        GU_RayIntersect *ray;
+        if (useLocalRayIntersect)
+        {
+            GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+            ray = new GU_RayIntersect(deformableGrids,primGroup);
+            ray->init();
+        }
+        else
+        {
+            map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
+            if (it==rays.end())
+                continue;
+            ray = rays[groupName];
+        }
         //--------------------------------------------------
         //Can we project the pixel on the current patch ?
         //We may want to put this test outside this function, especially if we want to create a shader.
         GU_MinInfo mininfo;
         mininfo.init(thresholdProjectionDistance,0.0001f);
-        map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
-        if (it==rays.end())
-            continue;
-        rays[groupName]->minimumPoint(positionOnSurface,mininfo);
+
+        ray->minimumPoint(positionOnSurface,mininfo);
         //ray->minimumPoint(positionOnSurface,mininfo);
         if (!mininfo.prim)
             continue;
@@ -301,6 +309,12 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             displacementSumEq4.B += w_v*(displacement.B - displaceMean.B);
         }
         k--;
+
+        if (useLocalRayIntersect)
+        {
+            delete ray;
+        }
+
     }
     //========================= END SUM ==================================
 
