@@ -26,6 +26,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 {
 
     //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
+    bool useLocalRayIntersect = false;
 
     GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *gPrimTable = deformableGrids->getGroupTable(primGroupType);
@@ -93,20 +94,27 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         string groupName;
         groupName = "grid"+str;
 
-
-        //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-        //GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
-        //ray->init();
-
+        GU_RayIntersect *ray;
+        if (useLocalRayIntersect)
+        {
+            GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+            ray = new GU_RayIntersect(deformableGrids,primGroup);
+            ray->init();
+        }
+        else
+        {
+            map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
+            if (it==rays.end())
+                continue;
+            ray = rays[groupName];
+        }
         //--------------------------------------------------
         //Can we project the pixel on the current patch ?
         //We may want to put this test outside this function, especially if we want to create a shader.
         GU_MinInfo mininfo;
         mininfo.init(thresholdProjectionDistance,0.0001f);
-        map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
-        if (it==rays.end())
-            continue;
-        rays[groupName]->minimumPoint(positionOnSurface,mininfo);
+
+        ray->minimumPoint(positionOnSurface,mininfo);
         //ray->minimumPoint(positionOnSurface,mininfo);
         if (!mininfo.prim)
             continue;
@@ -117,13 +125,17 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (prim->getVertexCount() < 3)
             continue;
 
-
-
         //------------------------------PARAMETRIC COORDINATE -----------------------------------
         float u = mininfo.u1;
         float v = mininfo.v1;
 
         //get pos of hit
+        UT_Vector4 hitPos;
+        mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+        if (distance3d(positionOnSurface,hitPos) > thresholdProjectionDistance)
+            continue;
+
+
 
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
         GA_Offset vertexOffset1 = prim->getVertexOffset(1);
@@ -149,7 +161,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //Q_v quality of the vertex, value from 0 to 1
         float   Q_t = attQt.get(prim->getMapOffset());
 
-
+        if (Q_t < 0.001)
+            continue;
         float   Q_V = Q_t;
 
         //-----------------------------------------------------------------
@@ -296,6 +309,12 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             displacementSumEq4.B += w_v*(displacement.B - displaceMean.B);
         }
         k--;
+
+        if (useLocalRayIntersect)
+        {
+            delete ray;
+        }
+
     }
     //========================= END SUM ==================================
 
