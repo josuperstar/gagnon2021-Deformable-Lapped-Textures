@@ -95,6 +95,7 @@ private:
    const GA_GroupTable *primGroupTable;
 
    map<string,GU_RayIntersect*> rays;
+   map<string,GU_Detail*> details;
    map<string,GU_Detail*> patchesGeo;
    map<GA_Offset,GA_Offset> pointsList;
    map<string,map<GA_Offset,GA_Offset> > initialOffsetList;
