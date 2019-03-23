@@ -34,6 +34,7 @@ HoudiniAtlas::~HoudiniAtlas()
              string name = primGroup->getName().toStdString();
              delete rays[name];
              delete patchesGeo[name];
+             delete details[name];
         }
         //patchesGeo.clear();
     }
@@ -160,29 +161,73 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     else
     {
         GA_PrimitiveGroup *primGroup;
+        vector<string> groupNames;
+        /*
+        vector<string>::iterator itGroupName;
+        {
+            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
+            {
+                string name = primGroup->getName().toStdString();
+                groupNames.push_back(name);
+            }
+        }
 
-        if (useDeformableGrids)
+        {
+            bool testDestroyGroup = true;
+            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
+            {
+                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+                string name = primGroup->getName().toStdString();
+                GU_Detail *patchDetail = new GU_Detail();
+                patchDetail->clearAndDestroy();
+                patchDetail->merge(*deformableGrids, primGroup,1,0,0,false);
+                //patchDetail->copy(*deformableGrids);
+
+                //cout << "Creating gu detail for "<<name<<endl;
+                details[name] = patchDetail;
+
+            }
+        }
         {
             GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
             {
                 //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
                 string name = primGroup->getName().toStdString();
-                GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
+                GU_RayIntersect *ray = new GU_RayIntersect(details[name]);
                 ray->init();
                 rays[name] = ray;
             }
         }
-        else
+        */
+
+        bool useLocalRayIntersect = false;
+        if (!useLocalRayIntersect)
         {
-            GA_FOR_ALL_PRIMGROUPS(surface,primGroup)
+            cout << "[HoudiniAtlas::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
+            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
             {
                 //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
                 string name = primGroup->getName().toStdString();
-                GU_RayIntersect *ray = new GU_RayIntersect(surface,primGroup);
-                ray->init();
+
+                // This version of the constructor is like the one that takes a group
+                // except the group is from a different gdp that has the same topology
+                // (ie. prim counts are the sames). Note that if usevisibility is true,
+                // then the visibility from the gdp is used (NOT limit_gdp).
+                //GU_RayIntersect(const GU_Detail *gdp,
+                //        const GU_Detail *limit_gdp,
+                //        const GA_PrimitiveGroup *vis_group,
+                 //       bool picking = false, bool polyline = false, bool harden = false,
+                //       bool usevisibility = false);
+
+                GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
+
+                ray->init(deformableGrids,primGroup);
                 rays[name] = ray;
+                //deformableGrids->destroyPrimitiveGroup(name.c_str());
             }
         }
+
+
     }
 
     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -464,16 +509,16 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
 void HoudiniAtlas::SaveAtlas()
 {
     //write the image to the disk
-    diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
+    //diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
     //diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equationtree.png");
-    diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.png");
+    //diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.png");
     diffuseImageBlendingYu2011Equation4->growRegions(diffuseImageBlendingYu2011Equation4->image,diffuseImageBlendingYu2011Equation4->image,1); //
     diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.padded.png");
     cout << "Save texture atlas"<<outputFilename<<endl;
     if (computeDisplacement)
     {
         //write the image to the disk
-        displacementMapEquation4->SaveImageAs(outputFilename+"displacementequationfour.png"); //HARDCODED NAME !!!
+        //displacementMapEquation4->SaveImageAs(outputFilename+"displacementequationfour.png"); //HARDCODED NAME !!!
         displacementMapEquation4->growRegions(displacementMapEquation4->image,displacementMapEquation4->image,1); //
         displacementMapEquation4->SaveImageAs(outputFilename+".displacementequationfour.padded.png");
         //displacementMapEquation3->SaveImageAs(outputFilename+"displacementequationtree.png"); //HARDCODED NAME !!!

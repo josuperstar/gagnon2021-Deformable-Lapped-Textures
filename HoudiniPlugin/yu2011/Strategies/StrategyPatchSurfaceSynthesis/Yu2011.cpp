@@ -222,6 +222,7 @@ void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail 
 void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
 {
 
+    //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
     cout << "[AddPatchesUsingBarycentricCoordinates]" << endl;
 
     std::clock_t addPatchesStart;
@@ -288,7 +289,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             // Close particles indices
             GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
             surfaceTree.findAllCloseIdx(position,
-                                 patchRadius*2,
+                                 patchRadius,
                                  surfaceNeighborhoodVertices);
 
             unsigned close_particles_count = surfaceNeighborhoodVertices.entries();
@@ -317,8 +318,8 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 surfacePointOffset = *itG;
                 NN = attNSurface.get(surfacePointOffset);
                 float dotP = dot(N,NN); //exlude points that are not in the same plane.
-                if (dotP < params.angleNormalThreshold)
-                    continue;
+                //if (dotP < params.angleNormalThreshold)
+                //    continue;
 
                 patchP = surfaceGdp->getPos3(surfacePointOffset);
 
