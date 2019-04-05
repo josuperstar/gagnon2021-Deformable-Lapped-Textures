@@ -41,7 +41,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
 {
     Yu2011 strategy(surfaceGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
-    params.useDynamicTau = false;
+    //params.useDynamicTau = false;
 
     std::clock_t start;
     start = std::clock();

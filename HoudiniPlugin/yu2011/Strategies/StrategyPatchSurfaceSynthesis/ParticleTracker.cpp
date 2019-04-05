@@ -216,6 +216,10 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
         int increment = density;
         if (maxNumberOfNeighbour <= density)
             increment = maxNumberOfNeighbour;
+
+        if (!useDynamicTau)
+            increment = 0;
+
         //int deleteFaster = attDeleteFaster.get(ppt);
         bool isMature = (currentSpawn >= params.fadingTau);
         if (isMature)
