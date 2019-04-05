@@ -70,6 +70,7 @@ static PRM_Name        names[] = {
     PRM_Name("UVScaling",	"UV Scaling"),
     PRM_Name("Yu2011Beta",	"Yu2011 Beta"),
     PRM_Name("CellSize",	"Cell Size"),
+    PRM_Name("UseDynamicFading",	"Use Dynamic Fading"),
 };
 
 static PRM_Default StartFrameDefault(1);
@@ -83,6 +84,7 @@ static PRM_Default PoissonAngleNormalThresholdDefault(0.9f);
 static PRM_Default UVScalingDefault(2.0f);
 static PRM_Default Yu2011BetaDefault(0.6f);
 static PRM_Default CellSizeDefault(0.1f);
+static PRM_Default UseDynamicFadingDefault(1);
 
 PRM_Template
 Yu2011Plugin::myTemplateList[] = {
@@ -104,6 +106,7 @@ Yu2011Plugin::myTemplateList[] = {
     PRM_Template(PRM_FLT, 1, &names[15], &UVScalingDefault),
     PRM_Template(PRM_FLT, 1, &names[16], &Yu2011BetaDefault),
     PRM_Template(PRM_FLT, 1, &names[17], &CellSizeDefault),
+    PRM_Template(PRM_TOGGLE, 1, &names[18]),
     PRM_Template(),
 
 };
@@ -239,6 +242,7 @@ Yu2011Plugin::cookMySop(OP_Context &context)
 
     DeformableGridsFilename(deformableGridsFilename,now);
     params.deformableGridsFilename = deformableGridsFilename;
+    params.useDynamicTau = UseDynamicFading();
 
     const GU_Detail * surface = inputGeo(1);
     surface = inputGeo(1);

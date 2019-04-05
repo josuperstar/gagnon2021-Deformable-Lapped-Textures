@@ -59,6 +59,7 @@ public:
     void  DeformableGridsFilename(UT_String &str, fpreal t)
     { STR_PARM("DeformableGridsFilename",  0, t) }
     fpreal  CellSize() { return evalFloat("CellSize", 0, 0); }
+    fpreal  UseDynamicFading() { return evalFloat("UseDynamicFading", 0, 0); }
 
 
 
