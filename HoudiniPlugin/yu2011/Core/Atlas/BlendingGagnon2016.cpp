@@ -42,7 +42,7 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
                                 GA_ROHandleF &attAlpha,
                                 GA_RWHandleV3 &attPointUV,
                                 map<int,float> &patchBlend,
-                                ImageCV *textureExemplar1Image,
+                                vector<ImageCV*> textureExemplars,
                                 vector<ImageCV*> textureExemplarImageMaskVector,
                                 ImageCV *displacementMapImage,
                                 bool computeDisplacement,
@@ -268,8 +268,8 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
 
 
 
-        int w = textureExemplar1Image->GetWidth();
-        int h = textureExemplar1Image->GetHeight();
+        int w = textureExemplars[0]->GetWidth();
+        int h = textureExemplars[0]->GetHeight();
         if (textureExemplarImageMaskVector.size() < 1)
             continue;
 
@@ -294,7 +294,7 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         }
         else
         {
-            textureExemplar1Image->GetColor(i2,j2,0,color);
+            textureExemplars[0]->GetColor(i2,j2,0,color);
         }
         float watershedIndices = (1.0f-K_t)*100.0f;
         int index = watershedIndices;

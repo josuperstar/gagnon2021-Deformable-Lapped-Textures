@@ -38,7 +38,7 @@ public:
                         map<int,float> &patchBlend,
                         map<int, vector<UT_Vector3> > &patchUvs,
                         map<int, vector<float> > &alphasMap,
-                        ImageCV *textureExemplar1Image,
+                        vector<ImageCV*> textureExemplars,
                         ImageCV *textureExemplar1ImageMask,
                         ImageCV *displacementMapImage,
                         bool computeDisplacement,

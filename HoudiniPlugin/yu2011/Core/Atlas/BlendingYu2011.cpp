@@ -15,7 +15,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
                                 Pixel RM,           //Mean Value
                                 GA_RWHandleV3 &attPointUV,
                                 map<int,float> &fading,
-                                ImageCV *textureExemplar1Image,
+                                vector<ImageCV*> textureExemplars,
                                 ImageCV *displacementMapImage,
                                 bool computeDisplacement,
                                 bool renderColoredPatches,
@@ -38,8 +38,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         displaceMean = displacementMapImage->MeanValue();
     }
 
-    int tw = textureExemplar1Image->GetWidth();
-    int th = textureExemplar1Image->GetHeight();
+    int tw = textureExemplars[0]->GetWidth();
+    int th = textureExemplars[0]->GetHeight();
 
     Pixel R_eq4 = Pixel(0,0,0);
     R_eq4.A = 1;
@@ -175,7 +175,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             //set random colors per patch
             color = patchColors[patchId];
         else
-            textureExemplar1Image->GetColor(i2,j2,0,color);
+            textureExemplars[0]->GetColor(i2,j2,0,color);
 
         if (computeDisplacement)
             displacementMapImage->GetColor(i2,j2,0,displacement);

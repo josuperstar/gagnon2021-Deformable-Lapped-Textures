@@ -62,7 +62,7 @@ private:
    ImageCV *displacementMapEquation4;
    ImageCV *displacementMapEquation3;
 
-   ImageCV *textureExemplar1Image;
+   vector <ImageCV*> textureExemplars;
    Pixel RM;
    string textureExemplar1Name;
 
