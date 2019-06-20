@@ -25,7 +25,7 @@ public:
                 Pixel RM,           //Mean Value
                 GA_RWHandleV3 &attPointUV,
                 map<int,float> &patchBlend,
-                ImageCV *textureExemplar1Image,
+                vector<ImageCV*> textureExemplars,
                 ImageCV *displacementMapImage,
                 bool computeDisplacement,
                 bool renderColoredPatches,

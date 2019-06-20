@@ -15,8 +15,8 @@ HoudiniAtlas::~HoudiniAtlas()
 
     if (this->diffuseImageBlendingYu2011Equation4->IsValid())
         delete this->diffuseImageBlendingYu2011Equation4;
-    if (this->textureExemplar1Image->IsValid())
-        delete this->textureExemplar1Image;
+    if (this->textureExemplars[0]->IsValid())
+        delete this->textureExemplars[0];
     if (this->textureExemplar1ImageMask->IsValid())
         delete this->textureExemplar1ImageMask;
     if (computeDisplacement)
@@ -108,16 +108,17 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     diffuseImageBlendingYu2011Equation4 = new ImageCV();
     diffuseImageBlendingYu2011Equation4->CreateImage(w,h,-1);
 
-    textureExemplar1Image = new ImageCV();
-    cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplar1Name<<endl;
-    bool opened = textureExemplar1Image->OpenImage(textureExemplar1Name,-1);
+    ImageCV *image = new ImageCV();
+    textureExemplars.push_back(image);
+    cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplars[0]<<endl;
+    bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
     if (!opened)
     {
         cout << "[HoudiniAtlas::BuildAtlas] Can't open "<< textureExemplar1Name<<endl;
         return false;
     }
 
-    RM = textureExemplar1Image->MeanValue();
+    RM = textureExemplars[0]->MeanValue();
     cout << "RM = ";
     RM.Print();
     cout<<endl;
@@ -480,7 +481,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                                           RM,
                                           attPointUV,
                                           temporalComponetKt,
-                                          textureExemplar1Image,
+                                          textureExemplars,
                                           displacementMapImage,
                                           computeDisplacement,
                                           renderColoredPatches,

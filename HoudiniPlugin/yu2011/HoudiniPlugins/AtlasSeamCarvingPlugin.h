@@ -27,7 +27,7 @@ class AtlasSeamCarvingPlugin : public SOP_Node
 {
 public:
     AtlasSeamCarvingPlugin(OP_Network *net, const char *name, OP_Operator *op);
-    virtual ~AtlasPlugin();
+    virtual ~AtlasSeamCarvingPlugin();
 
 	/// This method is created so that it can be called by handles.  It only
 	/// cooks the input group of this SOP.  The geometry in this group is
