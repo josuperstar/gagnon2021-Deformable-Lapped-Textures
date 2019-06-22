@@ -235,6 +235,7 @@ AtlasSeamCarvingPlugin::cookMySop(OP_Context &context)
     trackersCopy->clearAndDestroy();
     trackersCopy->copy(*trackersGdp);
 
+    // We need to create a new Interface here:
     AtlasInterface interface;
     bool synthesised = interface.Synthesis(gdp, surfaceCopy,trackersCopy, params);
     if (synthesised)
