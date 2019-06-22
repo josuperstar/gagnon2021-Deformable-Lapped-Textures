@@ -41,12 +41,12 @@ public:
     { STR_PARM("DeformableGridsFilename",  0, t) }
     void  TrackersFilename(UT_String &str, fpreal t)
     { STR_PARM("TrackersFilename",  0, t) }
-    void  TextureExemplar1(UT_String &str, fpreal t)
-    { STR_PARM("TextureExemplar1",  0, t) }
-    void  TextureExemplarMask1(UT_String &str, fpreal t)
-    { STR_PARM("TextureExemplarMask1",  0, t) }
-    void  DisplacementMap1(UT_String &str, fpreal t)
-    { STR_PARM("DisplacementMap1",  0, t) }
+    void  TextureExemplarList(UT_String &str, fpreal t)
+    { STR_PARM("TextureExemplarList",  0, t) }
+    void  TextureExemplarMaskList(UT_String &str, fpreal t)
+    { STR_PARM("TextureExemplarMaskList",  0, t) }
+    void  DisplacementMapList(UT_String &str, fpreal t)
+    { STR_PARM("DisplacementMapList",  0, t) }
     void  OutputName(UT_String &str, fpreal t)
     { STR_PARM("OutputName",  0, t) }
 

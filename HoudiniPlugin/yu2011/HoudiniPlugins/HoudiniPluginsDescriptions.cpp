@@ -8,6 +8,7 @@
 
 #include "Yu2011Plugin.h"
 #include "AtlasPlugin.h"
+#include "AtlasSeamCarvingPlugin.h"
 #include "PoissonDiskPlugin.h"
 
 
@@ -30,6 +31,14 @@ void newSopOperator(OP_OperatorTable *table)
                                        "AtlasYu2011",
                                        AtlasPlugin::myConstructor,
                                        AtlasPlugin::myTemplateList,
+                                       3,
+                                       3,
+                                       0));
+
+    table->addOperator(new OP_Operator("hdk_AtlasSeamCarving",
+                                       "AtlasSeamCarving",
+                                       AtlasSeamCarvingPlugin::myConstructor,
+                                       AtlasSeamCarvingPlugin::myTemplateList,
                                        3,
                                        3,
                                        0));
