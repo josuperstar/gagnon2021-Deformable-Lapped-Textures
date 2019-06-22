@@ -56,6 +56,7 @@ public:
     fpreal  RenderColoredPatches() { return evalFloat("RenderColoredPatches", 0, 0); }
     fpreal  PoissonDiskRadius() { return evalFloat("PoissonDiskRadius", 0, 0); }
     fpreal  UVScaling() { return evalFloat("UVScaling", 0, 0); }
+    fpreal  NumberOfTextureSample() { return evalFloat("NumberOfFrame", 0, 0); }
 
 
 protected:

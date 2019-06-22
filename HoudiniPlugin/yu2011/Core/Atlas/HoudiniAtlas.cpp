@@ -111,6 +111,10 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     ImageCV *image = new ImageCV();
     textureExemplars.push_back(image);
     cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplars[0]<<endl;
+
+    if (textureExemplar1Name.find("$F"))
+        cout << "texture example is a list"<<endl;
+
     bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
     if (!opened)
     {
