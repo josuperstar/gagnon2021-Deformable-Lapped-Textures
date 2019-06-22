@@ -195,6 +195,7 @@ AtlasSeamCarvingPlugin::cookMySop(OP_Context &context)
     params.useDeformableGrids = UseDeformableGrids();
     params.coloredPatches = RenderColoredPatches();
     params.UVScaling = UVScaling();
+    params.NumberOfTextureSampleFrame = NumberOfTextureSample();
 
     if (params.atlasHeight <= 0)
     {

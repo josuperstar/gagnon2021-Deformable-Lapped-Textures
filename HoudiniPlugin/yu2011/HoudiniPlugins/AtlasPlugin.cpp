@@ -193,6 +193,8 @@ AtlasPlugin::cookMySop(OP_Context &context)
     params.coloredPatches = RenderColoredPatches();
     params.UVScaling = UVScaling();
 
+    params.NumberOfTextureSampleFrame = 1;
+
     if (params.atlasHeight <= 0)
     {
         params.atlasHeight = 100;
