@@ -44,9 +44,9 @@ using namespace Mokko;
 static PRM_Name        names[] = {
     PRM_Name("TextureAtlasWidth",	"Texture Atlas Width"),
     PRM_Name("TextureAtlasHeight",	"Texture Atlas Height"),
-    PRM_Name("TextureExemplar1",	"Texture Exemplar 1"),
-    PRM_Name("TextureExemplarMask1",	"Texture Exemplar Mask 1"),
-    PRM_Name("DisplacementMap1",	"Displacement Map 1"),
+    PRM_Name("TextureExemplarList",	"Texture Exemplar List"),
+    PRM_Name("TextureExemplarMaskList",	"Texture Exemplar Mask List"),
+    PRM_Name("DisplacementMapList",	"Displacement Map List"),
     PRM_Name("ComputeAtlas",	"Compute Atlas"),                   //5
     PRM_Name("TrackersFilename",	"Trackers Filename"),
     PRM_Name("RenderColoredPatches","Render Colored Patches"),
@@ -54,8 +54,10 @@ static PRM_Name        names[] = {
     PRM_Name("OutputName","Output Name"),
     PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),
     PRM_Name("UVScaling",	"UV Scaling"),
+    PRM_Name("NumberOfFrame",	"Number of Frame"),
 };
 
+static PRM_Default NumberOfFrameDefault(100);
 
 PRM_Template
 AtlasSeamCarvingPlugin::myTemplateList[] =
@@ -72,6 +74,7 @@ AtlasSeamCarvingPlugin::myTemplateList[] =
     PRM_Template(PRM_STRING, 1, &names[9]),
     PRM_Template(PRM_FLT, 1, &names[10]),
     PRM_Template(PRM_FLT, 1, &names[11]),
+    PRM_Template(PRM_INT, 1, &names[12], &NumberOfFrameDefault),
     PRM_Template(),
 };
 
@@ -208,13 +211,13 @@ AtlasSeamCarvingPlugin::cookMySop(OP_Context &context)
     DeformableGridsFilename(deformableGridsFilename,now);
     params.deformableGridsFilename = deformableGridsFilename;
     */
-    TextureExemplar1(textureExemplar1Name,now);
+    TextureExemplarList(textureExemplar1Name,now);
     params.textureExemplar1Name = textureExemplar1Name;
 
-    TextureExemplarMask1(textureExemplar1MaskName,now);
+    TextureExemplarMaskList(textureExemplar1MaskName,now);
     params.textureExemplar1MaskName = textureExemplar1MaskName;
 
-    DisplacementMap1(displacementMap1Name,now);
+    DisplacementMapList(displacementMap1Name,now);
     params.displacementMap1Name = displacementMap1Name;
 
     OutputName(outputName,now);
