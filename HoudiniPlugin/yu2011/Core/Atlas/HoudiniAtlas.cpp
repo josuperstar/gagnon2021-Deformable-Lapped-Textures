@@ -113,7 +113,10 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplars[0]<<endl;
 
     if (textureExemplar1Name.find("$F"))
+    {
         cout << "texture example is a list"<<endl;
+        // Here we need to replace $F with the sequence of texture exemplar between 1 and NumberOfTextureSampleFrame
+    }
 
     bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
     if (!opened)
