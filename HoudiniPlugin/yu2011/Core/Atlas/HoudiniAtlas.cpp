@@ -21,6 +21,12 @@ HoudiniAtlas::~HoudiniAtlas()
     if (this->textureExemplar1ImageMask->IsValid())
         delete this->textureExemplar1ImageMask;
     */
+
+    for (int i = 0; i < this->numberOfTextureSampleFrame-1; i++)
+    {
+        delete this->textureExemplars[i];
+    }
+
     if (computeDisplacement)
     {
         delete this->displacementMapImage;

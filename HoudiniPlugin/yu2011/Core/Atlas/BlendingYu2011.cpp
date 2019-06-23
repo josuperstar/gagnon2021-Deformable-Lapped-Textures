@@ -170,23 +170,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
 
-        //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
-        if (renderColoredPatches)
-            //set random colors per patch
-            color = patchColors[patchId];
-        else
-            textureExemplars[0]->GetColor(i2,j2,0,color);
 
-        if (computeDisplacement)
-            displacementMapImage->GetColor(i2,j2,0,displacement);
 
-        //clamping color values ...
-        if (color.B > 1.0f)
-            color.B = 1.0f;
-        if (color.G > 1.0f)
-            color.G = 1.0f;
-        if (color.R > 1.0f)
-            color.R = 1.0f;
 
 
         //-----------------------------------------------------------------
@@ -282,6 +267,30 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         sumW2 += w_v*w_v;
         sumW += w_v;
+
+
+        int seamCarvingIndex = (K_t * params.NumberOfTextureSampleFrame)-1;
+        //dirty hack:
+        if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-2)
+            seamCarvingIndex = params.NumberOfTextureSampleFrame-2;
+
+        //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
+        if (renderColoredPatches)
+            //set random colors per patch
+            color = patchColors[patchId];
+        else
+            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+
+        if (computeDisplacement)
+            displacementMapImage->GetColor(i2,j2,0,displacement);
+
+        //clamping color values ...
+        if (color.B > 1.0f)
+            color.B = 1.0f;
+        if (color.G > 1.0f)
+            color.G = 1.0f;
+        if (color.R > 1.0f)
+            color.R = 1.0f;
 
         //---------------- YU 2011 Equation 3 -----------------------
         //blending function
