@@ -17,6 +17,9 @@
 #define STR_PARM(name, vi, t) \
                 { evalString(str, name, vi, t); }
 
+#define RSTR_PARM(name, vi, t) \
+                { evalStringRaw(str, name, vi, t); }
+
 using namespace std;
 using namespace Mokko;
 
@@ -42,7 +45,8 @@ public:
     void  TrackersFilename(UT_String &str, fpreal t)
     { STR_PARM("TrackersFilename",  0, t) }
     void  TextureExemplarList(UT_String &str, fpreal t)
-    { STR_PARM("TextureExemplarList",  0, t) }
+    { RSTR_PARM("TextureExemplarList",  0, t) }
+
     void  TextureExemplarMaskList(UT_String &str, fpreal t)
     { STR_PARM("TextureExemplarMaskList",  0, t) }
     void  DisplacementMapList(UT_String &str, fpreal t)

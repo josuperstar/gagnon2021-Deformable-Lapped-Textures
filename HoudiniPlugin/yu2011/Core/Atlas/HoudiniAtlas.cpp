@@ -15,10 +15,12 @@ HoudiniAtlas::~HoudiniAtlas()
 
     if (this->diffuseImageBlendingYu2011Equation4->IsValid())
         delete this->diffuseImageBlendingYu2011Equation4;
+    /*
     if (this->textureExemplars[0]->IsValid())
         delete this->textureExemplars[0];
     if (this->textureExemplar1ImageMask->IsValid())
         delete this->textureExemplar1ImageMask;
+    */
     if (computeDisplacement)
     {
         delete this->displacementMapImage;
@@ -108,21 +110,43 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     diffuseImageBlendingYu2011Equation4 = new ImageCV();
     diffuseImageBlendingYu2011Equation4->CreateImage(w,h,-1);
 
-    ImageCV *image = new ImageCV();
-    textureExemplars.push_back(image);
-    cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplars[0]<<endl;
 
-    if (textureExemplar1Name.find("$F"))
+    std::size_t found = textureExemplar1Name.find("$F");
+    if (found !=std::string::npos)
     {
         cout << "texture example is a list"<<endl;
         // Here we need to replace $F with the sequence of texture exemplar between 1 and NumberOfTextureSampleFrame
-    }
+        for (int i = 0; i < this->numberOfTextureSampleFrame-1; i++)
+        {
+            ImageCV *image = new ImageCV();
+            textureExemplars.push_back(image);
+            //string currentName = std::regex_replace(textureExemplar1Name, std::regex("\\$F"), std::to_string(i));
+            string currentName = textureExemplar1Name;
+            // HACK !!!!
+            string home = "/home/jonathan";
+            currentName.replace(currentName.find("$HOME"), sizeof("$HOME") - 1, home);
+            currentName.replace(currentName.find("$F"), sizeof("$F") - 1, std::to_string(i+1));
+            cout << "[HoudiniAtlas::BuildAtlas] Opening "<<currentName<<endl;
+            bool opened = textureExemplars[i]->OpenImage(currentName,-1);
+            if (!opened)
+            {
+                cout << "[HoudiniAtlas::BuildAtlas] Can't open "<< currentName<<endl;
+                return false;
+            }
 
-    bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
-    if (!opened)
+        }
+    }
+    else
     {
-        cout << "[HoudiniAtlas::BuildAtlas] Can't open "<< textureExemplar1Name<<endl;
-        return false;
+        cout << "[HoudiniAtlas::BuildAtlas] Opening single texture examplar "<<textureExemplar1Name<<endl;
+        ImageCV *image = new ImageCV();
+        textureExemplars.push_back(image);
+        bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
+        if (!opened)
+        {
+            cout << "[HoudiniAtlas::BuildAtlas] Can't open "<< textureExemplar1Name<<endl;
+            return false;
+        }
     }
 
     RM = textureExemplars[0]->MeanValue();
@@ -132,7 +156,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 
     textureExemplar1ImageMask = new ImageCV();
     cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
-    opened = textureExemplar1ImageMask->OpenImage(textureExemplar1MaskName,-1);
+    bool opened = textureExemplar1ImageMask->OpenImage(textureExemplar1MaskName,-1);
     if (!opened)
     {
         cout << "[HoudiniAtlas::BuildAtlas] Can't open "<< textureExemplar1MaskName<<endl;
@@ -170,72 +194,29 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     {
         GA_PrimitiveGroup *primGroup;
         vector<string> groupNames;
-        /*
-        vector<string>::iterator itGroupName;
+
+        cout << "[HoudiniAtlas::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
+        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
         {
-            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-            {
-                string name = primGroup->getName().toStdString();
-                groupNames.push_back(name);
-            }
+            //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+            string name = primGroup->getName().toStdString();
+
+            // This version of the constructor is like the one that takes a group
+            // except the group is from a different gdp that has the same topology
+            // (ie. prim counts are the sames). Note that if usevisibility is true,
+            // then the visibility from the gdp is used (NOT limit_gdp).
+            //GU_RayIntersect(const GU_Detail *gdp,
+            //        const GU_Detail *limit_gdp,
+            //        const GA_PrimitiveGroup *vis_group,
+             //       bool picking = false, bool polyline = false, bool harden = false,
+            //       bool usevisibility = false);
+
+            GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
+
+            ray->init(deformableGrids,primGroup);
+            rays[name] = ray;
+            //deformableGrids->destroyPrimitiveGroup(name.c_str());
         }
-
-        {
-            bool testDestroyGroup = true;
-            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-            {
-                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-                string name = primGroup->getName().toStdString();
-                GU_Detail *patchDetail = new GU_Detail();
-                patchDetail->clearAndDestroy();
-                patchDetail->merge(*deformableGrids, primGroup,1,0,0,false);
-                //patchDetail->copy(*deformableGrids);
-
-                //cout << "Creating gu detail for "<<name<<endl;
-                details[name] = patchDetail;
-
-            }
-        }
-        {
-            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-            {
-                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-                string name = primGroup->getName().toStdString();
-                GU_RayIntersect *ray = new GU_RayIntersect(details[name]);
-                ray->init();
-                rays[name] = ray;
-            }
-        }
-        */
-
-        bool useLocalRayIntersect = false;
-        if (!useLocalRayIntersect)
-        {
-            cout << "[HoudiniAtlas::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
-            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-            {
-                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-                string name = primGroup->getName().toStdString();
-
-                // This version of the constructor is like the one that takes a group
-                // except the group is from a different gdp that has the same topology
-                // (ie. prim counts are the sames). Note that if usevisibility is true,
-                // then the visibility from the gdp is used (NOT limit_gdp).
-                //GU_RayIntersect(const GU_Detail *gdp,
-                //        const GU_Detail *limit_gdp,
-                //        const GA_PrimitiveGroup *vis_group,
-                 //       bool picking = false, bool polyline = false, bool harden = false,
-                //       bool usevisibility = false);
-
-                GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
-
-                ray->init(deformableGrids,primGroup);
-                rays[name] = ray;
-                //deformableGrids->destroyPrimitiveGroup(name.c_str());
-            }
-        }
-
-
     }
 
     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -264,7 +245,9 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         }
         this->pixelUsed.push_back(line);
     }
+
     return true;
+
 }
 
 //================================= CREATE LIST OF GEO GU_DETAIL =================================
