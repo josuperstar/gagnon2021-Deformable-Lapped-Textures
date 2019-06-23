@@ -27,6 +27,7 @@ public:
    void SetDeformableGrids(GU_Detail *data) {deformableGrids = data;}
    void SetTrackers(GU_Detail *data) {trackers = data;}
    void SetTrackersPosition(map<int,UT_Vector3> data){ trackerPosition = data;}
+   void SetNumberOfTextureSampleFrame(int data){ numberOfTextureSampleFrame = data;}
 
    void SetTextureExemplar1(string data){textureExemplar1Name = data;}
    void SetTextureExemplar1Mask(string data){textureExemplar1MaskName = data;}
@@ -112,6 +113,8 @@ private:
 
    bool debugPatch = false;
    int patchNumber = 15;
+
+   int numberOfTextureSampleFrame = 1;
 
 };
 }
