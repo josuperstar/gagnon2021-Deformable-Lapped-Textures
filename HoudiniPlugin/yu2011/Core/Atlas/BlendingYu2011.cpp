@@ -171,7 +171,26 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
 
 
+        //--------------------------Equation 6--------------------
+        //temporal componet
 
+        //from the Rapport de Chercher: https://hal.inria.fr/inria-00355827v4/document
+        //Also available in the doc directory of this project: doc/yu2009SPTA.pdf
+
+        //Temporal weights Finally we fade particles in and out at their creation and destruction,
+        //using two weights Fin(t) and Fout(t). The fading period τ can be long (in our
+        //implementation we used τ = 5 seconds). Fout is mainly used to force the fading out
+        //of grids whose distortion would stop increasing. And if τ is longer than the particles
+        //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
+
+        //The temporal component is simply a linear fade-in at the beginning of the life of a particle and a linear fade-out
+        //after the particle has been killed.
+        //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
+        float K_t = fading[patchId];
+        if (K_t < 0)
+            K_t = 0;
+        else if (K_t > 1.0f)
+            K_t = 1.0f;
 
 
         //-----------------------------------------------------------------
@@ -203,6 +222,13 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
         float s = params.UVScaling;
+
+        if (params.NumberOfTextureSampleFrame > 1)
+        {
+            //We are probably using seam carving
+            s /= (K_t)+0.001;
+        }
+
         float minDUV = 0.125*s;
         float maxDUV = 0.25*s; //blending region
         //float maxDUV = 0.5f;
@@ -231,26 +257,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         else if (K_s > 1.0f)
             K_s = 1.0f;
 
-        //--------------------------Equation 6--------------------
-        //temporal componet
 
-        //from the Rapport de Chercher: https://hal.inria.fr/inria-00355827v4/document
-        //Also available in the doc directory of this project: doc/yu2009SPTA.pdf
-
-        //Temporal weights Finally we fade particles in and out at their creation and destruction,
-        //using two weights Fin(t) and Fout(t). The fading period τ can be long (in our
-        //implementation we used τ = 5 seconds). Fout is mainly used to force the fading out
-        //of grids whose distortion would stop increasing. And if τ is longer than the particles
-        //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
-
-        //The temporal component is simply a linear fade-in at the beginning of the life of a particle and a linear fade-out
-        //after the particle has been killed.
-        //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
-        float K_t = fading[patchId];
-        if (K_t < 0)
-            K_t = 0;
-        else if (K_t > 1.0f)
-            K_t = 1.0f;
 
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights
