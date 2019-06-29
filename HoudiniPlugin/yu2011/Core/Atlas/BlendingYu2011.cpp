@@ -155,21 +155,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         UT_Vector3 v1 = attPointUV.get(pointOffset1);
         UT_Vector3 v2 = attPointUV.get(pointOffset2);
 
-        UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
-
-        //-----------------------------------
-        //Q_v quality of the vertex, value from 0 to 1
-        float   Q_t = attQt.get(prim->getMapOffset());
-
-        if (Q_t < 0.001)
-            continue;
-        float   Q_V = Q_t;
-
-        //-----------------------------------------------------------------
-        //getting the color from the texture exemplar
-        int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
-        int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
-
 
         //--------------------------Equation 6--------------------
         //temporal componet
@@ -191,6 +176,43 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             K_t = 0;
         else if (K_t > 1.0f)
             K_t = 1.0f;
+
+        float s = params.UVScaling;
+
+        if (params.NumberOfTextureSampleFrame > 1)
+        {
+            //We are probably using seam carving
+            s *= (K_t)+0.001;
+        }
+
+        v0 = UT_Vector3(v0.x()-0.5,v0.y()-0.5,v0.z()-0.5);
+        v1 = UT_Vector3(v1.x()-0.5,v1.y()-0.5,v1.z()-0.5);
+        v2 = UT_Vector3(v2.x()-0.5,v2.y()-0.5,v2.z()-0.5);
+
+        v0 *= s;
+        v1 *= s;
+        v2 *= s;
+
+        v0 = UT_Vector3(v0.x()+0.5,v0.y()+0.5,v0.z()+0.5);
+        v1 = UT_Vector3(v1.x()+0.5,v1.y()+0.5,v1.z()+0.5);
+        v2 = UT_Vector3(v2.x()+0.5,v2.y()+0.5,v2.z()+0.5);
+
+        UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
+
+        //-----------------------------------
+        //Q_v quality of the vertex, value from 0 to 1
+        float   Q_t = attQt.get(prim->getMapOffset());
+
+        if (Q_t < 0.001)
+            continue;
+        float   Q_V = Q_t;
+
+        //-----------------------------------------------------------------
+        //getting the color from the texture exemplar
+        int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
+        int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
+
+
 
 
         //-----------------------------------------------------------------
@@ -221,13 +243,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         float d_P = distance3d(positionInPolygon,centerUV);
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
-        float s = params.UVScaling;
 
-        if (params.NumberOfTextureSampleFrame > 1)
-        {
-            //We are probably using seam carving
-            s /= (K_t)+0.001;
-        }
 
         float minDUV = 0.125*s;
         float maxDUV = 0.25*s; //blending region
