@@ -9,6 +9,7 @@
 #include "Yu2011Plugin.h"
 #include "AtlasPlugin.h"
 #include "PoissonDiskPlugin.h"
+#include "SinglePatchTest.h"
 
 
 #define HOUDINI_VERSION 16
@@ -26,7 +27,15 @@ void newSopOperator(OP_OperatorTable *table)
                                         5,
                                         0));
 
-    table->addOperator(new OP_Operator("hdk_AtlasYu2011",
+     table->addOperator(new OP_Operator("hdk_SinglePatch",
+                                        "SinglePatch",
+                                        SinglePatchTest::myConstructor,
+                                        SinglePatchTest::myTemplateList,
+                                        5,
+                                        5,
+                                        0));
+
+     table->addOperator(new OP_Operator("hdk_AtlasYu2011",
                                        "AtlasYu2011",
                                        AtlasPlugin::myConstructor,
                                        AtlasPlugin::myTemplateList,
@@ -34,7 +43,7 @@ void newSopOperator(OP_OperatorTable *table)
                                        3,
                                        0));
 
-    table->addOperator(new OP_Operator("hdk_PoissonDisk",
+     table->addOperator(new OP_Operator("hdk_PoissonDisk",
                                        "PoissonDisk",
                                        PoissonDiskPlugin::myConstructor,
                                        PoissonDiskPlugin::myTemplateList,
