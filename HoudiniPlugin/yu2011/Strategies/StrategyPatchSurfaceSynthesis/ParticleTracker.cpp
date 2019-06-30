@@ -78,31 +78,25 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
             markerGrpPrims = trackersGdp->newPrimitiveGroup(markerGroupName.c_str());
     }
 
-    GA_RWHandleV3 attVSurface(surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3 attNSurface(surface->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
-
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleV3   attV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   attCd(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
+
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
-    GA_RWHandleI    attFadeIn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
-    GA_RWHandleI    attPoissonDisk(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"poissondisk", 1));
     GA_RWHandleF    attBlend(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     GA_RWHandleF    attRandT(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     GA_RWHandleI    attDeleteFaster(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
-    GA_RWHandleV3 refAttV(surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3 refAttN(surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   refAttV(surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3   refAttN(surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
     UT_Vector3 position;
     UT_Vector3 N;
-    UT_Vector3 defaultDirection(1,0,0);
 
     float thresholdDistance = params.maximumProjectionDistance;
 
@@ -131,7 +125,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
             continue;
         }
 
-        //============================ PROJECION ON MESH =======================
+        //============================ PROJECTION ON MESH =======================
         UT_Vector3 p1 = trackersGdp->getPos3(ppt);
         mininfo.init(thresholdDistance,0.0001);
         ray.minimumPoint(p1,mininfo);
@@ -190,8 +184,6 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
 
         //========================================================================
-
-
 
         //========================= UPDATE ===============================
         //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)

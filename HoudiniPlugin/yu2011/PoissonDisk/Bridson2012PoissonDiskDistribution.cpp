@@ -311,6 +311,37 @@ bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGd
     return true;
 }
 
+void Bridson2012PoissonDiskDistribution::CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N)
+{
+    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
+    GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
+    GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
+    GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
+    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+
+    if (trackersGdp->getNumPoints() > this->maxId) //existing points
+    {
+        this->maxId = trackersGdp->getNumPoints();
+    }
+    int id = this->maxId+1;
+    this->maxId = id;
+
+    GA_Offset newPoint = trackersGdp->appendPoint();
+    trackersGdp->setPos3(newPoint, position);
+    attN.set(newPoint,N);
+    attActive.set(newPoint,true);
+    attDensity.set(newPoint,0);
+    attId.set(newPoint,id);
+    attSpawn.set(newPoint,0);
+    attLife.set(newPoint,0.001f);
+    attIsMature.set(newPoint,0);
+    attMaxDeltaOnD.set(newPoint,0);
+
+}
+
 //================================================================================================
 
 //                                      RESPECT CRITERION
