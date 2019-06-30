@@ -85,7 +85,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     if(params.startFrame == params.frame)
     {
         cout << "Creating a single poisson disk"<<endl;
-        strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
+        strategy.CreateAPatch(gdp,levelSet,trackersGdp,grp,params);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)
@@ -93,9 +93,14 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     }
     else
     {
-        strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
-        if (!usingOnlyPoissonDisk)
+        bool testAdvection = false;
+        int frameToFlagToRemove = 100;
+        //TODO add a paramter to test the advection
+        if (testAdvection)
+        {
+            strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
             strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
+        }
         //strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)

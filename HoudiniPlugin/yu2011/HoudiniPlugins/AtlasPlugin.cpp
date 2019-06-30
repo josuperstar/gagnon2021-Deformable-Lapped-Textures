@@ -191,7 +191,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
 
     params.useDeformableGrids = UseDeformableGrids();
     params.coloredPatches = RenderColoredPatches();
-    params.UVScaling = UVScaling();
+    params.UVScaling = UVScaling(now);
 
     if (params.atlasHeight <= 0)
     {
@@ -201,6 +201,12 @@ AtlasPlugin::cookMySop(OP_Context &context)
     {
         params.atlasWidth = 100;
     }
+
+    cout << "frame :"<<frame<<endl;
+    cout << "disk radius :"<<params.poissondiskradius<<endl;
+    cout << "atlasHeight :"<<params.atlasHeight<<endl;
+    cout << "atlasWidth :"<<params.atlasWidth<<endl;
+    cout << "UVScaling :"<<params.UVScaling<<endl;
 
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
