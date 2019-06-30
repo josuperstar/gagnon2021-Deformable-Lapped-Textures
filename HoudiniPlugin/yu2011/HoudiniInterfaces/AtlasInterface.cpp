@@ -50,6 +50,7 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
     atlas.SetDisplacementMap1(params.displacementMap1Name);
     atlas.RenderColoredPatches(params.coloredPatches);
+    atlas.SetNumberOfTextureSampleFrame(params.NumberOfTextureSampleFrame);
 
     GA_RWHandleI attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     map<int,UT_Vector3> trackerPositions;

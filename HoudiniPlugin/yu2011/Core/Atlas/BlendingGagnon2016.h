@@ -28,7 +28,7 @@ public:
                 GA_ROHandleF &attAlpha,
                 GA_RWHandleV3 &attPointUV,
                 map<int,float> &patchBlend,
-                ImageCV *textureExemplar1Image,
+                vector<ImageCV*> textureExemplars,
                 vector<ImageCV*> textureExemplarImageMaskVector,
                 ImageCV *displacementMapImage,
                 bool computeDisplacement,

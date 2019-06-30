@@ -15,7 +15,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
                                 Pixel RM,           //Mean Value
                                 GA_RWHandleV3 &attPointUV,
                                 map<int,float> &fading,
-                                ImageCV *textureExemplar1Image,
+                                vector<ImageCV*> textureExemplars,
                                 ImageCV *displacementMapImage,
                                 bool computeDisplacement,
                                 bool renderColoredPatches,
@@ -38,8 +38,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         displaceMean = displacementMapImage->MeanValue();
     }
 
-    int tw = textureExemplar1Image->GetWidth();
-    int th = textureExemplar1Image->GetHeight();
+    int tw = textureExemplars[0]->GetWidth();
+    int th = textureExemplars[0]->GetHeight();
 
     Pixel R_eq4 = Pixel(0,0,0);
     R_eq4.A = 1;
@@ -155,6 +155,48 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         UT_Vector3 v1 = attPointUV.get(pointOffset1);
         UT_Vector3 v2 = attPointUV.get(pointOffset2);
 
+
+        //--------------------------Equation 6--------------------
+        //temporal componet
+
+        //from the Rapport de Chercher: https://hal.inria.fr/inria-00355827v4/document
+        //Also available in the doc directory of this project: doc/yu2009SPTA.pdf
+
+        //Temporal weights Finally we fade particles in and out at their creation and destruction,
+        //using two weights Fin(t) and Fout(t). The fading period τ can be long (in our
+        //implementation we used τ = 5 seconds). Fout is mainly used to force the fading out
+        //of grids whose distortion would stop increasing. And if τ is longer than the particles
+        //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
+
+        //The temporal component is simply a linear fade-in at the beginning of the life of a particle and a linear fade-out
+        //after the particle has been killed.
+        //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
+        float K_t = fading[patchId];
+        if (K_t < 0)
+            K_t = 0;
+        else if (K_t > 1.0f)
+            K_t = 1.0f;
+
+        float s = params.UVScaling;
+
+        if (params.NumberOfTextureSampleFrame > 1)
+        {
+            //We are probably using seam carving
+            s *= (K_t)+0.001;
+        }
+
+        v0 = UT_Vector3(v0.x()-0.5,v0.y()-0.5,v0.z()-0.5);
+        v1 = UT_Vector3(v1.x()-0.5,v1.y()-0.5,v1.z()-0.5);
+        v2 = UT_Vector3(v2.x()-0.5,v2.y()-0.5,v2.z()-0.5);
+
+        v0 *= s;
+        v1 *= s;
+        v2 *= s;
+
+        v0 = UT_Vector3(v0.x()+0.5,v0.y()+0.5,v0.z()+0.5);
+        v1 = UT_Vector3(v1.x()+0.5,v1.y()+0.5,v1.z()+0.5);
+        v2 = UT_Vector3(v2.x()+0.5,v2.y()+0.5,v2.z()+0.5);
+
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
 
         //-----------------------------------
@@ -170,23 +212,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
 
-        //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
-        if (renderColoredPatches)
-            //set random colors per patch
-            color = patchColors[patchId];
-        else
-            textureExemplar1Image->GetColor(i2,j2,0,color);
 
-        if (computeDisplacement)
-            displacementMapImage->GetColor(i2,j2,0,displacement);
-
-        //clamping color values ...
-        if (color.B > 1.0f)
-            color.B = 1.0f;
-        if (color.G > 1.0f)
-            color.G = 1.0f;
-        if (color.R > 1.0f)
-            color.R = 1.0f;
 
 
         //-----------------------------------------------------------------
@@ -217,7 +243,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         float d_P = distance3d(positionInPolygon,centerUV);
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
-        float s = params.UVScaling;
+
+
         float minDUV = 0.125*s;
         float maxDUV = 0.25*s; //blending region
         //float maxDUV = 0.5f;
@@ -246,26 +273,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         else if (K_s > 1.0f)
             K_s = 1.0f;
 
-        //--------------------------Equation 6--------------------
-        //temporal componet
 
-        //from the Rapport de Chercher: https://hal.inria.fr/inria-00355827v4/document
-        //Also available in the doc directory of this project: doc/yu2009SPTA.pdf
-
-        //Temporal weights Finally we fade particles in and out at their creation and destruction,
-        //using two weights Fin(t) and Fout(t). The fading period τ can be long (in our
-        //implementation we used τ = 5 seconds). Fout is mainly used to force the fading out
-        //of grids whose distortion would stop increasing. And if τ is longer than the particles
-        //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
-
-        //The temporal component is simply a linear fade-in at the beginning of the life of a particle and a linear fade-out
-        //after the particle has been killed.
-        //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
-        float K_t = fading[patchId];
-        if (K_t < 0)
-            K_t = 0;
-        else if (K_t > 1.0f)
-            K_t = 1.0f;
 
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights
@@ -282,6 +290,30 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         sumW2 += w_v*w_v;
         sumW += w_v;
+
+
+        int seamCarvingIndex = (K_t * params.NumberOfTextureSampleFrame)-1;
+        //dirty hack:
+        if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-2)
+            seamCarvingIndex = params.NumberOfTextureSampleFrame-2;
+
+        //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
+        if (renderColoredPatches)
+            //set random colors per patch
+            color = patchColors[patchId];
+        else
+            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+
+        if (computeDisplacement)
+            displacementMapImage->GetColor(i2,j2,0,displacement);
+
+        //clamping color values ...
+        if (color.B > 1.0f)
+            color.B = 1.0f;
+        if (color.G > 1.0f)
+            color.G = 1.0f;
+        if (color.R > 1.0f)
+            color.R = 1.0f;
 
         //---------------- YU 2011 Equation 3 -----------------------
         //blending function
