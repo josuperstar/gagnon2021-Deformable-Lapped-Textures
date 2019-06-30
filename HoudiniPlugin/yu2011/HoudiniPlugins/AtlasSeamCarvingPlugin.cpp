@@ -19,7 +19,7 @@
 #include <ctime>
 #include <Core/HoudiniUtils.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
-#include "AtlasPlugin.h"
+#include "AtlasSeamCarvingPlugin.h"
 
 #include <omp.h>
 
@@ -44,9 +44,9 @@ using namespace Mokko;
 static PRM_Name        names[] = {
     PRM_Name("TextureAtlasWidth",	"Texture Atlas Width"),
     PRM_Name("TextureAtlasHeight",	"Texture Atlas Height"),
-    PRM_Name("TextureExemplar1",	"Texture Exemplar 1"),
-    PRM_Name("TextureExemplarMask1",	"Texture Exemplar Mask 1"),
-    PRM_Name("DisplacementMap1",	"Displacement Map 1"),
+    PRM_Name("TextureExemplarList",	"Texture Exemplar List"),
+    PRM_Name("TextureExemplarMaskList",	"Texture Exemplar Mask List"),
+    PRM_Name("DisplacementMapList",	"Displacement Map List"),
     PRM_Name("ComputeAtlas",	"Compute Atlas"),                   //5
     PRM_Name("TrackersFilename",	"Trackers Filename"),
     PRM_Name("RenderColoredPatches","Render Colored Patches"),
@@ -54,11 +54,13 @@ static PRM_Name        names[] = {
     PRM_Name("OutputName","Output Name"),
     PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),
     PRM_Name("UVScaling",	"UV Scaling"),
+    PRM_Name("NumberOfFrame",	"Number of Frame"),
 };
 
+static PRM_Default NumberOfFrameDefault(100);
 
 PRM_Template
-AtlasPlugin::myTemplateList[] =
+AtlasSeamCarvingPlugin::myTemplateList[] =
 {
     PRM_Template(PRM_TOGGLE, 1, &names[5]),
     PRM_Template(PRM_INT, 1, &names[0]),
@@ -72,31 +74,32 @@ AtlasPlugin::myTemplateList[] =
     PRM_Template(PRM_STRING, 1, &names[9]),
     PRM_Template(PRM_FLT, 1, &names[10]),
     PRM_Template(PRM_FLT, 1, &names[11]),
+    PRM_Template(PRM_INT, 1, &names[12], &NumberOfFrameDefault),
     PRM_Template(),
 };
 
 
 OP_Node *
-AtlasPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
+AtlasSeamCarvingPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
 {
-    return new AtlasPlugin(net, name, op);
+    return new AtlasSeamCarvingPlugin(net, name, op);
 }
 
-AtlasPlugin::AtlasPlugin(OP_Network *net, const char *name, OP_Operator *op)
+AtlasSeamCarvingPlugin::AtlasSeamCarvingPlugin(OP_Network *net, const char *name, OP_Operator *op)
 	: SOP_Node(net, name, op), myGroup(0)
 {
     // Make sure to flag that we can supply a guide geometry
     mySopFlags.setNeedGuide1(1);
 }
 
-AtlasPlugin::~AtlasPlugin()
+AtlasSeamCarvingPlugin::~AtlasSeamCarvingPlugin()
 {
-    cout << "Destroying DeformablePatches"<<endl;
+    cout << "Destroying AtlasSeamCarvingPlugin"<<endl;
     //this->interface.~UnitTestInterface();
 }
 
 OP_ERROR
-AtlasPlugin::cookInputGroups(OP_Context &context, int alone)
+AtlasSeamCarvingPlugin::cookInputGroups(OP_Context &context, int alone)
 {
     // If we are called by the handle, then "alone" equals 1.  In that
     // case, we have to lock the inputs oursevles, and unlock them
@@ -156,7 +159,7 @@ AtlasPlugin::cookInputGroups(OP_Context &context, int alone)
 
 
 OP_ERROR
-AtlasPlugin::cookMySop(OP_Context &context)
+AtlasSeamCarvingPlugin::cookMySop(OP_Context &context)
 {
 	// Before we do anything, we must lock our inputs.  Before returning,
 	//	we have to make sure that the inputs get unlocked.
@@ -173,7 +176,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
     int frame = context.getFrame();
     //int numberOfGaussianLevel = 2;
 
-    cout << "======================== Yu2011 Atlas ============================="<<endl;
+    cout << "======================== Yu2011 AtlasSeamCarvingPlugin ============================="<<endl;
 
     string baseVariable = "REZ_YU2011LAGRANGIANTEXTUREADVECTION_BASE";
     char* pPath;
@@ -191,9 +194,8 @@ AtlasPlugin::cookMySop(OP_Context &context)
 
     params.useDeformableGrids = UseDeformableGrids();
     params.coloredPatches = RenderColoredPatches();
-    params.UVScaling = UVScaling(now);
-
-    params.NumberOfTextureSampleFrame = 1;
+    params.UVScaling = UVScaling();
+    params.NumberOfTextureSampleFrame = NumberOfTextureSample();
 
     if (params.atlasHeight <= 0)
     {
@@ -204,25 +206,19 @@ AtlasPlugin::cookMySop(OP_Context &context)
         params.atlasWidth = 100;
     }
 
-    cout << "frame :"<<frame<<endl;
-    cout << "disk radius :"<<params.poissondiskradius<<endl;
-    cout << "atlasHeight :"<<params.atlasHeight<<endl;
-    cout << "atlasWidth :"<<params.atlasWidth<<endl;
-    cout << "UVScaling :"<<params.UVScaling<<endl;
-
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
     /*
     DeformableGridsFilename(deformableGridsFilename,now);
     params.deformableGridsFilename = deformableGridsFilename;
     */
-    TextureExemplar1(textureExemplar1Name,now);
+    TextureExemplarList(textureExemplar1Name,now);
     params.textureExemplar1Name = textureExemplar1Name;
 
-    TextureExemplarMask1(textureExemplar1MaskName,now);
+    TextureExemplarMaskList(textureExemplar1MaskName,now);
     params.textureExemplar1MaskName = textureExemplar1MaskName;
 
-    DisplacementMap1(displacementMap1Name,now);
+    DisplacementMapList(displacementMap1Name,now);
     params.displacementMap1Name = displacementMap1Name;
 
     OutputName(outputName,now);
@@ -240,6 +236,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
     trackersCopy->clearAndDestroy();
     trackersCopy->copy(*trackersGdp);
 
+    // We need to create a new Interface here:
     AtlasInterface interface;
     bool synthesised = interface.Synthesis(gdp, surfaceCopy,trackersCopy, params);
     if (synthesised)
@@ -258,7 +255,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
 
 
 const char *
-AtlasPlugin::inputLabel(unsigned) const
+AtlasSeamCarvingPlugin::inputLabel(unsigned) const
 {
     return "Surface Deformable Patches";
 }

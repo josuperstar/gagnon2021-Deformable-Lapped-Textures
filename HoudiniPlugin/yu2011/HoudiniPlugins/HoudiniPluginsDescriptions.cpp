@@ -8,6 +8,7 @@
 
 #include "Yu2011Plugin.h"
 #include "AtlasPlugin.h"
+#include "AtlasSeamCarvingPlugin.h"
 #include "PoissonDiskPlugin.h"
 #include "SinglePatchTest.h"
 
@@ -43,11 +44,14 @@ void newSopOperator(OP_OperatorTable *table)
                                        3,
                                        0));
 
-     table->addOperator(new OP_Operator("hdk_PoissonDisk",
-                                       "PoissonDisk",
-                                       PoissonDiskPlugin::myConstructor,
-                                       PoissonDiskPlugin::myTemplateList,
-                                       4,
-                                       4,
+
+    table->addOperator(new OP_Operator("hdk_AtlasSeamCarving",
+                                       "AtlasSeamCarving",
+                                       AtlasSeamCarvingPlugin::myConstructor,
+                                       AtlasSeamCarvingPlugin::myTemplateList,
+                                       3,
+                                       3,
                                        0));
+
+
 }
