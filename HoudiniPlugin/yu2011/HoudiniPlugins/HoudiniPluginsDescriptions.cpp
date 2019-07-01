@@ -9,11 +9,8 @@
 #include "Yu2011Plugin.h"
 #include "AtlasPlugin.h"
 #include "AtlasSeamCarvingPlugin.h"
-#include "PoissonDiskPlugin.h"
 #include "SinglePatchTest.h"
 
-
-#define HOUDINI_VERSION 16
 
 // -----------------------------------------------------------------------------
 // Add our plugins to Houdini's plugins list
@@ -44,7 +41,6 @@ void newSopOperator(OP_OperatorTable *table)
                                        3,
                                        0));
 
-
     table->addOperator(new OP_Operator("hdk_AtlasSeamCarving",
                                        "AtlasSeamCarving",
                                        AtlasSeamCarvingPlugin::myConstructor,
@@ -52,6 +48,5 @@ void newSopOperator(OP_OperatorTable *table)
                                        3,
                                        3,
                                        0));
-
 
 }

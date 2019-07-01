@@ -45,7 +45,7 @@ struct ParametersDeformablePatches
     bool useDynamicTau;
     float Yu2011Beta;
     float CellSize;
-    int NumberOfTextureSampleFrame;
+    int NumberOfTextureSampleFrame = 1;
 };
 }
 
