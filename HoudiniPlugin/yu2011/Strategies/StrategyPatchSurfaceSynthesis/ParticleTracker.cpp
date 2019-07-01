@@ -95,6 +95,8 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
     GA_RWHandleV3   refAttV(surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   refAttN(surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
+    GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
+
     UT_Vector3 position;
     UT_Vector3 N;
 
@@ -361,6 +363,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
 
             currentLife = attLife.get(ppt);
 
+            /*
             //update fadein
             int fadeIn = attFadeIn.get(ppt);
             if (fadeIn < deletionLife)
@@ -368,7 +371,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
                 fadeIn = fadeIn +1;
                 attFadeIn.set(ppt,fadeIn);
             }
-
+            */
 
             //-----------------------------------------
             //advect
@@ -452,15 +455,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
         }
     }
 
-
-    //---- for visualisation purpose
-    const GA_SaveOptions *options;
-    UT_StringArray *errors;
-    string beforeUpdateString = params.trackersFilename + "advectedTrackers.bgeo";
-    const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
-    //trackersGdp->save(filename,options,errors);
     //----------------------------------
-
 
     cout << this->approachName<< " There are "<<trackersGdp->getNumPoints() << " trackers after advection"<<endl;
     cout << this->approachName<< " There are "<<numberOfDetachedPatches<< " detached trackers"<<endl;
