@@ -177,6 +177,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         else if (K_t > 1.0f)
             K_t = 1.0f;
 
+        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
+
         float s = params.UVScaling;
 
         if (params.NumberOfTextureSampleFrame > 1)
@@ -185,17 +187,17 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             s *= (K_t)+0.001;
         }
 
-        v0 = UT_Vector3(v0.x()-0.5,v0.y()-0.5,v0.z()-0.5);
-        v1 = UT_Vector3(v1.x()-0.5,v1.y()-0.5,v1.z()-0.5);
-        v2 = UT_Vector3(v2.x()-0.5,v2.y()-0.5,v2.z()-0.5);
+        v0 = UT_Vector3(v0.x()-centerUV.x(),v0.y()-centerUV.y(),v0.z()-centerUV.z());
+        v1 = UT_Vector3(v1.x()-centerUV.x(),v1.y()-centerUV.y(),v1.z()-centerUV.z());
+        v2 = UT_Vector3(v2.x()-centerUV.x(),v2.y()-centerUV.y(),v2.z()-centerUV.z());
 
         v0 *= s;
         v1 *= s;
         v2 *= s;
 
-        v0 = UT_Vector3(v0.x()+0.5,v0.y()+0.5,v0.z()+0.5);
-        v1 = UT_Vector3(v1.x()+0.5,v1.y()+0.5,v1.z()+0.5);
-        v2 = UT_Vector3(v2.x()+0.5,v2.y()+0.5,v2.z()+0.5);
+        v0 = UT_Vector3(v0.x()+centerUV.x(),v0.y()+centerUV.y(),v0.z()+centerUV.z());
+        v1 = UT_Vector3(v1.x()+centerUV.x(),v1.y()+centerUV.y(),v1.z()+centerUV.z());
+        v2 = UT_Vector3(v2.x()+centerUV.x(),v2.y()+centerUV.y(),v2.z()+centerUV.z());
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
 
@@ -239,7 +241,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         //float dP = ((falloff.R+falloff.G+falloff.B)/3);
 
-        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
+
         float d_P = distance3d(positionInPolygon,centerUV);
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
