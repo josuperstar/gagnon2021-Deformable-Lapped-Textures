@@ -293,9 +293,12 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
 
         int seamCarvingIndex = (K_t * params.NumberOfTextureSampleFrame)-1;
-        //dirty hack:
+        //WTF dirty hack:
         if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-2)
             seamCarvingIndex = params.NumberOfTextureSampleFrame-2;
+        if (seamCarvingIndex < 0)
+            seamCarvingIndex = 0;
+
 
         //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
         if (renderColoredPatches)
