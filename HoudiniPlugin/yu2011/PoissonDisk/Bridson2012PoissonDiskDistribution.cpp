@@ -67,6 +67,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
 
+
+
     // Find first vdb primitive of input 0
     GEO_Primitive* prim;
     GEO_PrimVDB* phi = 0x0;
@@ -227,7 +229,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
                     //=================================================================
                     //6:          S ← S ∪ {p}
                     //=================================================================
-                    bool isValid = this->InsertPoissonDisk(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius , numberOfClosePoint, params);
+                    bool isValid = this->CreateAParticle(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius , numberOfClosePoint, params);
                     if (isValid)
                     {
                         break;
@@ -277,7 +279,7 @@ openvdb::Vec3f Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvd
 //================================================================================================
 
 
-bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
+bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
 {
 
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -288,6 +290,7 @@ bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGd
     GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+    GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
 
     if (trackersGdp->getNumPoints() > this->maxId) //existing points
     {
@@ -306,6 +309,11 @@ bool Bridson2012PoissonDiskDistribution::InsertPoissonDisk(GU_Detail *trackersGd
     attLife.set(newPoint,0.001f);
     attIsMature.set(newPoint,0);
     attMaxDeltaOnD.set(newPoint,0);
+
+    if(params.startFrame == params.frame)
+    {
+        attExistingLife.set(newPoint,params.fadingTau);
+    }
     tree.build(trackersGdp);
 
     return true;

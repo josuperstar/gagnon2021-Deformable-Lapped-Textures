@@ -83,7 +83,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
+    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
 
     GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
@@ -612,7 +612,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     GA_RWHandleF    attQt(deformableGridsgdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
 
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
+    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
     GA_RWHandleF    attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleF    attRandT(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
@@ -620,8 +620,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
 
     GA_RWHandleV3   refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-
-
 
     if (attV.isInvalid())
     {
@@ -641,7 +639,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     distortionParams.distortionRatioThreshold   = params.distortionRatioThreshold ;
     distortionParams.Yu2011DMax                 = params.Yu2011DMax ;
     distortionParams.QvMin                      = params.QvMin;
-
 
     distortionParams.alphaName = "Alpha";
     distortionParams.temporalRemoveName = "temporalRemove";
@@ -675,7 +672,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
     int active;
     float life;
 
-
     GA_FOR_ALL_PTOFF(trackersGdp,trackerPpt)
     {
         id = attId.get(trackerPpt);
@@ -695,9 +691,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
         string str = std::to_string(id);
         string groupName = "grid"+str;
         pointGrp = (GA_PointGroup*)gtable->find(groupName.c_str());
-
         GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-
         float averageDeltaOnD = 0.0f;
         float maxDeltaOnD = 0.0f;
         int nbOfPoint = 0;
@@ -735,10 +729,8 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                         UT_Vector3 d = v*dt;
                         p1 = p+d;
                         deformableGridsgdp->setPos3(ppt,p1);
-
                         attGridId.set(ppt,id);
                         //------------------------------------------------------------------------
-
                         bool projection = true;
                         if(projection)
                         {
@@ -768,7 +760,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
 
                                 //respect poisson disk criterion
                                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-
                                 //=====================================================
 
                                 UT_Vector3 pNp          = trackerPosition - hitPos;
@@ -784,7 +775,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 bool insideBigEllipse    = d < k;
                                 if (!insideBigEllipse)
                                     continue;
-
 
                                 //------------------------------PARAMETRIC COORDINATE -----------------------------------
                                 GA_Offset primOffset = mininfo.prim->getMapOffset();
@@ -816,7 +806,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 attN.set(ppt,normal);
                                 attAlpha.set(ppt,gridAlpha);
                                 //------------------------------------------------------------------------------------
-
                             }
                             else
                             {
@@ -829,7 +818,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                                 attActive.set(trackerPpt,0);
                             }
                         }
-
                         //---------------------- Dynamic Tau -----------------------------------
                         float dP0 = attDP0.get(ppt);
                         float dPi = distance3d(p1,trackerPosition);
@@ -869,7 +857,6 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
                     distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
                 }
             }
-            //---------------------------------------------------------------------
         }
 
         if (nbOfPoint == 0)
@@ -895,10 +882,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
             if (qt < 0.001)
                 primGrpToDestroy->add(prim);
         }
-
-
     }
-
 
     cout << "Destroying groups"<<endl;
     if (primGrpToDestroy != 0x0)

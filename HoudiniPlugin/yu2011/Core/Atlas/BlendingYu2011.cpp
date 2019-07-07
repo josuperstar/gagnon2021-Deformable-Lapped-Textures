@@ -184,7 +184,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (params.NumberOfTextureSampleFrame > 1)
         {
             //We are probably using seam carving
-            s *= (K_t)+0.001;
+            //s /= (K_t)+0.001;
         }
 
         v0 = UT_Vector3(v0.x()-centerUV.x(),v0.y()-centerUV.y(),v0.z()-centerUV.z());
@@ -294,13 +294,14 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         sumW += w_v;
 
 
-        int seamCarvingIndex = (K_t * params.NumberOfTextureSampleFrame)-1;
+        int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
+        /*
         //WTF dirty hack:
-        if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-2)
-            seamCarvingIndex = params.NumberOfTextureSampleFrame-2;
+        if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-1)
+            seamCarvingIndex = params.NumberOfTextureSampleFrame-1;
         if (seamCarvingIndex < 0)
             seamCarvingIndex = 0;
-
+        */
 
         //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
         if (renderColoredPatches)
