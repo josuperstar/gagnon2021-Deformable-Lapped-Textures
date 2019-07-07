@@ -160,7 +160,7 @@ bool Yu2011::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params
 //================================================================================================
 
 
-void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *trackersGdp, GA_PointGroup *markerGroup , ParametersDeformablePatches params)
+void Yu2011::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
 
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
@@ -171,49 +171,20 @@ void Yu2011::PoissonDiskSampling(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail 
     addPoissonDisk = std::clock();
 
     cout << "[Yu2011:PoissonDiskSampling]"<<endl;
-    GA_RWHandleV3   attV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
-    GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
-    //GA_RWHandleI    attDensity(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"density", 1));
-    GA_RWHandleI    attExistingSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn", 1));
-    GA_RWHandleI    attExistingActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
-    GA_RWHandleI    attExistingMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
-    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
-
-    //-----------------------------------------------------------
-
-    cout << "[Yu2011] deleting other groups for surface"<<endl;
-    //int numberOfPoints = newPatchesPoints.size();
 
     GEO_PointTreeGAOffset trackerTree;
     trackerTree.build(trackersGdp, NULL);
 
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
-
     poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
 
     cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
-
-    if(params.startFrame == params.frame)
-    {
-        GA_Offset ppt;
-        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
-        {
-            attMaxDeltaOnD.set(ppt,0);
-            attExistingLife.set(ppt,params.fadingTau);
-        }
-    }
-
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
-
 }
 
-void Yu2011::CreateAPatch(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *trackersGdp, GA_PointGroup *markerGroup , ParametersDeformablePatches params)
+void Yu2011::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
 {
-
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
     //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
     //It basically take the points from Houdini and fill it to the approach.
@@ -221,42 +192,16 @@ void Yu2011::CreateAPatch(GU_Detail *gdp, GU_Detail *levelSet, GU_Detail *tracke
     std::clock_t addPoissonDisk;
     addPoissonDisk = std::clock();
 
-    cout << "[Yu2011:PoissonDiskSampling]"<<endl;
-    GA_RWHandleV3   attV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
-    GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
-    //GA_RWHandleI    attDensity(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"density", 1));
-    GA_RWHandleI    attExistingSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn", 1));
-    GA_RWHandleI    attExistingActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
-    GA_RWHandleI    attExistingMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
-    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
-
-    //-----------------------------------------------------------
-
-    cout << "[Yu2011] deleting other groups for surface"<<endl;
-    //int numberOfPoints = newPatchesPoints.size();
 
     GEO_PointTreeGAOffset trackerTree;
     trackerTree.build(trackersGdp, NULL);
 
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
-
-    poissonDiskDistribution.CreateAPointDisk(trackersGdp, UT_Vector3(0,0,0),UT_Vector3(0,1,0));
+    int numberOfClosePoint = 0;
+    poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, UT_Vector3(0,0,0),UT_Vector3(0,1,0),1,numberOfClosePoint,params);
 
     cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
-
-    if(params.startFrame == params.frame)
-    {
-        GA_Offset ppt;
-        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
-        {
-            attMaxDeltaOnD.set(ppt,0);
-            attExistingLife.set(ppt,params.fadingTau);
-        }
-    }
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 
@@ -294,7 +239,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
     GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
+    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
     GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleV3 attUV(deformableGridsGdp->findFloatTuple(GA_ATTRIB_POINT,uvName, 3));
     GA_RWHandleF attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
@@ -486,7 +431,7 @@ void Yu2011::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, Paramet
     GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleI attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
-    GA_RWHandleI attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
+    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI attIsMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
 

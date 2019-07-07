@@ -60,7 +60,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 {
 
     bool useDynamicTau = params.useDynamicTau;
-    cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau<<endl;
+    cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau;
 
     if (surfaceGroup == 0x0)
         return;
@@ -272,6 +272,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 
         //numberOfPatches++;
     }
+    cout <<" DONE"<<endl;
 }
 
 
