@@ -1,4 +1,4 @@
-#include "DeformableGrids.h"
+#include "DeformableGridsManager.h"
 
 #include <vector>
 #include <algorithm>
@@ -28,7 +28,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-DeformableGrids::DeformableGrids()
+DeformableGridsManager::DeformableGridsManager()
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -47,7 +47,7 @@ DeformableGrids::DeformableGrids()
 
 }
 
-bool DeformableGrids::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params)
+bool DeformableGridsManager::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params)
 {
     return true;
 }
@@ -58,7 +58,7 @@ bool DeformableGrids::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatch
 
 //================================================================================================
 
-void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree)
+void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree)
 {
     //cout << "Yu 2011 Create grids"<<endl;
 
@@ -585,7 +585,7 @@ void DeformableGrids::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Det
 //================================================================================================
 
 
-void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree, GU_Detail *surfaceGdp)
+void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree, GU_Detail *surfaceGdp)
 {
     //cout << "[Yu2011] Advect markers"<<endl;
     cout << this->approachName<<" Advect grids";
@@ -901,7 +901,7 @@ void DeformableGrids::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trac
 
 //================================================================================================
 
-void DeformableGrids::ConnectivityTest(const GU_Detail *gdp, GA_Offset point,GA_PointGroup *grp,  set<GA_Offset> &pointsAround,set<GA_Offset> &group)
+void DeformableGridsManager::ConnectivityTest(const GU_Detail *gdp, GA_Offset point,GA_PointGroup *grp,  set<GA_Offset> &pointsAround,set<GA_Offset> &group)
 {
 
     if (grp == 0x0)
@@ -942,7 +942,7 @@ void DeformableGrids::ConnectivityTest(const GU_Detail *gdp, GA_Offset point,GA_
 //                                      UV FLATTENING
 
 //================================================================================================
-void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
+void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
                                    GA_Offset tracker, GA_Offset closestPoint,
                                    GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
                                    set<GA_Offset> &pointsAround,
@@ -1195,7 +1195,7 @@ void DeformableGrids::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, G
     this->nbOfFlattenedPatch++;
 }
 
-void DeformableGrids::FlagBoundaries(GU_Detail *deformableGridsGdp)
+void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
 {
     /* this is the VEX code that worked with houdini:
      *

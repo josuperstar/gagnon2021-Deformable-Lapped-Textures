@@ -2,7 +2,7 @@
 #define __Yu2011_h__
 
 #include <Math/Vec3.h>
-#include <Strategies/StrategyPatchSurfaceSynthesis/DeformableGrids.h>
+#include <Strategies/StrategyPatchSurfaceSynthesis/DeformableGridsManager.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
@@ -11,7 +11,7 @@ namespace Mokko {
 #define VERBOSE 0
 
 
-class Yu2011 : public DeformableGrids
+class Yu2011 : public DeformableGridsManager
 {
 public:
 

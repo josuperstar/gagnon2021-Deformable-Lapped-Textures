@@ -5,18 +5,17 @@
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
-#include <PoissonDisk/PoissonDisk.h>
 
 namespace Mokko {
 
 #define VERBOSE 0
 
 
-class ParticleTracker : public StrategyPatchSurfaceSynthesis
+class ParticleTrackerManager : public StrategyPatchSurfaceSynthesis
 {
 public:
 
-    ParticleTracker();
+    ParticleTrackerManager();
     bool SynthesisSurface( GU_Detail *trackerGdp, ParametersDeformablePatches params);
 
     //vector<GA_Offset>  PoissonDiskDistribution(GU_Detail *gdp, ParametersDeformablePatches params);
