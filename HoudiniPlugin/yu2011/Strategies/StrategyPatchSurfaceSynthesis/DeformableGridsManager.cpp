@@ -131,7 +131,6 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     UT_Vector3 v;
     UT_Vector3 trackerPositition;
     GA_Offset newPoint;
-    UT_Vector3Array         triangleArrayData;
     float life = 1.0f;
     float cs = params.CellSize;
     float r = params.poissondiskradius;
@@ -166,7 +165,6 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
         set<GA_Offset> tempGdpListOffset;
         GA_Offset tempNewPoint;
         GA_RWHandleI attInitVertexId(tempGdp.addIntTuple(GA_ATTRIB_VERTEX,"initVerterxId",1));
-        GA_RWHandleV3 attTempVertexUV(tempGdp.addFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
 
         TrackerN = attN.get(ppt);
         UT_Vector3 p = trackersGdp->getPos3(ppt);
@@ -212,30 +210,22 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                     nbDistorted++;
                     continue;
                 }
-
-
                 //respect poisson disk criterion
                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
                 UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
                 //=====================================================
-
                 UT_Vector3 pNp          = p - pos;
                 pNp.normalize();
                 float dotP              = dot(pNp, N);
-
                 float d              = distance3d( pos, p );
                 float dp                = abs(dotP);
-
                 float k        = (1-dp)*r*2;
                 if (k < cs)
                     k = cs;
                 bool insideBigEllipse    = d < k;
                 if (!insideBigEllipse)
                     continue;
-
                 //=====================================================
-
-
                 //--------create new points ------------
                 newPoint = deformableGridsGdp->appendPointOffset();
                 tempNewPoint = tempGdp.appendPointOffset();
@@ -245,7 +235,6 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                 {
                     closestPoint = tempNewPoint;
                 }
-
 
                 deformableGridsGdp->setPos3(newPoint,surfaceGdp->getPos3(neighbor));
                 tempGdp.setPos3(tempNewPoint,surfaceGdp->getPos3(neighbor));
@@ -396,7 +385,6 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
             j.normalize();
 
             // Transform into local patch space (where ijk is aligned with XYZ at the origin)
-            vector<UT_Vector3> triangleRefPositions;
             UT_Vector3 relativePosistion = A-p;
             UT_Vector3 triangleSpacePosA;
             triangleSpacePosA.x() = relativePosistion.dot(i);
@@ -507,7 +495,6 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
         if (scaleup == 0)
             scaleup = 1;
         int seed = id;
-        float offset = 0.5;
         float randomScale = scaleup/2.0f;
         srand(seed);
         float tx = (((double) rand()/(RAND_MAX)))*randomScale;
@@ -515,7 +502,6 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
         float ty = (((double) rand()/(RAND_MAX)))*randomScale;
         srand(seed+2);
         float tz = (((double) rand()/(RAND_MAX)))*randomScale;
-
         {
             GA_Offset gppt;
             GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
@@ -526,13 +512,11 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                     //where have nan value
                     uv = UT_Vector3(0,0,0);
                 }
-
                 uv += UT_Vector3(tx,ty,tz);
                 uv /= scaleup;
                 attUV.set(gppt,uv);
             }
         }
-
         UT_Vector3 centerUV = UT_Vector3(0,0,0);
         int i = 0;
         {
@@ -990,44 +974,6 @@ void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
             cout << "can't find closest point"<<endl;
             return;
         }
-        /*
-        //cout << "closest point = "<<closestPoint<<endl;
-        ConnectivityTest(&tempGdp,closestPoint,tempPointGroup,pointsAround,connectedOffset);
-
-        GA_PointGroup *toDestroy = tempGdp.newPointGroup("ToDestroy");
-        GA_PointGroup *tempToKeep = tempGdp.newPointGroup("ToKeep");
-
-        set<GA_Offset>::iterator itG;
-        for(itG = connectedOffset.begin(); itG != connectedOffset.end(); ++itG)
-        {
-            tempToKeep->addOffset(*itG);
-        }
-        int toDestroyCount = 0;
-        {
-            GA_Offset ppt2;
-
-            GA_FOR_ALL_GROUP_PTOFF(&tempGdp,tempPointGroup,ppt2)
-            {
-                if (!tempToKeep->containsOffset(ppt2))
-                {
-                    toDestroy->addOffset(ppt2);
-                    toDestroyCount++;
-                }
-            }
-        }
-
-        tempGdp.deletePoints(*toDestroy,mode);
-
-        GU_Flatten flattener2(&tempGdp,NULL,NULL,NULL,useInputUv);
-        flattener2.flattenAndPack();
-        numberOfIslands = flattener2.getNumIslands();
-
-        if (numberOfIslands > 1)
-        {
-            cout << "The flattening is not working with conenctivity test"<<endl;
-            return;
-        }
-        */
     }
     UT_Vector3 uvCenter(0.5,0.5,0);
     int nbUv = 0;
@@ -1197,76 +1143,6 @@ void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
 
 void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
 {
-    /* this is the VEX code that worked with houdini:
-     *
-    int nb = primvertexcount(0,@primnum);
-    int vertices[] = primvertices(0,@primnum);
-
-    //edges to check
-    int vertexA = vertices[0];
-    int pointA = vertexpoint(0,vertexA);
-    int vertexB = vertices[1];
-    int pointB = vertexpoint(0,vertexB);
-    int vertexC = vertices[2];
-    int pointC = vertexpoint(0,vertexC);
-    int AB = 0;
-    int AC = 0;
-    int BC = 0;
-
-    int listofprim = 0;
-    for(int i=0;i<nb;i++)
-    {
-        int vertex = vertices[i];
-        int point = vertexpoint(0,vertex);
-        //int pointvertices[] = pointvertices(0,point);
-        int pointprims[] = pointprims(0,point);
-        int l = len(pointprims);
-        //listofprim += l;
-        //for each primitives around this one
-        for(int j = 0; j < l; j++)
-        {
-            int prim = pointprims[j];
-            if (prim == @primnum)
-                continue;
-            listofprim++;
-
-            //we are on a neighbour primitive
-            //check if we have the same edge
-            int nbn = primvertexcount(0,prim);
-            int nvertices[] = primvertices(0,prim);
-            int A = 0;
-            int B = 0;
-            int C = 0;
-            for(int k=0;k<nbn;k++)
-            {
-                int nvertex = nvertices[k];
-                int npoint = vertexpoint(0,nvertex);
-                if (npoint == pointA)
-                    A = 1;
-                if (npoint == pointB)
-                    B = 1;
-                if (npoint == pointC)
-                    C = 1;
-            }
-
-            if (A == 1 && B == 1)
-                AB = 1;
-            if (A == 1 && C == 1)
-                AC = 1;
-            if (C == 1 && B == 1)
-                BC = 1;
-        }
-    }
-    @l = listofprim;
-
-    //if (@l < 12)
-    {
-        @Cd.x = AB;
-        @Cd.y = BC;
-        @Cd.z = AC;
-    }
-    */
-
     GA_RWHandleI    attBorder(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
 
     GA_Primitive *prim;
