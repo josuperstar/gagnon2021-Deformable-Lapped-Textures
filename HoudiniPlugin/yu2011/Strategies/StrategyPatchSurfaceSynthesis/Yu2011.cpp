@@ -232,7 +232,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 
     //================================ CREATE PATCH GROUPS ==============================
     //GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
-    GA_GroupType pointGroupType = GA_GROUP_POINT;
 
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
@@ -241,8 +240,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
     GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
     GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleV3 attUV(deformableGridsGdp->findFloatTuple(GA_ATTRIB_POINT,uvName, 3));
-    GA_RWHandleF attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
+
     GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attNumberOfPatch(surfaceGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
 
@@ -279,8 +277,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
             position = trackersGdp->getPos3(ppt);
 
             UT_IntArray         patchArrayData;
-            UT_FloatArray         alphaArrayData;
-            UT_FloatArray         uvArrayData;
             //getting neigborhood
             // Close particles indices
             GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
@@ -318,8 +314,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 //    continue;
 
                 patchP = surfaceGdp->getPos3(surfacePointOffset);
-
-
                 //respect poisson disk criterion
                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
                 UT_Vector3 pos          = patchP;
@@ -329,13 +323,13 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
                 pNp.normalize();
                 dotP              = dot(pNp, N);
 
-                float d              = distance3d( pos, position );
+                //float d              = distance3d( pos, position );
                 float dp                = abs(dotP);
 
                 float k        = (1-dp)*r*3;
                 if (k < cs*2)
                     k = cs*2;
-                bool insideBigEllipse    = d < k;
+                //bool insideBigEllipse    = d < k;
                 //if (!insideBigEllipse)
                 //    continue;
 
@@ -413,8 +407,6 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
      }
     this->patchCreationTime += (std::clock() - addPatchesStart) / (double) CLOCKS_PER_SEC;
 }
-
-
 
 //======================================================================================================================================
 //                                                  UpdateUsingBridson2012PoissonDisk
