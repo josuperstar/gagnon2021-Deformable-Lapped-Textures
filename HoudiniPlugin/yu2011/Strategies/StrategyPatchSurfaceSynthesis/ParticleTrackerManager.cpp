@@ -1,4 +1,4 @@
-#include "ParticleTracker.h"
+#include "ParticleTrackerManager.h"
 
 #include <vector>
 #include <algorithm>
@@ -30,7 +30,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-ParticleTracker::ParticleTracker()
+ParticleTrackerManager::ParticleTrackerManager()
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -41,7 +41,7 @@ ParticleTracker::ParticleTracker()
 
 }
 
-bool ParticleTracker::SynthesisSurface(GU_Detail *trackerGdp, ParametersDeformablePatches params)
+bool ParticleTrackerManager::SynthesisSurface(GU_Detail *trackerGdp, ParametersDeformablePatches params)
 {
     return true;
 
@@ -56,7 +56,7 @@ bool ParticleTracker::SynthesisSurface(GU_Detail *trackerGdp, ParametersDeformab
 //================================================================================================
 
 
-void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
+void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
 {
 
     bool useDynamicTau = params.useDynamicTau;
@@ -285,7 +285,7 @@ void ParticleTracker::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surfa
 //================================================================================================
 
 
-void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree)
+void ParticleTrackerManager::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree)
 {
     cout <<this->approachName<< " Advect Markers"<<endl;
 
@@ -473,7 +473,7 @@ void ParticleTracker::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp
 
 //================================================================================================
 
-void ParticleTracker::ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
+void ParticleTrackerManager::ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
 {
 
     cout <<this->approachName<< " Compute Density"<<endl;
@@ -513,7 +513,7 @@ void ParticleTracker::ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers,
 
 //================================================================================================
 
-void ParticleTracker::ComputeDivergence(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
+void ParticleTrackerManager::ComputeDivergence(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
 {
 
     cout <<this->approachName<< " Compute Divergence"<<endl;

@@ -29,7 +29,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-Yu2011::Yu2011(GU_Detail* surface) : DeformableGrids()
+Yu2011::Yu2011(GU_Detail* surface) : DeformableGridsManager()
 {
     this->numberOfPatches = 0;
     this->maxId = 0;

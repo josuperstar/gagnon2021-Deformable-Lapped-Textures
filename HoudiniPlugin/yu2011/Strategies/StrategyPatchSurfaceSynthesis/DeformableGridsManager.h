@@ -2,7 +2,7 @@
 #define __DeformableGrid_h__
 
 #include <Math/Vec3.h>
-#include <Strategies/StrategyPatchSurfaceSynthesis/ParticleTracker.h>
+#include <Strategies/StrategyPatchSurfaceSynthesis/ParticleTrackerManager.h>
 #include "Core/Deformations/Yu2011Distortion.h"
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
@@ -12,11 +12,11 @@ namespace Mokko {
 #define VERBOSE 0
 
 
-class DeformableGrids : public ParticleTracker
+class DeformableGridsManager : public ParticleTrackerManager
 {
 public:
 
-    DeformableGrids();
+    DeformableGridsManager();
     bool SynthesisSurface( GU_Detail *gdp, ParametersDeformablePatches params);
 
     void CreateGridBasedOnMesh(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree);
