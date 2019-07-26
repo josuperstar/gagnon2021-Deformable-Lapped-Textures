@@ -15,7 +15,7 @@ class ParticleTrackerManager : public StrategyPatchSurfaceSynthesis
 {
 public:
 
-    ParticleTrackerManager();
+    ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
     bool SynthesisSurface( GU_Detail *trackerGdp, ParametersDeformablePatches params);
 
     //vector<GA_Offset>  PoissonDiskDistribution(GU_Detail *gdp, ParametersDeformablePatches params);
@@ -44,7 +44,28 @@ protected :
     const char*    randomThresholdDistortion = "t_rand";
     float epsilon = 0.0001;
 
+    GA_RWHandleV3   attN;
+    GA_RWHandleV3   attV;
+    GA_RWHandleV3   attCenterUV;
+    GA_RWHandleI    attId;
+    GA_RWHandleF    attLife;
+    GA_RWHandleI    attSpawn;
+    GA_RWHandleI    attActive;
+    GA_RWHandleI    attIsMature;
+    GA_RWHandleI    attDensity;
+    GA_RWHandleF    attBlend;
+    GA_RWHandleF    attRandT;
+    GA_RWHandleF    attMaxDeltaOnD;
+    GA_RWHandleI    attDeleteFaster;
+    GA_RWHandleV3   refAttV;
+    GA_RWHandleV3   refAttN;
+    GA_RWHandleI    attFadeIn;
+    GA_RWHandleF    temporalComponentKt;
+    GA_RWHandleV3 AttCd;
 
+    GA_RWHandleV3 attVSurface;
+    //GA_RWHandleV3 attNSurface;
+    GA_RWHandleF attDivergence;
 
 };
 

@@ -39,7 +39,7 @@ PoissonDiskInterface::~PoissonDiskInterface()
 
 void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
-    Yu2011 strategy(surfaceGdp);
+    Yu2011 strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     params.useDynamicTau = false;
 
