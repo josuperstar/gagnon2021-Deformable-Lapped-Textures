@@ -39,7 +39,7 @@ Yu2011Interface::~Yu2011Interface()
 
 void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    Yu2011 strategy(surfaceGdp);
+    Yu2011 strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
@@ -84,7 +84,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
 
     if(params.startFrame == params.frame)
     {
-        strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params);
+        strategy.PoissonDiskSampling(levelSet,trackersGdp,params);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)
@@ -95,7 +95,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
         strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
         if (!usingOnlyPoissonDisk)
             strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
-        strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
+        strategy.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);

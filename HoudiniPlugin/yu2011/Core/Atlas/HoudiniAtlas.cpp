@@ -122,7 +122,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     {
         cout << "texture example is a list"<<endl;
         // Here we need to replace $F with the sequence of texture exemplar between 1 and NumberOfTextureSampleFrame
-        for (int i = 0; i < this->numberOfTextureSampleFrame-1; i++)
+        for (int i = 0; i < this->numberOfTextureSampleFrame; i++)
         {
             ImageCV *image = new ImageCV();
             textureExemplars.push_back(image);

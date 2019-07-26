@@ -39,7 +39,7 @@ SinglePatchInterface::~SinglePatchInterface()
 
 void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    Yu2011 strategy(surfaceGdp);
+    Yu2011 strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
@@ -59,8 +59,6 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         return;
     }
     //=======================================================
-    GA_PointGroup *grp = (GA_PointGroup *)gdp->pointGroups().find(strategy.markerGroupName.c_str());
-
     GU_RayIntersect ray(gdp);
     ray.init();
     GEO_PointTreeGAOffset surfaceTree;
@@ -85,7 +83,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     if(params.startFrame == params.frame)
     {
         cout << "Creating a single poisson disk"<<endl;
-        strategy.CreateAPatch(gdp,levelSet,trackersGdp,grp,params);
+        strategy.CreateAPatch(trackersGdp, params);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)

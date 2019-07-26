@@ -2,7 +2,7 @@
 #define __Yu2011_h__
 
 #include <Math/Vec3.h>
-#include <Strategies/StrategyPatchSurfaceSynthesis/DeformableGrids.h>
+#include <Strategies/StrategyPatchSurfaceSynthesis/DeformableGridsManager.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
@@ -11,20 +11,20 @@ namespace Mokko {
 #define VERBOSE 0
 
 
-class Yu2011 : public DeformableGrids
+class Yu2011 : public DeformableGridsManager
 {
 public:
 
-    Yu2011(GU_Detail *surface);
+    Yu2011(GU_Detail *surface, GU_Detail *trackersGdp);
     ~Yu2011();
     bool SynthesisSurface( GU_Detail *gdp, ParametersDeformablePatches params);
 
-    void PoissonDiskSampling(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackers, GA_PointGroup *markerGroup, ParametersDeformablePatches params);
+    void PoissonDiskSampling(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
     void AddPatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);
     void DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
 
     //for test purpose
-    void CreateAPatch(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackers, GA_PointGroup *markerGroup, ParametersDeformablePatches params);
+    void CreateAPatch(GU_Detail *trackers, ParametersDeformablePatches params);
 
     double poissondisk;
     double  patchCreationTime;
