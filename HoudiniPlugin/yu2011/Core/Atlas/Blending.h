@@ -67,6 +67,8 @@ public:
         pixel.B -= 0.1;
         */
 
+        //cout << pixel.A << " "<<pixel.R<<" "<<pixel.G << " "<<pixel.B<<endl;
+
         if (pixel.A > 1)
             pixel.A = 1;
 

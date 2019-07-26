@@ -27,6 +27,10 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
     //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
     bool useLocalRayIntersect = false;
+    std::ofstream outfile;
+    bool outputCSV = false;
+    //if (outputCSV)
+    //    cout << "----------------------"<<endl;
 
     GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *gPrimTable = deformableGrids->getGroupTable(primGroupType);
@@ -41,8 +45,16 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
     int tw = textureExemplars[0]->GetWidth();
     int th = textureExemplars[0]->GetHeight();
 
+    float epsilon = 0.0001f;
+
     Pixel R_eq4 = Pixel(0,0,0);
     R_eq4.A = 1;
+    Pixel color_wi_sum = Pixel(0,0,0);
+    color_wi_sum.A = 1;
+
+    vector<Pixel> colorsList;
+    vector<float> w_i_list;
+
     R_eq3 = Pixel(0,0,0);
     R_eq3.A = 1;
     float sumW2 = 0;
@@ -172,8 +184,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //after the particle has been killed.
         //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
         float K_t = fading[patchId];
-        if (K_t < 0)
-            K_t = 0;
+        if (K_t < 0.0f)
+            K_t = 0.0f;
         else if (K_t > 1.0f)
             K_t = 1.0f;
 
@@ -280,7 +292,12 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights
         //The weight for each vertex is defined as the product of a spatial component and a temporal component
-        float w_v = K_s * K_t * k;
+        float w_v = K_s * K_t;
+        if (w_v < epsilon)
+            continue;
+
+        //cout << "w_i "<<w_v<<endl;
+        w_i_list.push_back(w_v);
 
         //--------------------------------------------------------
         //Section 3.5.1
@@ -321,6 +338,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (color.R > 1.0f)
             color.R = 1.0f;
 
+        colorsList.push_back(color);
+        //cout <<color.R << "," <<color.G << "," <<color.B<<endl;
         //---------------- YU 2011 Equation 3 -----------------------
         //blending function
         R_eq3.R += w_v*(color.R);
@@ -336,9 +355,17 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         //---------------- YU 2011 Equation 4 -----------------------
         //blending function
-        R_eq4.R += w_v*(color.R - RM.R);
-        R_eq4.G += w_v*(color.G - RM.G);
-        R_eq4.B += w_v*(color.B - RM.B);
+        color_wi_sum.R += w_v*(color.R - RM.R);
+        color_wi_sum.G += w_v*(color.G - RM.G);
+        color_wi_sum.B += w_v*(color.B - RM.B);
+        //blending function
+        //R_eq4.R += (color.R - RM.R);
+        //R_eq4.G += (color.G - RM.G);
+        //R_eq4.B += (color.B - RM.B);
+
+
+        //cout << "w_i "<< w_v<<endl;
+        //cout << "color "<<color.R<< " "<<color.G<<" "<<color.B<<endl;
 
         if (computeDisplacement)
         {
@@ -356,7 +383,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
     }
     //========================= END SUM ==================================
 
-    float epsilon = 0.0001f;
+
     //if the sumW is close to 0, that means we should have a new poisson disk there.
     //But how to handle the creation of a new patch from here ?
 
@@ -405,10 +432,35 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
     //blending function, division part
     float sqw = sqrtf(sumW2);
 
-    R_eq4.R = (R_eq4.R)/sqw    + RM.R;
-    R_eq4.G = (R_eq4.G)/sqw    + RM.G;
-    R_eq4.B = (R_eq4.B)/sqw    + RM.B;
+    if (outputCSV)
+    {
 
+        outfile.open("blending.csv", std::ios_base::app);
+        vector<Pixel>::iterator itPixel;
+        int i = 0;
+        for(itPixel=colorsList.begin(); itPixel != colorsList.end(); itPixel++)
+        {
+            cout << "color "<<(*itPixel).R<<" "<<(*itPixel).G<<" "<<(*itPixel).B<<endl;
+            //outfile << *itPixel<<",";
+            cout << "w_i "<<w_i_list[i]<<endl;
+            i++;
+        }
+        outfile <<sumW<<","<<sumW2<<","<< sqw << ","<<color_wi_sum.R << "," <<color_wi_sum.G << "," <<color_wi_sum.B << ","<<RM.R<<","<<RM.G<<","<<RM.B<< ",";
+        cout << "sumW "<<sumW <<endl
+                <<"sumW2 "<<sumW2 <<endl
+                <<"sqw "<< sqw <<endl
+                << "color_wi_sum "<<color_wi_sum.R << " " <<color_wi_sum.G << " " <<color_wi_sum.B <<endl
+                << "RM "<<RM.R<<" "<<RM.G<<" "<<RM.B <<endl;
+    }
+    R_eq4.R = (color_wi_sum.R)/sqw    + RM.R;
+    R_eq4.G = (color_wi_sum.G)/sqw    + RM.G;
+    R_eq4.B = (color_wi_sum.B)/sqw    + RM.B;
+
+    if (outputCSV)
+    {
+        outfile <<R_eq4.R << "," <<R_eq4.G << "," <<R_eq4.B<<endl;
+        cout << R_eq4.R << " " <<R_eq4.G << " " <<R_eq4.B<<endl;
+    }
     if (computeDisplacement)
     {
         displacementSumEq4.R = (displacementSumEq4.R)/sqw    + displaceMean.R;

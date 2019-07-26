@@ -452,13 +452,14 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                 pixelPositionY += h;
 
             bool notUsedYet = !this->pixelUsed[pixelPositionX][pixelPositionY];
+            //cout << "not used yet "<<notUsedYet<<endl;
             UT_Vector3 a = surfaceTexturePosition[0];
             UT_Vector3 b = surfaceTexturePosition[1];
             UT_Vector3 c = surfaceTexturePosition[2];
 
             bool inTriangle = IsPointInTriangle(point,a,b,c);
 
-            if (inTriangle || notUsedYet)
+            if (inTriangle && notUsedYet)
             {
                 //test color
                 color.R = 1;

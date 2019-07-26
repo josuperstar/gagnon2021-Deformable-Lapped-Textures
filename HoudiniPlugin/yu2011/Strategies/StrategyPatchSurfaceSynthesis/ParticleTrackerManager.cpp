@@ -65,6 +65,7 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
     this->attVSurface = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
     this->attDivergence = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"divergence",1));
 
+
 }
 
 bool ParticleTrackerManager::SynthesisSurface(GU_Detail *trackerGdp, ParametersDeformablePatches params)

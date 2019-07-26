@@ -39,6 +39,9 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
 {
     cout << "[AtlasInterface::Synthesis] "<<params.frame<<endl;
 
+    std::clock_t start;
+    start = std::clock();
+
     HoudiniAtlas atlas;
     if (params.outputName == "")
         params.outputName = params.trackersFilename+".png";
@@ -117,6 +120,11 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     }
     atlas.SaveAtlas();
 
+    float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+    cout <<" TOTAL: "<<total<<endl;
+    std::ofstream outfile;
+    outfile.open("atlas.csv", std::ios_base::app);
+    outfile <<total<<endl;
     return true;
 
 }
