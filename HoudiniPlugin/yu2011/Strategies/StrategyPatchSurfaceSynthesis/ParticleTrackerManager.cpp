@@ -30,7 +30,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-ParticleTrackerManager::ParticleTrackerManager()
+ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -38,6 +38,32 @@ ParticleTrackerManager::ParticleTrackerManager()
     this->numberOfConcealedPatches = 0;
     this->numberOfNewPatches = 0;
     this->numberOfDetachedPatches = 0;
+
+    this->attN =  GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    this->attCenterUV =  GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
+    //GA_RWHandleV3   attV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    this->attV = GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+
+    this->attId  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    this->attLife  = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
+    this->attSpawn  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
+    this->attActive  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
+    this->attIsMature  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
+    this->attDensity =  GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
+    this->attBlend  = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
+    this->attRandT  = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
+    this->attMaxDeltaOnD  = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+    this->attDeleteFaster =  GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
+    this->refAttV  = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    this->refAttN  = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    this->temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
+    this->attFadeIn  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
+
+    this->AttCd = GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
+
+
+    this->attVSurface = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    this->attDivergence = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"divergence",1));
 
 }
 
@@ -77,25 +103,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         if (markerGrpPrims == 0x0)
             markerGrpPrims = trackersGdp->newPrimitiveGroup(markerGroupName.c_str());
     }
-
-    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
-    GA_RWHandleV3   attV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
-
-    GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
-    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
-    GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
-    GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
-    GA_RWHandleF    attBlend(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
-    GA_RWHandleF    attRandT(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
-    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
-    GA_RWHandleI    attDeleteFaster(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
-    GA_RWHandleV3   refAttV(surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   refAttN(surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-
-    GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
 
     UT_Vector3 position;
     UT_Vector3 N;
@@ -275,9 +282,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
     cout <<" DONE"<<endl;
 }
 
-
-
-
 //================================================================================================
 
 //                                      ADVECT MARKERS
@@ -292,18 +296,11 @@ void ParticleTrackerManager::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trac
     std::clock_t startAdvection;
     startAdvection = std::clock();
 
+
+    GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+
     numberOfPatches = 0;
     maxId = 0;
-
-    GA_RWHandleV3   attV(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-
-    GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI    attFadeIn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
-    GA_RWHandleF    temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
-    GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_ROHandleI    attDensity(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"density",1));
-    GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
 
     float deletionLife = params.fadingTau;
 
@@ -327,9 +324,7 @@ void ParticleTrackerManager::AdvectMarkers(GU_Detail *surfaceGdp,GU_Detail *trac
 
     //============================================================
 
-    GA_RWHandleV3 refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleV3 AttCd(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
+
 
     //===============================================================================
     {
@@ -521,10 +516,9 @@ void ParticleTrackerManager::ComputeDivergence(GU_Detail *surfaceGdp, GU_Detail 
     UT_Vector3 v,vn,p;
     UT_Vector3 N,Nn;
     float epsilon = 0.001;
-    GA_RWHandleV3 attVSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleF attDivergence(trackers->addFloatTuple(GA_ATTRIB_POINT,"divergence",1));
 
-    GA_RWHandleV3 attV(trackers->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+
+    //GA_RWHandleV3 attV(trackers->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
     float patchRadius = params.poissondiskradius*3;
     GA_Offset ppt;
 

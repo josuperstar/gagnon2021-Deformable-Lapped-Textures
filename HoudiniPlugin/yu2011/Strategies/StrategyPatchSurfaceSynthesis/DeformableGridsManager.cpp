@@ -28,7 +28,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-DeformableGridsManager::DeformableGridsManager()
+DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)  : ParticleTrackerManager(surfaceGdp, trackersGdp)
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -80,13 +80,17 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     //cout << "d "<<d<<endl;
     //cout << "gridwidth "<<gridwidth<<endl;
 
+    /*
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
 
-    GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+
     GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
+    */
+    GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+
 
     GA_RWHandleV3   attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
     GA_RWHandleF    attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
@@ -585,8 +589,8 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     std::clock_t startAdvection;
     startAdvection = std::clock();
 
-    GA_RWHandleV3   attV(deformableGridsgdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   attN(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   attVDeformable(deformableGridsgdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3   attNSurface(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3   attCd(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
     GA_RWHandleF    attAlpha(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
     GA_RWHandleI    attGridId(deformableGridsgdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -595,13 +599,14 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     GA_RWHandleF    attDeltaOnD(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
     GA_RWHandleF    attQt(deformableGridsgdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
 
+    /*
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
     GA_RWHandleF    attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
     GA_RWHandleF    attRandT(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     GA_RWHandleV3   attNTracker(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
-
+    */
     GA_RWHandleV3   refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
@@ -670,7 +675,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         life = attLife.get(trackerPpt);
         float gridAlpha = (float)life/(float)params.fadingTau;
         UT_Vector3 trackerPosition = trackersGdp->getPos3(trackerPpt);
-        UT_Vector3 trackerN = attNTracker.get(trackerPpt);
+        UT_Vector3 trackerN = attN.get(trackerPpt);
 
         string str = std::to_string(id);
         string groupName = "grid"+str;
@@ -705,8 +710,8 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                         {
                             continue;
                         }
-                        v = attV.get(ppt);
-                        N = attN.get(ppt);
+                        v = attVDeformable.get(ppt);
+                        N = attNSurface.get(ppt);
                         p = deformableGridsgdp->getPos3(ppt);
 
                         //advect
@@ -786,8 +791,8 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
 
                                 UT_Vector3 normal   = n0+u*(n1-n0)+v*(n2-n0);
                                 UT_Vector3 velocity = v0+u*(v1-v0)+v*(v2-v0);
-                                attV.set(ppt,velocity);
-                                attN.set(ppt,normal);
+                                attVDeformable.set(ppt,velocity);
+                                attNSurface.set(ppt,normal);
                                 attAlpha.set(ppt,gridAlpha);
                                 //------------------------------------------------------------------------------------
                             }
