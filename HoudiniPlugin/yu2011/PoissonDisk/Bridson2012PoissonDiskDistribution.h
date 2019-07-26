@@ -43,13 +43,13 @@ public:
     void SetNumberOfPoint(int data){this->numberOfPoints = data;}
     void initializeGrid(GEO_PointTreeGAOffset &tree, GU_Detail *trackerGdp, float diskRadius,  float angleNormalThreshold);
     void CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N);
-
+    bool CreateAParticle(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
     void SetMaxId(long data){maxId = data;}
 
 private:
 
     openvdb::Vec3f projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad );
-    bool InsertPoissonDisk(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
+
     bool RespectCriterion(GU_Detail* trackers, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal,  float killDistance, int &numberOfClosePoint, GA_Offset exclude , ParametersDeformablePatches params);
 
 
