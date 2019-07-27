@@ -1,5 +1,6 @@
 #include "Yu2011Interface.h"
 
+#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
@@ -143,6 +144,12 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
 
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout << strategy.approachName<< " TOTAL: "<<total<<endl;
+
+    std::ofstream outfile;
+    outfile.open("core.csv", std::ios_base::app);
+    outfile <<strategy.poissondisk<<","<< strategy.gridMeshCreation << ","<<strategy.uvFlatteningTime << ","<<strategy.markerAdvectionTime
+            <<","<<strategy.gridAdvectionTime<<","<<strategy.patchCreationTime << ","<<strategy.updatePatchesTime<<endl;
+
     cout << "--------------------------------------------------------------------------------"<<endl;
 }
 
