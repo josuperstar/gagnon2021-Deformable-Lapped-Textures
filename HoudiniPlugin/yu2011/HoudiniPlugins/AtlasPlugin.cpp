@@ -54,8 +54,10 @@ static PRM_Name        names[] = {
     PRM_Name("OutputName","Output Name"),
     PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),
     PRM_Name("UVScaling",	"UV Scaling"),
+    PRM_Name("PatchScaling",	"Patch Scaling"),
 };
 
+static PRM_Default PatchScalingDefault(1.0f);
 
 PRM_Template
 AtlasPlugin::myTemplateList[] =
@@ -72,6 +74,7 @@ AtlasPlugin::myTemplateList[] =
     PRM_Template(PRM_STRING, 1, &names[9]),
     PRM_Template(PRM_FLT, 1, &names[10]),
     PRM_Template(PRM_FLT, 1, &names[11]),
+    PRM_Template(PRM_FLT, 1, &names[12], &PatchScalingDefault),
     PRM_Template(),
 };
 
@@ -192,6 +195,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
     params.useDeformableGrids = UseDeformableGrids();
     params.coloredPatches = RenderColoredPatches();
     params.UVScaling = UVScaling(now);
+    params.PatchScaling = PatchScaling(now);
 
     params.NumberOfTextureSampleFrame = 1;
 
@@ -209,6 +213,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
     cout << "atlasHeight :"<<params.atlasHeight<<endl;
     cout << "atlasWidth :"<<params.atlasWidth<<endl;
     cout << "UVScaling :"<<params.UVScaling<<endl;
+    cout << "PatchScaling :"<<params.PatchScaling<<endl;
 
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
