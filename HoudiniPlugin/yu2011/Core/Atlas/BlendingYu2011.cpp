@@ -259,8 +259,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
 
 
-        float minDUV = 0.125*s;
-        float maxDUV = 0.25*s; //blending region
+        float minDUV = 0.125*params.PatchScaling;
+        float maxDUV = 0.25*params.PatchScaling; //blending region
         //float maxDUV = 0.5f;
         //d_V =0 if V ∈ grid boundary 1 otherwise
         //float d_V = 1.0f;
