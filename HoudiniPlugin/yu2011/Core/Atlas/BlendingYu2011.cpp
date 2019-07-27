@@ -287,8 +287,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         else if (K_s > 1.0f)
             K_s = 1.0f;
 
-
-
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights
         //The weight for each vertex is defined as the product of a spatial component and a temporal component
