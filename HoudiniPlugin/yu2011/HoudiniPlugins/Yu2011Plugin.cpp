@@ -208,7 +208,7 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     fpreal now = context.getTime();
     int frame = context.getFrame();
 
-    cout << "======================== YU 2011 Lagrangian Texture, frame  "<<frame<< "============================="<<endl;
+
 
     string baseVariable = "REZ_YU2011LAGRANGIANTEXTUREADVECTION_BASE";
     char* pPath;
@@ -242,7 +242,16 @@ Yu2011Plugin::cookMySop(OP_Context &context)
 
     DeformableGridsFilename(deformableGridsFilename,now);
     params.deformableGridsFilename = deformableGridsFilename;
+
     params.useDynamicTau = UseDynamicFading();
+    if (params.useDynamicTau)
+    {
+        cout << "======================== GAGNON 2019, frame  "<<frame<< "============================="<<endl;
+    }
+    else
+    {
+        cout << "======================== YU 2011 Lagrangian Texture, frame  "<<frame<< "============================="<<endl;
+    }
 
     const GU_Detail * surface = inputGeo(1);
     surface = inputGeo(1);
