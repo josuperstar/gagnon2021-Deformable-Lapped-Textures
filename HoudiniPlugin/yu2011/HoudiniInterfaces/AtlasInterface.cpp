@@ -85,12 +85,12 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     GA_Primitive *prim;
 
     bool usingTbb = true;
-
+    long nbOfPrimitive = surfaceGdp->getNumPrimitives();
 
     if(!usingTbb)
     {
         cout << "[AtlasInterface::Synthesis] without tbb"<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
-        long nbOfPrimitive = surfaceGdp->getNumPrimitives();
+
         long i = 0;
         int lastModulo = 0;
 
@@ -113,10 +113,8 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     else
     {
         cout << "[AtlasInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
-        unsigned long nbPrims = surfaceGdp->getNumPrimitives();
-
         executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
-        tbb::parallel_for(tbb::blocked_range<size_t>(0,nbPrims),exec);
+        tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
     }
     atlas.SaveAtlas();
 
@@ -124,7 +122,7 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     cout <<" TOTAL: "<<total<<endl;
     std::ofstream outfile;
     outfile.open("atlas.csv", std::ios_base::app);
-    outfile <<total<<endl;
+    outfile <<total<<","<<params.atlasHeight<<","<<nbOfPrimitive<<endl;
     return true;
 
 }
