@@ -26,6 +26,8 @@ public:
     void ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree);
     void DeleteTracker(GU_Detail* trackers,int trackerId);
 
+    int GetNumberOfPatches(){return numberOfPatches;}
+
     const string markerGroupName = "markers";
     const string surfaceGroupName = "surface";
     const string approachName   = "[Particle Tracker]";
