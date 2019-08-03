@@ -131,6 +131,8 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     gdp->clearAndDestroy();
     gdp->copy(*surfaceGdp);
 
+    int nbPatches = strategy.GetNumberOfPatches();
+
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
     cout << "--------------------------------------------------------------------------------"<<endl;
     cout << strategy.approachName<<" Poisson Disk Sampling "<<strategy.poissondisk<<endl;
@@ -148,7 +150,7 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     std::ofstream outfile;
     outfile.open("core.csv", std::ios_base::app);
     outfile <<strategy.poissondisk<<","<< strategy.gridMeshCreation << ","<<strategy.uvFlatteningTime << ","<<strategy.markerAdvectionTime
-            <<","<<strategy.gridAdvectionTime<<","<<strategy.patchCreationTime << ","<<strategy.updatePatchesTime<<endl;
+            <<","<<strategy.gridAdvectionTime<<","<<strategy.patchCreationTime << ","<<strategy.updatePatchesTime<<","<<nbPatches<<endl;
 
     cout << "--------------------------------------------------------------------------------"<<endl;
 }
