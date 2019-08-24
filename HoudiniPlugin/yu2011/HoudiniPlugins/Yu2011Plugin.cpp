@@ -21,7 +21,6 @@
 #include <algorithm>
 #include <ctime>
 #include <Core/HoudiniUtils.h>
-#include <Strategies/StrategyPatchSurfaceSynthesis.h>
 #include "Yu2011Plugin.h"
 
 

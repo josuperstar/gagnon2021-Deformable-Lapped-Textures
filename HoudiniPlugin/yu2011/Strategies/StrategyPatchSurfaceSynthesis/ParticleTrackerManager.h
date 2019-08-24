@@ -5,7 +5,7 @@
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
-
+#include <Core/Deformations/ParametersDeformablePatches.h>
 namespace Mokko {
 
 #define VERBOSE 0

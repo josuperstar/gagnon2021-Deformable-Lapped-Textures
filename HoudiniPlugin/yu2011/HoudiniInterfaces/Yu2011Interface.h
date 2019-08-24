@@ -10,8 +10,8 @@
 #include "Set/SpatialGrid.h"
 #include <GU/GU_Flatten.h>
 #include <Core/Deformations/Yu2011Distortion.h>
-#include <Strategies/StrategyPatchSurfaceSynthesis.h>
-
+//#include <Strategies/StrategyPatchSurfaceSynthesis.h>
+#include <Core/Deformations/ParametersDeformablePatches.h>
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 #include <tbb/tbb.h>
