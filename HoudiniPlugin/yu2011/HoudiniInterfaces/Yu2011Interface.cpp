@@ -24,8 +24,7 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Strategies/StrategyPatchSurfaceSynthesis/Yu2011.h>
-
+#include <Strategies/StrategyPatchSurfaceSynthesis/LagrangianTextureAdvection.h>
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
 #include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
@@ -40,7 +39,7 @@ Yu2011Interface::~Yu2011Interface()
 
 void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    Yu2011 strategy(surfaceGdp, trackersGdp);
+    LagrangianTextureAdvection strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
