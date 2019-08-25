@@ -23,7 +23,7 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Strategies/StrategyPatchSurfaceSynthesis/LagrangianTextureAdvection.h>
+#include <Core/LagrangianTextureAdvection.h>
 
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
