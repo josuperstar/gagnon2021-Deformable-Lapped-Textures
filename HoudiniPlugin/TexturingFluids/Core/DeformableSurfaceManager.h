@@ -11,12 +11,12 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class LagrangianTextureAdvection : public DeformableGridsManager
+class DeformableSurfaceManager : public DeformableGridsManager
 {
 public:
 
-    LagrangianTextureAdvection(GU_Detail *surface, GU_Detail *trackersGdp);
-    ~LagrangianTextureAdvection();
+    DeformableSurfaceManager(GU_Detail *surface, GU_Detail *trackersGdp);
+    ~DeformableSurfaceManager();
 
     void PoissonDiskSampling(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
     void AddPatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);

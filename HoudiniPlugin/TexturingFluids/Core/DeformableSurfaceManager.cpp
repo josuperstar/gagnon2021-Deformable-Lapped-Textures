@@ -1,4 +1,4 @@
-#include "LagrangianTextureAdvection.h"
+#include "DeformableSurfaceManager.h"
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
@@ -29,7 +29,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-LagrangianTextureAdvection::LagrangianTextureAdvection(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsManager(surface, trackersGdp)
+DeformableSurfaceManager::DeformableSurfaceManager(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsManager(surface, trackersGdp)
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -143,7 +143,7 @@ LagrangianTextureAdvection::LagrangianTextureAdvection(GU_Detail *surface, GU_De
     this->numberOfDetachedPatches = 0;
 }
 
-LagrangianTextureAdvection::~LagrangianTextureAdvection()
+DeformableSurfaceManager::~DeformableSurfaceManager()
 {
     this->rays.clear();
 }
@@ -155,7 +155,7 @@ LagrangianTextureAdvection::~LagrangianTextureAdvection()
 //================================================================================================
 
 
-void LagrangianTextureAdvection::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void DeformableSurfaceManager::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
 
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
@@ -178,7 +178,7 @@ void LagrangianTextureAdvection::PoissonDiskSampling(GU_Detail *levelSet, GU_Det
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 }
 
-void LagrangianTextureAdvection::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
+void DeformableSurfaceManager::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
 {
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
     //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
@@ -210,7 +210,7 @@ void LagrangianTextureAdvection::CreateAPatch(GU_Detail *trackersGdp,  Parameter
 //================================================================================================
 
 
-void LagrangianTextureAdvection::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+void DeformableSurfaceManager::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
@@ -408,7 +408,7 @@ void LagrangianTextureAdvection::AddPatchesUsingBarycentricCoordinates(GU_Detail
 //                                                  UpdateUsingBridson2012PoissonDisk
 //======================================================================================================================================
 
-void LagrangianTextureAdvection::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void DeformableSurfaceManager::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
     cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
     std::clock_t startUpdatePatches;

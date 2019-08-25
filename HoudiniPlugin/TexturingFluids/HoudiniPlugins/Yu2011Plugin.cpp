@@ -273,7 +273,7 @@ Yu2011Plugin::cookMySop(OP_Context &context)
     surfaceLowRes->clearAndDestroy();
     surfaceLowRes->copy(*surfaceLowResRef);
 
-    Yu2011Interface interface;
+    LagrangianTextureAdvection interface;
     //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
     interface.Synthesis(gdp,surfaceCopy,trackersCopy,levelSet,surfaceLowRes, params);
 

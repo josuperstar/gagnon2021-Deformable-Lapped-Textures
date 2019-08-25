@@ -1,4 +1,4 @@
-#include "Yu2011Interface.h"
+#include "LagrangianTextureAdvection.h"
 
 #include <fstream>
 #include <vector>
@@ -24,22 +24,22 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/LagrangianTextureAdvection.h>
+#include <Core/DeformableSurfaceManager.h>
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
 #include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
 
-Yu2011Interface::Yu2011Interface()
+LagrangianTextureAdvection::LagrangianTextureAdvection()
 {
 }
 
-Yu2011Interface::~Yu2011Interface()
+LagrangianTextureAdvection::~LagrangianTextureAdvection()
 {
 }
 
-void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
+void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    LagrangianTextureAdvection strategy(surfaceGdp, trackersGdp);
+    DeformableSurfaceManager strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 

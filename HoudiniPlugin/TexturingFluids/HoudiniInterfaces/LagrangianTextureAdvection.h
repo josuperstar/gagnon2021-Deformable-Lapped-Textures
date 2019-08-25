@@ -20,14 +20,14 @@ namespace TexturingFluids {
 
 
 
-class Yu2011Interface
+class LagrangianTextureAdvection
 {
 
 public:
 
     //=========================== BUILD ======================================
-    Yu2011Interface();
-    ~Yu2011Interface();
+    LagrangianTextureAdvection();
+    ~LagrangianTextureAdvection();
 
     //==========================================================================
     void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet, GU_Detail *surfaceLowRes, ParametersDeformablePatches params);

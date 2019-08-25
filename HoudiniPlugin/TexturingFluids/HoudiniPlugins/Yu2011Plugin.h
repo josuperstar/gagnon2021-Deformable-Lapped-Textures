@@ -8,7 +8,7 @@
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "HoudiniInterfaces/Yu2011Interface.h"
+#include "HoudiniInterfaces/LagrangianTextureAdvection.h"
 
 
 
@@ -83,7 +83,7 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    Yu2011Interface interface;
+    LagrangianTextureAdvection interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;
