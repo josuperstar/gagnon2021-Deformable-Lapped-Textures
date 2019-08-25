@@ -8,7 +8,6 @@
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "Set/SpatialGrid.h"
 #include "HoudiniInterfaces/Yu2011Interface.h"
 
 
@@ -18,9 +17,9 @@
                 { evalString(str, name, vi, t); }
 
 using namespace std;
-using namespace Mokko;
+using namespace TexturingFluids;
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class Yu2011Plugin : public SOP_Node

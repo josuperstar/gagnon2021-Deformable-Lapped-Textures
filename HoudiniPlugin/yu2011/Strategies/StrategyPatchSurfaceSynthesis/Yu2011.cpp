@@ -148,11 +148,6 @@ Yu2011::~Yu2011()
     this->rays.clear();
 }
 
-bool Yu2011::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params)
-{
-    return true;
-}
-
 //================================================================================================
 
 //                                     POISSON DISK SAMPLING

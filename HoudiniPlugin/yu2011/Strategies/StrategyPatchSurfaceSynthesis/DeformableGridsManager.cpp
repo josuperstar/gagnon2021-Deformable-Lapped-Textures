@@ -47,11 +47,6 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
 
 }
 
-bool DeformableGridsManager::SynthesisSurface(GU_Detail *gdp, ParametersDeformablePatches params)
-{
-    return true;
-}
-
 //================================================================================================
 
 //                                       ADD DEFORMABLE GRID

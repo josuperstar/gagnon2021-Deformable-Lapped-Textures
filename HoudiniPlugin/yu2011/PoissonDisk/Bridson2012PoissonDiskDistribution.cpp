@@ -9,7 +9,7 @@
 #include <openvdb/tools/GridOperators.h>
 #include <openvdb/math/Transform.h>
 #include <Core/Deformations/ParametersDeformablePatches.h>
-using namespace Mokko;
+using namespace TexturingFluids;
 using namespace std;
 
 

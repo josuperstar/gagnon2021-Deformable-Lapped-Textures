@@ -7,7 +7,7 @@
 #include <GEO/GEO_PrimPart.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "Set/SpatialGrid.h"
+//#include "Set/SpatialGrid.h"
 #include <GU/GU_Flatten.h>
 #include <Core/Deformations/Yu2011Distortion.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
@@ -16,7 +16,7 @@
 #include <tbb/blocked_range.h>
 #include <tbb/tbb.h>
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 

@@ -9,7 +9,7 @@
 
 
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 struct ParametersDistortion

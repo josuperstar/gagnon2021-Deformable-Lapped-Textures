@@ -9,9 +9,9 @@
 #include <GU/GU_RayIntersect.h>
 #include "Core/Deformations/ParametersDeformablePatches.h"
 
-using namespace Mokko;
+using namespace TexturingFluids;
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class HoudiniAtlas : public Atlas

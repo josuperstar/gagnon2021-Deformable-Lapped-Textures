@@ -12,9 +12,9 @@
 //#include <Core/Deformations/ParametersDeformablePatches.h>
 
 using namespace std;
-using namespace Mokko;
+using namespace TexturingFluids;
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class StrategyPatchSurfaceSynthesis

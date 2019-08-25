@@ -3,7 +3,7 @@
 
 #include "HoudiniAtlas.h"
 
-using namespace Mokko;
+using namespace TexturingFluids;
 
 struct executor
 {

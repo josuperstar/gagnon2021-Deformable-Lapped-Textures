@@ -9,14 +9,14 @@
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "Set/SpatialGrid.h"
+//#include "Set/SpatialGrid.h"
 
 
 #include <GU/GU_Flatten.h>
 #include <Core/Deformations/ParametersDeformablePatches.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 

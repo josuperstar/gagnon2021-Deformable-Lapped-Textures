@@ -68,13 +68,6 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
 
 }
 
-bool ParticleTrackerManager::SynthesisSurface(GU_Detail *trackerGdp, ParametersDeformablePatches params)
-{
-    return true;
-
-}
-
-
 
 //================================================================================================
 

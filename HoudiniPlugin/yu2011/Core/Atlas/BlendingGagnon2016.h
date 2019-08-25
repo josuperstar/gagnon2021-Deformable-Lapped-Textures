@@ -8,7 +8,7 @@
 #include "Blending.h"
 
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class BlendingGagnon2016 : public Blending

@@ -13,7 +13,7 @@
 #include "Core/Deformations/ParametersDeformablePatches.h"
 
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class Blending

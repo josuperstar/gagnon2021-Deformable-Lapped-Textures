@@ -1,9 +1,6 @@
 [submodule "HoudiniPlugin/yu2011/Math"]
 	path = HoudiniPlugin/yu2011/Math
 	url = git@github.com:josuperstar/math.git
-[submodule "HoudiniPlugin/yu2011/Set"]
-	path = HoudiniPlugin/yu2011/Set
-	url = git@github.com:josuperstar/set.git
 [submodule "HoudiniPlugin/yu2011/Images"]
 	path = HoudiniPlugin/yu2011/Images
 	url = git@github.com:josuperstar/images.git

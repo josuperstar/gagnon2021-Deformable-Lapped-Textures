@@ -8,7 +8,6 @@
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "Set/SpatialGrid.h"
 #include "HoudiniInterfaces/AtlasInterface.h"
 
 
@@ -21,9 +20,9 @@
                 { evalStringRaw(str, name, vi, t); }
 
 using namespace std;
-using namespace Mokko;
+using namespace TexturingFluids;
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class AtlasSeamCarvingPlugin : public SOP_Node
