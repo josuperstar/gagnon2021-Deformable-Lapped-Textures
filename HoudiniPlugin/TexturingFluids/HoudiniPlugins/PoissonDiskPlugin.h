@@ -8,7 +8,7 @@
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "HoudiniInterfaces/PoissonDiskInterface.h"
+#include "Approaches/PoissonDiskInterface.h"
 
 
 

@@ -21,19 +21,14 @@ file( GLOB SOURCES
     ${SRC_DIR}/*.C
     ${SRC_DIR}/*.cpp
     ${SRC_DIR}/*.hpp
-    ${SRC_DIR}/Set/*.h
-    ${SRC_DIR}/Set/SpacialGrid.hpp
     ${SRC_DIR}/HoudiniPlugins/*
-    ${SRC_DIR}/HoudiniInterfaces/*
-    ${SRC_DIR}/OldApproach/*
+    ${SRC_DIR}/Approaches/*
     ${SRC_DIR}/Strategies/*.[hHcC]*
-    ${SRC_DIR}/Strategies/TextureSynthesis/*
-    ${SRC_DIR}/Strategies/SurfaceTextureSynthesis/*
-    ${SRC_DIR}/Strategies/StrategyPatchSurfaceSynthesis/*
     ${SRC_DIR}/Core/*.[hHcC]*
     ${SRC_DIR}/Core/Deformations/*
     ${SRC_DIR}/Core/Atlas/*
-    ${SRC_DIR}/PoissonDisk/*
+    ${SRC_DIR}/Core/PoissonDisk/*
+    ${SRC_DIR}/Tests/*
     ${SRC_DIR}/Images/*
     ${SRC_DIR}/Math/*
 )

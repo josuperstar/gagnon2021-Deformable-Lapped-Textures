@@ -1,5 +1,3 @@
-
-
 #ifndef __SinglePatchTest_h__
 #define __SinglePatchTest_h__
 #include <vector>
@@ -8,9 +6,7 @@
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "HoudiniInterfaces/SinglePatchInterface.h"
-
-
+#include "Tests/SinglePatchInterface.h"
 
 
 #define STR_PARM(name, vi, t) \

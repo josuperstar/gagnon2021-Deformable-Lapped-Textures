@@ -27,7 +27,7 @@
 #include <Core/DeformableSurfaceManager.h>
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
-#include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
+#include <Core/PoissonDisk/Bridson2012PoissonDiskDistribution.h>
 
 LagrangianTextureAdvection::LagrangianTextureAdvection()
 {
@@ -40,7 +40,7 @@ LagrangianTextureAdvection::~LagrangianTextureAdvection()
 void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
     DeformableSurfaceManager strategy(surfaceGdp, trackersGdp);
-    cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
+    cout << "[LagrangianTextureAdvection::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
     std::clock_t start;

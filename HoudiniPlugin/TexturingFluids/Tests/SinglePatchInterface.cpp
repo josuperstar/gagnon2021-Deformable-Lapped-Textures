@@ -27,7 +27,7 @@
 
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
-#include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
+#include <Core/PoissonDisk/Bridson2012PoissonDiskDistribution.h>
 
 SinglePatchInterface::SinglePatchInterface()
 {
