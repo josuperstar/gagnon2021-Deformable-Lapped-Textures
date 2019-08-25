@@ -1,4 +1,4 @@
-#include "AtlasInterface.h"
+#include "Gagnon2019AtlasSynthesis.h"
 
 #include <vector>
 #include <algorithm>
@@ -27,17 +27,17 @@
 #include <tbb/parallel_for.h>
 
 
-AtlasInterface::AtlasInterface()
+Gagnon2019AtlasSynthesis::Gagnon2019AtlasSynthesis()
 {
 }
 
-AtlasInterface::~AtlasInterface()
+Gagnon2019AtlasSynthesis::~Gagnon2019AtlasSynthesis()
 {
 }
 
-bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+bool Gagnon2019AtlasSynthesis::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
-    cout << "[AtlasInterface::Synthesis] "<<params.frame<<endl;
+    cout << "[Gagnon2019AtlasSynthesis::Synthesis] "<<params.frame<<endl;
 
     std::clock_t start;
     start = std::clock();
@@ -70,16 +70,16 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     if(params.useDeformableGrids)
     {
         atlas.UseDeformableGrids();
-        cout << "[AtlasInterface::Synthesis] "<< "Compute pixel using deformable grids parametric coordinates."<<endl;
+        cout << "[Gagnon2019AtlasSynthesis::Synthesis] "<< "Compute pixel using deformable grids parametric coordinates."<<endl;
     }
     else
     {
-        cout << "[AtlasInterface::Synthesis] "<< "Compute pixel using overlapping uv and alpha."<<endl;
+        cout << "[Gagnon2019AtlasSynthesis::Synthesis] "<< "Compute pixel using overlapping uv and alpha."<<endl;
     }
     bool atlasBuilded = atlas.BuildAtlas(params.atlasWidth,params.atlasHeight, params.fadingTau);
     if(!atlasBuilded)
     {
-        cout << "[AtlasInterface::Synthesis] "<< "Can't build the rasterizer"<<endl;
+        cout << "[Gagnon2019AtlasSynthesis::Synthesis] "<< "Can't build the rasterizer"<<endl;
         return false;
     }
     GA_Primitive *prim;
@@ -89,7 +89,7 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
 
     if(!usingTbb)
     {
-        cout << "[AtlasInterface::Synthesis] without tbb"<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
+        cout << "[Gagnon2019AtlasSynthesis::Synthesis] without tbb"<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
 
         long i = 0;
         int lastModulo = 0;
@@ -112,7 +112,7 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     }
     else
     {
-        cout << "[AtlasInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
+        cout << "[Gagnon2019AtlasSynthesis::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
         executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
         tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
     }

@@ -9,7 +9,7 @@
 #include "Yu2011Plugin.h"
 #include "AtlasPlugin.h"
 #include "AtlasSeamCarvingPlugin.h"
-#include "SinglePatchTest.h"
+#include "Tests/SinglePatchTest.h"
 
 
 // -----------------------------------------------------------------------------

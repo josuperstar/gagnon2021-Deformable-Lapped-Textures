@@ -837,7 +837,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                 //if (active == 1)
                 {
                     //cout << "Point "<<id<< " is active"<<endl;
-                    Yu2011Distortion distortionComputer;
+                    Sorkin2002DistortionMetric distortionComputer;
                     distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
                 }
             }

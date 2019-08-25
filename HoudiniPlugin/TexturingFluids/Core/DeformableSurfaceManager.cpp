@@ -165,7 +165,7 @@ void DeformableSurfaceManager::PoissonDiskSampling(GU_Detail *levelSet, GU_Detai
     std::clock_t addPoissonDisk;
     addPoissonDisk = std::clock();
 
-    cout << "[Yu2011:PoissonDiskSampling]"<<endl;
+    cout << "[DeformableSurfaceManager:PoissonDiskSampling]"<<endl;
 
     GEO_PointTreeGAOffset trackerTree;
     trackerTree.build(trackersGdp, NULL);
@@ -174,7 +174,7 @@ void DeformableSurfaceManager::PoissonDiskSampling(GU_Detail *levelSet, GU_Detai
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
 
-    cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
+    cout << "[DeformableSurfaceManager] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 }
 
@@ -196,7 +196,7 @@ void DeformableSurfaceManager::CreateAPatch(GU_Detail *trackersGdp,  ParametersD
     int numberOfClosePoint = 0;
     poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, UT_Vector3(0,0,0),UT_Vector3(0,1,0),1,numberOfClosePoint,params);
 
-    cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
+    cout << "[DeformableSurfaceManager] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 

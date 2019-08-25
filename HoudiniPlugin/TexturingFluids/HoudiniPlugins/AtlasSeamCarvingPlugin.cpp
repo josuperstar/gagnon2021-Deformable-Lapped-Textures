@@ -237,7 +237,7 @@ AtlasSeamCarvingPlugin::cookMySop(OP_Context &context)
     trackersCopy->copy(*trackersGdp);
 
     // We need to create a new Interface here:
-    AtlasInterface interface;
+    Gagnon2019AtlasSynthesis interface;
     bool synthesised = interface.Synthesis(gdp, surfaceCopy,trackersCopy, params);
     if (synthesised)
         cout << "was able to synthesis the atlas"<<endl;

@@ -3,7 +3,7 @@
 
 #include <Math/Vec3.h>
 #include <Core/ParticleTrackerManager.h>
-#include "Core/Deformations/Yu2011Distortion.h"
+#include "Core/Distortion/Sorkine2002DistortionMetric.h"
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 

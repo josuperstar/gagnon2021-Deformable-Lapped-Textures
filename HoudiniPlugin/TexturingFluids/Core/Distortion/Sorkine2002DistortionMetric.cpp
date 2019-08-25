@@ -1,7 +1,7 @@
-#include "Yu2011Distortion.h"
+#include "Sorkine2002DistortionMetric.h"
 #include <algorithm>    // std::max
 
-void Yu2011Distortion::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, GA_Offset trackerPpt,GA_PointGroup* pointGrp,GA_PrimitiveGroup *primGroup, ParametersDistortion params)
+void Sorkin2002DistortionMetric::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, GA_Offset trackerPpt,GA_PointGroup* pointGrp,GA_PrimitiveGroup *primGroup, ParametersDistortion params)
 {
     //cout << "DISTORTION : Yu2011 Distortion using homogeneous removal blending"<<endl;
     //Sorkine 2002 distortion metric: https://igl.ethz.ch/projects/parameterization/BDPMP/sorkine02.pdf

@@ -8,7 +8,7 @@
 //#include <GA_ElementGroup.h>
 #include <Math/Vec3.h>
 #include "Images/Image.h"
-#include "Approaches/AtlasInterface.h"
+#include "Approaches/Gagnon2019AtlasSynthesis.h"
 
 
 
@@ -79,7 +79,7 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    AtlasInterface interface;
+    Gagnon2019AtlasSynthesis interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;

@@ -5,7 +5,7 @@
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
-#include <Core/Deformations/ParametersDeformablePatches.h>
+#include <Core/Distortion/ParametersDeformablePatches.h>
 namespace TexturingFluids {
 
 #define VERBOSE 0

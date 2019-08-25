@@ -16,7 +16,7 @@
 namespace TexturingFluids {
 
 
-class Yu2011Distortion
+class Sorkin2002DistortionMetric
 {
 
 public:

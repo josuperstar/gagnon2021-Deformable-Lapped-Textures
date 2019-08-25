@@ -25,7 +25,7 @@ file( GLOB SOURCES
     ${SRC_DIR}/Approaches/*
     ${SRC_DIR}/Strategies/*.[hHcC]*
     ${SRC_DIR}/Core/*.[hHcC]*
-    ${SRC_DIR}/Core/Deformations/*
+    ${SRC_DIR}/Core/Distortion/*
     ${SRC_DIR}/Core/Atlas/*
     ${SRC_DIR}/Core/PoissonDisk/*
     ${SRC_DIR}/Tests/*

@@ -8,7 +8,7 @@
 #include <openvdb/tools/Interpolation.h>
 #include <openvdb/tools/GridOperators.h>
 #include <openvdb/math/Transform.h>
-#include <Core/Deformations/ParametersDeformablePatches.h>
+#include <Core/Distortion/ParametersDeformablePatches.h>
 using namespace TexturingFluids;
 using namespace std;
 

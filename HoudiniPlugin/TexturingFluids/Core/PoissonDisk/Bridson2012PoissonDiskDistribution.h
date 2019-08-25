@@ -10,7 +10,7 @@
 #include <openvdb/openvdb.h>
 #include <GU/GU_PrimVDB.h>
 #include <openvdb/tools/Interpolation.h>
-#include <Core/Deformations/ParametersDeformablePatches.h>
+#include <Core/Distortion/ParametersDeformablePatches.h>
 
 using namespace std;
 namespace TexturingFluids {

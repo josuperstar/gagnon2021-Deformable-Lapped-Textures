@@ -245,7 +245,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
     trackersCopy->clearAndDestroy();
     trackersCopy->copy(*trackersGdp);
 
-    AtlasInterface interface;
+    Gagnon2019AtlasSynthesis interface;
     bool synthesised = interface.Synthesis(gdp, surfaceCopy,trackersCopy, params);
     if (synthesised)
         cout << "was able to synthesis the atlas"<<endl;

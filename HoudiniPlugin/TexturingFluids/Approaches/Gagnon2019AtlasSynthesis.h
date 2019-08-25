@@ -13,21 +13,21 @@
 
 
 #include <GU/GU_Flatten.h>
-#include <Core/Deformations/ParametersDeformablePatches.h>
+#include <Core/Distortion/ParametersDeformablePatches.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 
 namespace TexturingFluids {
 
 
 
-class AtlasInterface
+class Gagnon2019AtlasSynthesis
 {
 
 public:
 
     //=========================== BUILD ======================================
-    AtlasInterface();
-    ~AtlasInterface();
+    Gagnon2019AtlasSynthesis();
+    ~Gagnon2019AtlasSynthesis();
 
     //==========================================================================
 
