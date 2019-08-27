@@ -17,7 +17,6 @@ public:
 
     Yu2011(GU_Detail *surface, GU_Detail *trackersGdp);
     ~Yu2011();
-    bool SynthesisSurface( GU_Detail *gdp, ParametersDeformablePatches params);
 
     void PoissonDiskSampling(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
     void AddPatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);
