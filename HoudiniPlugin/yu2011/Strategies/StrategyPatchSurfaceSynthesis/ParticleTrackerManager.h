@@ -11,12 +11,11 @@ namespace Mokko {
 #define VERBOSE 0
 
 
-class ParticleTrackerManager : public StrategyPatchSurfaceSynthesis
+class ParticleTrackerManager
 {
 public:
 
     ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
-    bool SynthesisSurface( GU_Detail *trackerGdp, ParametersDeformablePatches params);
 
     //vector<GA_Offset>  PoissonDiskDistribution(GU_Detail *gdp, ParametersDeformablePatches params);
     vector<GA_Offset>  CreateTrackers(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params, vector<GA_Offset> referencePoints);
