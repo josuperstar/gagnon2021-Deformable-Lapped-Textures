@@ -25,7 +25,7 @@
 #include <GU/GU_Flatten.h>
 
 //#include <Strategies/StrategySurfaceTextureSynthesis.h>
-#include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Bridson2012PoissonDiskDistribution.h>
 #include <Core/HoudiniUtils.h>
 
 

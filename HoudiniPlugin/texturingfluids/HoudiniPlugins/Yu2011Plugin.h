@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "HoudiniInterfaces/Yu2011Interface.h"
+#include "Approaches/Yu2011Interface.h"
 
 
 

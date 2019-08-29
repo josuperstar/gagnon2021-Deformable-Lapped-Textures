@@ -23,11 +23,11 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Strategies/StrategyPatchSurfaceSynthesis/Yu2011.h>
+#include <Core/Yu2011.h>
 
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
-#include <PoissonDisk/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Bridson2012PoissonDiskDistribution.h>
 
 SinglePatchInterface::SinglePatchInterface()
 {

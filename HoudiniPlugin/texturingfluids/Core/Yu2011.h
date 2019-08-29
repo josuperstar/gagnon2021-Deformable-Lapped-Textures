@@ -2,7 +2,7 @@
 #define __Yu2011_h__
 
 #include <Math/Vec3.h>
-#include <Strategies/StrategyPatchSurfaceSynthesis/DeformableGridsManager.h>
+#include <Core/DeformableGridsManager.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
