@@ -13,7 +13,7 @@
 #include <Core/Deformations/ParametersDeformablePatches.h>
 
 using namespace std;
-namespace Mokko {
+namespace TexturingFluids {
 
 
 //Based on paper from Bridson "Fast Poisson Disk Sampling in Arbritrary Dimensions"

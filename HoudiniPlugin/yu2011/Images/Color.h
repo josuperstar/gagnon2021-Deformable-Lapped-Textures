@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include <cmath>
 using namespace std;
-using namespace Mokko;
+using namespace TexturingFluids;
 
 class Pixel
 {

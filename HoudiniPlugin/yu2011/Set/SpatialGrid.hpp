@@ -2,7 +2,7 @@
 // Constructor / Destructor
 //------------------------------------------------------------------------------
 template<class T>
-SpatialGrid<T>::SpatialGrid(double cellSize, const Vec3f& volumeMin, const Mokko::Vec3f& volumeMax)
+SpatialGrid<T>::SpatialGrid(double cellSize, const Vec3f& volumeMin, const TexturingFluids::Vec3f& volumeMax)
 : _resX(0),
   _resY(0),
   _resZ(0),

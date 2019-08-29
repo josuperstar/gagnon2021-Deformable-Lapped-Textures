@@ -4,7 +4,7 @@
 
 
 //============================== GET POINT NEIGHBORHOODS ======================================
-using namespace Mokko;
+using namespace TexturingFluids;
 using namespace std;
 
 std::set<GA_Offset> HoudiniUtils::GetNeighbors(GU_Detail *gdp,GA_Offset ppt)

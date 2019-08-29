@@ -18,9 +18,9 @@
                 { evalString(str, name, vi, t); }
 
 using namespace std;
-using namespace Mokko;
+using namespace TexturingFluids;
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class AtlasPlugin : public SOP_Node

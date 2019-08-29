@@ -5,7 +5,7 @@
 #include <ostream>
 #include <math.h>
 
-namespace Mokko
+namespace TexturingFluids
 {
 
 template<typename T>

@@ -21,9 +21,9 @@
                 { evalStringRaw(str, name, vi, t); }
 
 using namespace std;
-using namespace Mokko;
+using namespace TexturingFluids;
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class AtlasSeamCarvingPlugin : public SOP_Node

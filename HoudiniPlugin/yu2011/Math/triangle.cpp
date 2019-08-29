@@ -1,7 +1,7 @@
 
 #include "triangle.h"
 
-using namespace Mokko;
+using namespace TexturingFluids;
 
 bool SameSide(Vec3d p1,Vec3d p2,Vec3d a, Vec3d b)
 {

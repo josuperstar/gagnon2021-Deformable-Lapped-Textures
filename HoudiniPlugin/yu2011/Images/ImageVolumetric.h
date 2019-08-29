@@ -8,7 +8,7 @@
 
 using namespace std;
 //using namespace cv;
-using namespace Mokko;
+using namespace TexturingFluids;
 
 struct VolumeHeader
 {
@@ -46,7 +46,7 @@ protected :
     //int m_height;
 
     //string filename;
-    vector<Mokko::Vec3d> colors;
+    vector<TexturingFluids::Vec3d> colors;
     //unsigned char * data;
     VolumeHeader  header;
 

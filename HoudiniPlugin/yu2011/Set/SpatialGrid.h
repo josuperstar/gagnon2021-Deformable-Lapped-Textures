@@ -11,7 +11,7 @@
 #include <vector>
 
 
-using namespace Mokko;
+using namespace TexturingFluids;
 
 // Class SpatialGrid : Grid for spatial partitionning
 template<class T>

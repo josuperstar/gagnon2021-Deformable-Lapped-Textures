@@ -16,7 +16,7 @@
 #include <tbb/blocked_range.h>
 #include <tbb/tbb.h>
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 
