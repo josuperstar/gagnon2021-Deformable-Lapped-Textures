@@ -9,7 +9,6 @@
 #include <GU/GU_RayIntersect.h>
 #include "Core/Deformations/ParametersDeformablePatches.h"
 
-using namespace TexturingFluids;
 
 namespace TexturingFluids {
 
