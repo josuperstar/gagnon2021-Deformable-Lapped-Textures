@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "HoudiniInterfaces/SinglePatchInterface.h"
+#include "Approaches/SinglePatchInterface.h"
 
 
 

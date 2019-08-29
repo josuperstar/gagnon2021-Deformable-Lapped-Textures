@@ -24,7 +24,7 @@ file( GLOB SOURCES
     ${SRC_DIR}/Set/*.h
     ${SRC_DIR}/Set/SpacialGrid.hpp
     ${SRC_DIR}/HoudiniPlugins/*
-    ${SRC_DIR}/HoudiniInterfaces/*
+    ${SRC_DIR}/Approaches/*
     ${SRC_DIR}/OldApproach/*
     ${SRC_DIR}/Strategies/*.[hHcC]*
     ${SRC_DIR}/Strategies/TextureSynthesis/*

@@ -2,7 +2,7 @@
 #define __DeformableGrid_h__
 
 #include <Math/Vec3.h>
-#include <Strategies/StrategyPatchSurfaceSynthesis/ParticleTrackerManager.h>
+#include <Core/ParticleTrackerManager.h>
 #include "Core/Deformations/Yu2011Distortion.h"
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
