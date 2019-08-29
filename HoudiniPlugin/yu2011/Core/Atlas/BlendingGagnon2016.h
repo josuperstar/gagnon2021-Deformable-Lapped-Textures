@@ -3,13 +3,10 @@
 
 #include <string>
 #include <vector>
-
-
 #include "Blending.h"
 
 
 namespace TexturingFluids {
-
 
 class BlendingGagnon2016 : public Blending
 {

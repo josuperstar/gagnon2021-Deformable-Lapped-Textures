@@ -18,8 +18,6 @@
 
 namespace TexturingFluids {
 
-
-
 class SinglePatchInterface
 {
 

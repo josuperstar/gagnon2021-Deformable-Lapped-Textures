@@ -6,14 +6,5 @@
 using namespace std;
 using namespace TexturingFluids;
 
-namespace TexturingFluids {
-
-
-class StrategyPatchSurfaceSynthesis
-{
-
-};
-
-}
 
 #endif

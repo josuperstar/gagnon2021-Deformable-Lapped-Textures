@@ -1,5 +1,3 @@
-
-
 #ifndef __AtlasPlugin_h__
 #define __AtlasPlugin_h__
 #include <vector>
@@ -18,7 +16,6 @@
                 { evalString(str, name, vi, t); }
 
 using namespace std;
-using namespace TexturingFluids;
 
 namespace TexturingFluids {
 

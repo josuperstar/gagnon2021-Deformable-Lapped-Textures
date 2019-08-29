@@ -18,7 +18,6 @@
                 { evalString(str, name, vi, t); }
 
 using namespace std;
-using namespace TexturingFluids;
 
 namespace TexturingFluids {
 
