@@ -6,7 +6,7 @@
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
-namespace Mokko {
+namespace TexturingFluids {
 
 #define VERBOSE 0
 

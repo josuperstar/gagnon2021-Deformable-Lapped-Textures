@@ -13,7 +13,7 @@
 #include <GU/GU_Flatten.h>
 #include "ParametersDistortion.h"
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class Yu2011Distortion

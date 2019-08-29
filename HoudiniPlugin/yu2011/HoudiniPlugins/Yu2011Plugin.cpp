@@ -41,7 +41,7 @@
 
 using namespace std;
 
-using namespace Mokko;
+using namespace TexturingFluids;
 
 
 //===================================================================================================================

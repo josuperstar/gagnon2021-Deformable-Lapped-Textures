@@ -6,7 +6,7 @@
 
 
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class Atlas

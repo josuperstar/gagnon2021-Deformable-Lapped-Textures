@@ -16,7 +16,7 @@
 #include <Core/Deformations/ParametersDeformablePatches.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 

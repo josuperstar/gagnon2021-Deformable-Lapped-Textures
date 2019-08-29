@@ -6,7 +6,7 @@
 #include "Blending.h"
 #include "Images/Color.h"
 
-namespace Mokko {
+namespace TexturingFluids {
 
 class BlendingYu2011 : public Blending
 {

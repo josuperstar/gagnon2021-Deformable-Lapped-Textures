@@ -33,7 +33,7 @@
 #define DEBUG 0
 
 using namespace std;
-using namespace Mokko;
+using namespace TexturingFluids;
 
 
 //===================================================================================================================

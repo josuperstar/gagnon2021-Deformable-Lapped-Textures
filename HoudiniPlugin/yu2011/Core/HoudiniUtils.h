@@ -8,7 +8,7 @@
 #include <vector>
 
 
-namespace Mokko {
+namespace TexturingFluids {
 
 
 class HoudiniUtils
