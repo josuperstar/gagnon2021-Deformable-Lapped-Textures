@@ -58,7 +58,7 @@ static PRM_Name        names[] = {
     PRM_Name("TrackersFilename",	"Trackers Filename"),
     PRM_Name("AngleNormalThreshold",	"Angle Normal Threshold"),
     PRM_Name("PoissonAngleNormalThreshold",	"Poisson Angle Normal Threshold"),
-
+    PRM_Name("CellSize",	"Cell Size"),
 };
 
 static PRM_Default StartFrameDefault(1);
@@ -67,6 +67,7 @@ static PRM_Default MinimumDistanceProjectionDefault(0.01f);
 static PRM_Default FadingTauDefault(48);
 static PRM_Default AngleNormalThresholdDefault(0.5f);
 static PRM_Default PoissonAngleNormalThresholdDefault(0.9f);
+static PRM_Default CellSizeDefault(0.1f);
 
 PRM_Template
 PoissonDiskPlugin::myTemplateList[] = {
@@ -79,6 +80,7 @@ PoissonDiskPlugin::myTemplateList[] = {
     PRM_Template(PRM_GEOFILE, 1, &names[6]),
     PRM_Template(PRM_FLT, 1, &names[7]),
     PRM_Template(PRM_FLT, 1, &names[8], &PoissonAngleNormalThresholdDefault),
+    PRM_Template(PRM_FLT, 1, &names[9], &CellSizeDefault),
     PRM_Template(),
 
 };
@@ -202,7 +204,7 @@ PoissonDiskPlugin::cookMySop(OP_Context &context)
     params.angleNormalThreshold = AngleNormalThreshold();
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
-
+    params.CellSize = CellSize();
     params.poissonAngleNormalThreshold = PoissonAngleNormalThreshold();
 
     const GU_Detail *trackersGdp = inputGeo(1);
