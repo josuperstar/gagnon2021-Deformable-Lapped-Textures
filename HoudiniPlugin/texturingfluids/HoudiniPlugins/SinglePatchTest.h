@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "Approaches/SinglePatchInterface.h"
+#include "Tests/SinglePatchInterface.h"
 
 
 

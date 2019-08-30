@@ -1,4 +1,4 @@
-#include "Yu2011.h"
+#include "PatchedSurface.h"
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
@@ -29,7 +29,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-Yu2011::Yu2011(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsManager(surface, trackersGdp)
+PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsManager(surface, trackersGdp)
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -143,7 +143,7 @@ Yu2011::Yu2011(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsMana
     this->numberOfDetachedPatches = 0;
 }
 
-Yu2011::~Yu2011()
+PatchedSurface::~PatchedSurface()
 {
     this->rays.clear();
 }
@@ -156,7 +156,7 @@ Yu2011::~Yu2011()
 //================================================================================================
 
 
-void Yu2011::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
 
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
@@ -179,7 +179,7 @@ void Yu2011::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, Pa
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 }
 
-void Yu2011::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
+void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
 {
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
     //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
@@ -211,7 +211,7 @@ void Yu2011::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches p
 //================================================================================================
 
 
-void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+void PatchedSurface::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
@@ -409,7 +409,7 @@ void Yu2011::AddPatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp
 //                                                  UpdateUsingBridson2012PoissonDisk
 //======================================================================================================================================
 
-void Yu2011::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
     cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
     std::clock_t startUpdatePatches;

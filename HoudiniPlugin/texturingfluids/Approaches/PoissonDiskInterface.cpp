@@ -23,7 +23,7 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/Yu2011.h>
+#include <Core/PatchedSurface.h>
 
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
@@ -39,7 +39,7 @@ PoissonDiskInterface::~PoissonDiskInterface()
 
 void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
-    Yu2011 strategy(surfaceGdp, trackersGdp);
+    PatchedSurface strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     params.useDynamicTau = false;
 

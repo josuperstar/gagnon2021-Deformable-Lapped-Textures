@@ -1,6 +1,5 @@
-#include "Yu2011Interface.h"
+#include "SinglePatchInterface.h"
 
-#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
@@ -24,23 +23,23 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/Yu2011.h>
+#include <Core/PatchedSurface.h>
 
 #include <Core/Atlas/HoudiniAtlas.h>
 #include <Core/Atlas/TBBAtlas.h>
 #include <Core/Bridson2012PoissonDiskDistribution.h>
 
-Yu2011Interface::Yu2011Interface()
+SinglePatchInterface::SinglePatchInterface()
 {
 }
 
-Yu2011Interface::~Yu2011Interface()
+SinglePatchInterface::~SinglePatchInterface()
 {
 }
 
-void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
+void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    Yu2011 strategy(surfaceGdp, trackersGdp);
+    PatchedSurface strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
@@ -60,8 +59,6 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
         return;
     }
     //=======================================================
-    GA_PointGroup *grp = (GA_PointGroup *)gdp->pointGroups().find(strategy.markerGroupName.c_str());
-
     GU_RayIntersect ray(gdp);
     ray.init();
     GEO_PointTreeGAOffset surfaceTree;
@@ -85,7 +82,8 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
 
     if(params.startFrame == params.frame)
     {
-        strategy.PoissonDiskSampling(levelSet,trackersGdp,params);
+        cout << "Creating a single poisson disk"<<endl;
+        strategy.CreateAPatch(trackersGdp, params);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)
@@ -93,10 +91,15 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     }
     else
     {
-        strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
-        if (!usingOnlyPoissonDisk)
+        bool testAdvection = false;
+        int frameToFlagToRemove = 100;
+        //TODO add a paramter to test the advection
+        if (testAdvection)
+        {
+            strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
             strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
-        strategy.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
+        }
+        //strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
@@ -131,8 +134,6 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
     gdp->clearAndDestroy();
     gdp->copy(*surfaceGdp);
 
-    int nbPatches = strategy.GetNumberOfPatches();
-
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
     cout << "--------------------------------------------------------------------------------"<<endl;
     cout << strategy.approachName<<" Poisson Disk Sampling "<<strategy.poissondisk<<endl;
@@ -146,12 +147,6 @@ void Yu2011Interface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail
 
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout << strategy.approachName<< " TOTAL: "<<total<<endl;
-
-    std::ofstream outfile;
-    outfile.open("core.csv", std::ios_base::app);
-    outfile <<strategy.poissondisk<<","<< strategy.gridMeshCreation << ","<<strategy.uvFlatteningTime << ","<<strategy.markerAdvectionTime
-            <<","<<strategy.gridAdvectionTime<<","<<strategy.patchCreationTime << ","<<strategy.updatePatchesTime<<","<<nbPatches<<endl;
-
     cout << "--------------------------------------------------------------------------------"<<endl;
 }
 
