@@ -1,4 +1,4 @@
-#include "HoudiniAtlas.h"
+#include "AtlasYu2011.h"
 #include <GU/GU_PrimPoly.h>
 //#include "TBBAtlas.h"
 

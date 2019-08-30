@@ -24,9 +24,6 @@
 #include <GU/GU_RayIntersect.h>
 
 #include <Core/PatchedSurface.h>
-
-#include <Core/Atlas/HoudiniAtlas.h>
-#include <Core/Atlas/TBBAtlas.h>
 #include <Core/Bridson2012PoissonDiskDistribution.h>
 
 SinglePatchInterface::SinglePatchInterface()
