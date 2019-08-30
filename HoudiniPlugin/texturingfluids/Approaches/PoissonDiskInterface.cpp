@@ -24,9 +24,6 @@
 #include <GU/GU_RayIntersect.h>
 
 #include <Core/PatchedSurface.h>
-
-#include <Core/Atlas/HoudiniAtlas.h>
-#include <Core/Atlas/TBBAtlas.h>
 #include <Core/Bridson2012PoissonDiskDistribution.h>
 
 PoissonDiskInterface::PoissonDiskInterface()
@@ -37,7 +34,7 @@ PoissonDiskInterface::~PoissonDiskInterface()
 {
 }
 
-void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
+void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
     PatchedSurface strategy(surfaceGdp, trackersGdp);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
@@ -59,10 +56,8 @@ void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         return;
     }
     //=======================================================
-    GA_PointGroup *grp = (GA_PointGroup *)gdp->pointGroups().find(strategy.markerGroupName.c_str());
 
-    GU_RayIntersect ray(gdp);
-    ray.init();
+
     GEO_PointTreeGAOffset surfaceTree;
     surfaceTree.build(surfaceGdp, NULL);
 
@@ -94,18 +89,16 @@ void PoissonDiskInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     cout << strategy.approachName<<" Done"<<endl;
     cout << "Clear surface tree"<<endl;
     surfaceTree.clear();
-    ray.clear();
 
-    cout << strategy.approachName<< " saving trackers data"<<endl;
+
+    cout << strategy.approachName<< " saving trackers data to ";
     const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
+    cout << filenameTrackers<<endl;
     trackersGdp->save(filenameTrackers,options,errors);
 
     //================================================================
     std::clock_t cleaningStart;
     cleaningStart = std::clock();
-    cout<< "Clear, Destroy and merge"<<endl;
-    gdp->clearAndDestroy();
-    gdp->copy(*surfaceGdp);
 
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
     cout << "--------------------------------------------------------------------------------"<<endl;

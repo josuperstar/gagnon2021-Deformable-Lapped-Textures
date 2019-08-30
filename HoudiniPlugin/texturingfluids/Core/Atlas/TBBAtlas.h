@@ -1,7 +1,7 @@
 #ifndef __TBB_Atlas_h__
 #define __TBB_Atlas_h__
 
-#include "HoudiniAtlas.h"
+#include "AtlasYu2011.h"
 
 using namespace TexturingFluids;
 

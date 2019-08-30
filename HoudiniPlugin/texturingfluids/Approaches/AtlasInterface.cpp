@@ -22,7 +22,7 @@
 
 #include <GU/GU_Flatten.h>
 
-#include <Core/Atlas/HoudiniAtlas.h>
+#include <Core/Atlas/AtlasYu2011.h>
 #include <Core/Atlas/TBBAtlas.h>
 #include <tbb/parallel_for.h>
 

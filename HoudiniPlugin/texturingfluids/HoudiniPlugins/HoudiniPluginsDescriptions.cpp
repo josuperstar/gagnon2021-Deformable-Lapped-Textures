@@ -9,6 +9,7 @@
 #include "Yu2011Plugin.h"
 #include "AtlasPlugin.h"
 #include "AtlasSeamCarvingPlugin.h"
+#include "PoissonDiskPlugin.h"
 #include "SinglePatchTest.h"
 
 
@@ -31,6 +32,13 @@ void newSopOperator(OP_OperatorTable *table)
                                         SinglePatchTest::myTemplateList,
                                         5,
                                         5,
+                                        0));
+     table->addOperator(new OP_Operator("hdk_Trackers",
+                                        "Trackers",
+                                        PoissonDiskPlugin::myConstructor,
+                                        PoissonDiskPlugin::myTemplateList,
+                                        3,
+                                        3,
                                         0));
 
      table->addOperator(new OP_Operator("hdk_AtlasYu2011",
