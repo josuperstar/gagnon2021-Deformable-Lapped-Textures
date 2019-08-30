@@ -156,7 +156,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     //=================================================================
     // 1: for all grid cells C where φ changes sign do
     //=================================================================
-    //int i = 0;
+    int nbOfCell = 0;
 
     cout << "[Bridson2012PoissonDiskDistribution] Step 1: for all grid cells C where φ changes sign do"<<endl;
     for (openvdb::FloatGrid::ValueOnCIter gridCellIt = gridSurface->cbeginValueOn(); gridCellIt; ++gridCellIt)
@@ -241,7 +241,9 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
                 //cout << "after "<<t<<" attemps, there is no possible insertion."<<endl;
             }
         }
+        nbOfCell++;
     }
+    cout << nbOfCell << " cells have been treated."<<endl;
     return;
 }
 

@@ -47,7 +47,7 @@ public:
     fpreal  PoissonAngleNormalThreshold() { return evalFloat("PoissonAngleNormalThreshold", 0, 0); }
     fpreal  TestPatch() { return evalFloat("TestPatch", 0, 0); }
     fpreal  PatchNumber() { return evalFloat("PatchNumber", 0, 0); }
-
+    fpreal  CellSize() { return evalFloat("CellSize", 0, 0); }
     //fpreal  TrackersFilename() { return evalString(trackersFilename,"TrackersFilename", 0, 0); }
     void  TrackersFilename(UT_String &str, fpreal t)
     { STR_PARM("TrackersFilename",  0, t) }
