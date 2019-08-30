@@ -1,5 +1,5 @@
-#ifndef __SinglePatchInterface_h__
-#define __SinglePatchInterface_h__
+#ifndef __Yu2011ExtentionInterface_h__
+#define __Yu2011ExtentionInterface_h__
 #include <cassert>
 #include <cmath>
 #include <vector>
@@ -9,7 +9,6 @@
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
 #include <GU/GU_Flatten.h>
-#include <Core/Deformations/Yu2011Distortion.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 
 #include <tbb/parallel_for.h>
@@ -18,14 +17,14 @@
 
 namespace TexturingFluids {
 
-class SinglePatchInterface
+class LagrangianTextureAdvection
 {
 
 public:
 
     //=========================== BUILD ======================================
-    SinglePatchInterface();
-    ~SinglePatchInterface();
+    LagrangianTextureAdvection();
+    ~LagrangianTextureAdvection();
 
     //==========================================================================
     void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet, GU_Detail *surfaceLowRes, ParametersDeformablePatches params);

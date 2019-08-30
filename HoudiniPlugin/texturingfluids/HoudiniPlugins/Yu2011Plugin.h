@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "Approaches/Yu2011Interface.h"
+#include "Approaches/LagrangianTextureAdvection.h"
 
 
 
@@ -83,7 +83,7 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    Yu2011Interface interface;
+    LagrangianTextureAdvection interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;

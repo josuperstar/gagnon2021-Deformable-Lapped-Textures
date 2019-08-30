@@ -1,5 +1,5 @@
-#ifndef __Yu2011ExtentionInterface_h__
-#define __Yu2011ExtentionInterface_h__
+#ifndef __SinglePatchInterface_h__
+#define __SinglePatchInterface_h__
 #include <cassert>
 #include <cmath>
 #include <vector>
@@ -9,7 +9,7 @@
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
 #include <GU/GU_Flatten.h>
-#include <Core/Deformations/Yu2011Distortion.h>
+#include <Core/Deformations/DistortionMetricSorkine2002.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 
 #include <tbb/parallel_for.h>
@@ -18,14 +18,14 @@
 
 namespace TexturingFluids {
 
-class Yu2011Interface
+class SinglePatchInterface
 {
 
 public:
 
     //=========================== BUILD ======================================
-    Yu2011Interface();
-    ~Yu2011Interface();
+    SinglePatchInterface();
+    ~SinglePatchInterface();
 
     //==========================================================================
     void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet, GU_Detail *surfaceLowRes, ParametersDeformablePatches params);

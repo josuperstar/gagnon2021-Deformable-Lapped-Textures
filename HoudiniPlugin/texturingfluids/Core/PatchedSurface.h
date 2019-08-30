@@ -11,12 +11,12 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class Yu2011 : public DeformableGridsManager
+class PatchedSurface : public DeformableGridsManager
 {
 public:
 
-    Yu2011(GU_Detail *surface, GU_Detail *trackersGdp);
-    ~Yu2011();
+    PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp);
+    ~PatchedSurface();
 
     void PoissonDiskSampling(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
     void AddPatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);

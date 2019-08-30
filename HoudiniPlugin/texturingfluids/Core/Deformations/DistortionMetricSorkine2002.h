@@ -8,7 +8,6 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-//#include "HoudiniInterfaces/TextureSynthesis.h"
 
 #include <GU/GU_Flatten.h>
 #include "ParametersDistortion.h"
@@ -16,7 +15,7 @@
 namespace TexturingFluids {
 
 
-class Yu2011Distortion
+class DistortionMetricSorkine2002
 {
 
 public:

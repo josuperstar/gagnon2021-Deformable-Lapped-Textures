@@ -35,6 +35,7 @@ file( GLOB SOURCES
     ${SRC_DIR}/Core/Atlas/*
     ${SRC_DIR}/PoissonDisk/*
     ${SRC_DIR}/Images/*
+    ${SRC_DIR}/Tests/*
     ${SRC_DIR}/Math/*
 )
 
