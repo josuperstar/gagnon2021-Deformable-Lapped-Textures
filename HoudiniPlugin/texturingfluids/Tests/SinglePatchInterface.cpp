@@ -93,7 +93,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         //TODO add a paramter to test the advection
         if (testAdvection)
         {
-            strategy.AdvectMarkers(surfaceLowResGdp,trackersGdp, params,surfaceLowResTree);
+            strategy.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
             strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
         }
         //strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
@@ -106,7 +106,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     if (!usingOnlyPoissonDisk)
     {
         //For the blending computation, we create uv array per vertex that we called patch
-        strategy.AddPatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
+        strategy.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
     }
 
     //=======================================================================

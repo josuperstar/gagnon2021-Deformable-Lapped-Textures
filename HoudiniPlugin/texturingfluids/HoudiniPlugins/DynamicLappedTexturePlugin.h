@@ -1,7 +1,7 @@
 
 
-#ifndef __Yu2011Plugin_h__
-#define __Yu2011Plugin_h__
+#ifndef __DynamicLappedTexturePlugin__
+#define __DynamicLappedTexturePlugin__
 #include <vector>
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "Approaches/LagrangianTextureAdvection.h"
+#include "Approaches/DynamicLappedTexture.h"
 
 
 
@@ -22,11 +22,11 @@ using namespace std;
 namespace TexturingFluids {
 
 
-class LagrangianTextureAdvectionPlugin : public SOP_Node
+class DynamicLappedTexturePlugin : public SOP_Node
 {
 public:
-    LagrangianTextureAdvectionPlugin(OP_Network *net, const char *name, OP_Operator *op);
-    virtual ~LagrangianTextureAdvectionPlugin();
+    DynamicLappedTexturePlugin(OP_Network *net, const char *name, OP_Operator *op);
+    virtual ~DynamicLappedTexturePlugin();
 
 	/// This method is created so that it can be called by handles.  It only
 	/// cooks the input group of this SOP.  The geometry in this group is
@@ -83,7 +83,7 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    LagrangianTextureAdvection interface;
+    DynamicLappedTexture interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;

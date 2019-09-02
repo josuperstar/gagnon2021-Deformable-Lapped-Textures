@@ -20,11 +20,11 @@ using namespace std;
 namespace TexturingFluids {
 
 
-class AtlasPlugin : public SOP_Node
+class AtlasYu2011Plugin : public SOP_Node
 {
 public:
-    AtlasPlugin(OP_Network *net, const char *name, OP_Operator *op);
-    virtual ~AtlasPlugin();
+    AtlasYu2011Plugin(OP_Network *net, const char *name, OP_Operator *op);
+    virtual ~AtlasYu2011Plugin();
 
 	/// This method is created so that it can be called by handles.  It only
 	/// cooks the input group of this SOP.  The geometry in this group is

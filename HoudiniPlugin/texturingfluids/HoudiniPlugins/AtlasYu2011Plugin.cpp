@@ -19,7 +19,7 @@
 #include <ctime>
 #include <Core/HoudiniUtils.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
-#include "AtlasPlugin.h"
+#include "AtlasYu2011Plugin.h"
 
 #include <omp.h>
 
@@ -60,7 +60,7 @@ static PRM_Name        names[] = {
 static PRM_Default PatchScalingDefault(1.0f);
 
 PRM_Template
-AtlasPlugin::myTemplateList[] =
+AtlasYu2011Plugin::myTemplateList[] =
 {
     PRM_Template(PRM_TOGGLE, 1, &names[5]),
     PRM_Template(PRM_INT, 1, &names[0]),
@@ -80,26 +80,26 @@ AtlasPlugin::myTemplateList[] =
 
 
 OP_Node *
-AtlasPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
+AtlasYu2011Plugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
 {
-    return new AtlasPlugin(net, name, op);
+    return new AtlasYu2011Plugin(net, name, op);
 }
 
-AtlasPlugin::AtlasPlugin(OP_Network *net, const char *name, OP_Operator *op)
+AtlasYu2011Plugin::AtlasYu2011Plugin(OP_Network *net, const char *name, OP_Operator *op)
 	: SOP_Node(net, name, op), myGroup(0)
 {
     // Make sure to flag that we can supply a guide geometry
     mySopFlags.setNeedGuide1(1);
 }
 
-AtlasPlugin::~AtlasPlugin()
+AtlasYu2011Plugin::~AtlasYu2011Plugin()
 {
     cout << "Destroying DeformablePatches"<<endl;
     //this->interface.~UnitTestInterface();
 }
 
 OP_ERROR
-AtlasPlugin::cookInputGroups(OP_Context &context, int alone)
+AtlasYu2011Plugin::cookInputGroups(OP_Context &context, int alone)
 {
     // If we are called by the handle, then "alone" equals 1.  In that
     // case, we have to lock the inputs oursevles, and unlock them
@@ -159,7 +159,7 @@ AtlasPlugin::cookInputGroups(OP_Context &context, int alone)
 
 
 OP_ERROR
-AtlasPlugin::cookMySop(OP_Context &context)
+AtlasYu2011Plugin::cookMySop(OP_Context &context)
 {
 	// Before we do anything, we must lock our inputs.  Before returning,
 	//	we have to make sure that the inputs get unlocked.
@@ -263,7 +263,7 @@ AtlasPlugin::cookMySop(OP_Context &context)
 
 
 const char *
-AtlasPlugin::inputLabel(unsigned) const
+AtlasYu2011Plugin::inputLabel(unsigned) const
 {
     return "Surface Deformable Patches";
 }
