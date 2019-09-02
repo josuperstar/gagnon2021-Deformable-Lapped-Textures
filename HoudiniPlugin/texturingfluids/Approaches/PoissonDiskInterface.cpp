@@ -62,34 +62,14 @@ void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
     surfaceTree.build(surfaceGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
-    //section 3.3.1 Particle Distribution
     strategy.PoissonDiskSampling(levelSet,trackersGdp,params);
     strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-
-    //---- for visualisation purpose
-
-    string beforeUpdateString = params.trackersFilename + "beforeAdvection.bgeo";
-    const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
-    trackersGdp->save(filename,options,errors);
-    //----------------------------------
-
-    //section 3.3.2 Particle Delition
-    strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
-
-    {
-        GA_Offset ppt;
-        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
-        {
-
-        }
-    }
-
+    strategy.AdvectSingleTrackers(surfaceGdp,trackersGdp, params);
     //=======================================================================
 
     cout << strategy.approachName<<" Done"<<endl;
     cout << "Clear surface tree"<<endl;
     surfaceTree.clear();
-
 
     cout << strategy.approachName<< " saving trackers data to ";
     const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";

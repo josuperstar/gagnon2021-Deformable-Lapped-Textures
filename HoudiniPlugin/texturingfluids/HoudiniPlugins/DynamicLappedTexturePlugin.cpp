@@ -2,7 +2,6 @@
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
-#include <UT/UT_DSOVersion.h>
 #include <UT/UT_Interrupt.h>
 #include <UT/UT_Matrix3.h>
 #include <UT/UT_Matrix4.h>
@@ -22,7 +21,7 @@
 #include <ctime>
 #include <Core/HoudiniUtils.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
-#include "Yu2011Plugin.h"
+#include "DynamicLappedTexturePlugin.h"
 
 
 #include <stdlib.h> /* getenv */
@@ -87,7 +86,7 @@ static PRM_Default CellSizeDefault(0.1f);
 static PRM_Default UseDynamicFadingDefault(1);
 
 PRM_Template
-LagrangianTextureAdvectionPlugin::myTemplateList[] = {
+DynamicLappedTexturePlugin::myTemplateList[] = {
     PRM_Template(PRM_FLT, 1, &names[0], &StartFrameDefault),
     PRM_Template(PRM_TOGGLE, 1, &names[1]),
     PRM_Template(PRM_TOGGLE, 1, &names[2]),
@@ -113,26 +112,26 @@ LagrangianTextureAdvectionPlugin::myTemplateList[] = {
 
 
 OP_Node *
-LagrangianTextureAdvectionPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
+DynamicLappedTexturePlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
 {
-    return new LagrangianTextureAdvectionPlugin(net, name, op);
+    return new DynamicLappedTexturePlugin(net, name, op);
 }
 
-LagrangianTextureAdvectionPlugin::LagrangianTextureAdvectionPlugin(OP_Network *net, const char *name, OP_Operator *op)
+DynamicLappedTexturePlugin::DynamicLappedTexturePlugin(OP_Network *net, const char *name, OP_Operator *op)
     : SOP_Node(net, name, op), myGroup(0)
 {
     // Make sure to flag that we can supply a guide geometry
     mySopFlags.setNeedGuide1(1);
 }
 
-LagrangianTextureAdvectionPlugin::~LagrangianTextureAdvectionPlugin()
+DynamicLappedTexturePlugin::~DynamicLappedTexturePlugin()
 {
-    cout << "Destroying DeformablePatches"<<endl;
+    cout << "Destroying DynamicLappedTexturePlugin"<<endl;
     //this->interface.~UnitTestInterface();
 }
 
 OP_ERROR
-LagrangianTextureAdvectionPlugin::cookInputGroups(OP_Context &context, int alone)
+DynamicLappedTexturePlugin::cookInputGroups(OP_Context &context, int alone)
 {
     // If we are called by the handle, then "alone" equals 1.  In that
     // case, we have to lock the inputs oursevles, and unlock them
@@ -192,7 +191,7 @@ LagrangianTextureAdvectionPlugin::cookInputGroups(OP_Context &context, int alone
 
 
 OP_ERROR
-LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
+DynamicLappedTexturePlugin::cookMySop(OP_Context &context)
 {
     // Before we do anything, we must lock our inputs.  Before returning,
     //	we have to make sure that the inputs get unlocked.
@@ -246,11 +245,11 @@ LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
     params.useDynamicTau = UseDynamicFading();
     if (params.useDynamicTau)
     {
-        cout << "======================== GAGNON 2019, frame  "<<frame<< "============================="<<endl;
+        cout << "======================== DynamicLappedTexturePlugin, frame  "<<frame<< "============================="<<endl;
     }
     else
     {
-        cout << "======================== YU 2011 Lagrangian Texture, frame  "<<frame<< "============================="<<endl;
+        cout << "======================== YDynamicLappedTexturePlugin, frame  "<<frame<< "============================="<<endl;
     }
 
     const GU_Detail * surface = inputGeo(1);
@@ -274,9 +273,9 @@ LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
     surfaceLowRes->clearAndDestroy();
     surfaceLowRes->copy(*surfaceLowResRef);
 
-    LagrangianTextureAdvection interface;
+    DynamicLappedTexture interface;
     //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
-    interface.Synthesis(gdp,surfaceCopy,trackersCopy,levelSet,surfaceLowRes, params);
+    interface.Synthesis(surfaceCopy,trackersCopy,levelSet,surfaceLowRes, params);
 
     delete trackersCopy;
     delete surfaceCopy;
@@ -290,7 +289,7 @@ LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
 }
 
 const char *
-LagrangianTextureAdvectionPlugin::inputLabel(unsigned) const
+DynamicLappedTexturePlugin::inputLabel(unsigned) const
 {
-    return "Surface Deformable Patches";
+    return "DynamicLappedTexturePlugin";
 }

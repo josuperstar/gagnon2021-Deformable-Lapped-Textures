@@ -1,0 +1,3 @@
+/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/CMakeFiles/rebuild_cache.dir
+/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/CMakeFiles/edit_cache.dir
+/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/CMakeFiles/Gagnon2019.dir

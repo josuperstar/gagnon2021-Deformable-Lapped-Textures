@@ -1,0 +1,379 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Gagnon2019"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\..\;CMake Files\..\..\..\..\..\;CMake Files\..\..\..\..\..\opt\;CMake Files\..\..\..\..\..\opt\hfs17.0\;CMake Files\..\..\..\..\..\opt\hfs17.0\toolkit\;CMake Files\..\..\..\..\..\opt\hfs17.0\toolkit\cmake\;CMake Files\..\..\..\..\..\usr\;CMake Files\..\..\..\..\..\usr\local\;CMake Files\..\..\..\..\..\usr\local\share\;CMake Files\..\..\..\..\..\usr\local\share\OpenCV\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Gagnon2019">
+				<Option output="/home/jonathan/houdini17.0/dso/Gagnon2019.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUT_DSO_TAGINFO=&quot;3262197cbf18461a22b20589491a9bf3254fc1f8ce2c94972ae5895d5a07d19e349a3083cb3f07750e03adb679c41b7b0ea0b042ae96bc64535973e27787cee25bcd65f0ff825b94b230971850a002eaab5cc5e1d688&quot;"/>
+					<Add option="-DVERSION=&quot;17.0.506&quot;"/>
+					<Add option="-DAMD64"/>
+					<Add option="-DSIZEOF_VOID_P=8"/>
+					<Add option="-DFBX_ENABLED=1"/>
+					<Add option="-DOPENCL_ENABLED=1"/>
+					<Add option="-DOPENVDB_ENABLED=1"/>
+					<Add option="-DSESI_LITTLE_ENDIAN"/>
+					<Add option="-DUT_ASSERT_LEVEL=0"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DENABLE_THREADS"/>
+					<Add option="-DUSE_PTHREADS"/>
+					<Add option="-D_REENTRANT"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DLINUX"/>
+					<Add option="-DMAKING_DSO"/>
+					<Add directory="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/."/>
+					<Add directory="/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default"/>
+					<Add directory="/usr/local/include/opencv"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/opt/hfs17.0/toolkit/include"/>
+					<Add directory="/opt/hfs17.0/toolkit/include/python2.7"/>
+					<Add directory="/usr/include/c++/8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/8"/>
+					<Add directory="/usr/include/c++/8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 Gagnon2019"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Gagnon2019/fast">
+				<Option output="/home/jonathan/houdini17.0/dso/Gagnon2019.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DUT_DSO_TAGINFO=&quot;3262197cbf18461a22b20589491a9bf3254fc1f8ce2c94972ae5895d5a07d19e349a3083cb3f07750e03adb679c41b7b0ea0b042ae96bc64535973e27787cee25bcd65f0ff825b94b230971850a002eaab5cc5e1d688&quot;"/>
+					<Add option="-DVERSION=&quot;17.0.506&quot;"/>
+					<Add option="-DAMD64"/>
+					<Add option="-DSIZEOF_VOID_P=8"/>
+					<Add option="-DFBX_ENABLED=1"/>
+					<Add option="-DOPENCL_ENABLED=1"/>
+					<Add option="-DOPENVDB_ENABLED=1"/>
+					<Add option="-DSESI_LITTLE_ENDIAN"/>
+					<Add option="-DUT_ASSERT_LEVEL=0"/>
+					<Add option="-D_GNU_SOURCE"/>
+					<Add option="-DENABLE_THREADS"/>
+					<Add option="-DUSE_PTHREADS"/>
+					<Add option="-D_REENTRANT"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DLINUX"/>
+					<Add option="-DMAKING_DSO"/>
+					<Add directory="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/."/>
+					<Add directory="/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default"/>
+					<Add directory="/usr/local/include/opencv"/>
+					<Add directory="/usr/local/include"/>
+					<Add directory="/opt/hfs17.0/toolkit/include"/>
+					<Add directory="/opt/hfs17.0/toolkit/include/python2.7"/>
+					<Add directory="/usr/include/c++/8"/>
+					<Add directory="/usr/include/x86_64-linux-gnu/c++/8"/>
+					<Add directory="/usr/include/c++/8/backward"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include"/>
+					<Add directory="/usr/lib/gcc/x86_64-linux-gnu/8/include-fixed"/>
+					<Add directory="/usr/include/x86_64-linux-gnu"/>
+					<Add directory="/usr/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 Gagnon2019/fast"/>
+					<CompileFile command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -j8 -f &quot;/home/jonathan/pg2019/HoudiniPlugin/build-texturingfluids-Desktop-Default/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/AtlasInterface.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/AtlasInterface.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/DynamicLappedTexture.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/DynamicLappedTexture.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/LagrangianTextureAdvection.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/LagrangianTextureAdvection.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/PoissonDiskInterface.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Approaches/PoissonDiskInterface.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/Atlas.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/AtlasYu2011.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/AtlasYu2011.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/Blending.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/BlendingGagnon2016.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/BlendingGagnon2016.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/BlendingYu2011.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/BlendingYu2011.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Atlas/TBBAtlas.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Bridson2012PoissonDiskDistribution.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Bridson2012PoissonDiskDistribution.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/DeformableGridsManager.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/DeformableGridsManager.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Deformations/DistortionMetricSorkine2002.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Deformations/DistortionMetricSorkine2002.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Deformations/ParametersDeformablePatches.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/Deformations/ParametersDistortion.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/HoudiniUtils.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/HoudiniUtils.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/ParticleTrackerManager.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/ParticleTrackerManager.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/PatchedSurface.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Core/PatchedSurface.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/AtlasSeamCarvingPlugin.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/AtlasSeamCarvingPlugin.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/AtlasYu2011Plugin.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/AtlasYu2011Plugin.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/DynamicLappedTexturePlugin.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/DynamicLappedTexturePlugin.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/HoudiniPluginsDescriptions.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/PoissonDiskPlugin.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/PoissonDiskPlugin.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/SinglePatchTest.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/SinglePatchTest.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/Yu2011Plugin.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/HoudiniPlugins/Yu2011Plugin.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/CMakeLists.txt">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/Color.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/Color.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/GaussianPyramid.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/GaussianPyramid.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/Image.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/ImageCV.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/ImageCV.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/ImageVolumetric.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/ImageVolumetric.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Images/package.py">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Math/README.md">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Math/Vec3.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Math/Vec3.hpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Math/mtime.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Math/mtime.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Math/triangle.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Math/triangle.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/Element.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/GridSet.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/KdTree.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/KdTreeNode.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/Node.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/Set.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/SpaceStructuredSet.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/SpatialGrid.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/Tree.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Set/point_set.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Strategies/StrategyPatchSurfaceSynthesis.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Tests/SinglePatchInterface.cpp">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/Tests/SinglePatchInterface.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/version.h">
+			<Option target="Gagnon2019"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/../../../../../opt/hfs17.0/toolkit/cmake/HoudiniConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\opt\hfs17.0\toolkit\cmake\"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/../../../../../opt/hfs17.0/toolkit/cmake/HoudiniConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\opt\hfs17.0\toolkit\cmake\"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/../../../../../usr/local/share/OpenCV/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/../../../../../usr/local/share/OpenCV/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/../../../../../usr/local/share/OpenCV/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/jonathan/pg2019/HoudiniPlugin/texturingfluids/../../../../../usr/local/share/OpenCV/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\..\..\usr\local\share\OpenCV\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>

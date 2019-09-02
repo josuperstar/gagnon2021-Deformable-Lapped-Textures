@@ -7,10 +7,11 @@
 
 
 #include "Yu2011Plugin.h"
-#include "AtlasPlugin.h"
+#include "AtlasYu2011Plugin.h"
 #include "AtlasSeamCarvingPlugin.h"
 #include "PoissonDiskPlugin.h"
 #include "SinglePatchTest.h"
+#include "DynamicLappedTexturePlugin.h"
 
 
 // -----------------------------------------------------------------------------
@@ -19,9 +20,17 @@
 void newSopOperator(OP_OperatorTable *table)
 {
      table->addOperator(new OP_Operator("hdk_Yu2011",
-                                        "Yu2011",
-                                        Yu2011Plugin::myConstructor,
-                                        Yu2011Plugin::myTemplateList,
+                                        "LagrangianTextureAdvection",
+                                        LagrangianTextureAdvectionPlugin::myConstructor,
+                                        LagrangianTextureAdvectionPlugin::myTemplateList,
+                                        5,
+                                        5,
+                                        0));
+
+     table->addOperator(new OP_Operator("hdk_Gagnon2016",
+                                        "DynamicLappedTexture",
+                                        DynamicLappedTexturePlugin::myConstructor,
+                                        DynamicLappedTexturePlugin::myTemplateList,
                                         5,
                                         5,
                                         0));
@@ -43,8 +52,8 @@ void newSopOperator(OP_OperatorTable *table)
 
      table->addOperator(new OP_Operator("hdk_AtlasYu2011",
                                        "AtlasYu2011",
-                                       AtlasPlugin::myConstructor,
-                                       AtlasPlugin::myTemplateList,
+                                       AtlasYu2011Plugin::myConstructor,
+                                       AtlasYu2011Plugin::myTemplateList,
                                        3,
                                        3,
                                        0));
