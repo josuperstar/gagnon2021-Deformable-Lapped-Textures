@@ -12,7 +12,6 @@
 #include <OP/OP_OperatorTable.h>
 #include <PRM/PRM_SpareData.h>
 #include <SOP/SOP_Guide.h>
-//#include "DeformablePatches.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -25,16 +24,10 @@
 
 
 #include <stdlib.h> /* getenv */
-
-
 #include <omp.h>
-
-//#include "vector.h"
 #include <Math/Vec3.h>
-
 #include <iostream>
-//#include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
-//#include <CGAL/convex_hull_2.h>
+
 
 #define DEBUG 0
 
@@ -50,62 +43,39 @@ using namespace TexturingFluids;
 
 
 static PRM_Name        names[] = {
-
     PRM_Name("StartFrame",	"Start Frame"),
-    PRM_Name("UpdateDistribution",	"Update Distribution"),
-    PRM_Name("ComputeDistortion",	"ComputeDistortion"),
-    PRM_Name("UseDeformableGrids",	"Use Deformable Grids for Atlas"),
     PRM_Name("MinimumDistanceProjection",	"Minimum Distance Projection"),
-    PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),//5
-    PRM_Name("FadingTau",	"Fading Tau"),
-    PRM_Name("Yu2011DMax",	"Yu 2011 DMax"),
-    PRM_Name("QvMin",	"Yu 2011 QvMin"),
+    PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),
     PRM_Name("TestPatch", "Test Patch"),
-    PRM_Name("PatchNumber",	"PatchNumber"),//10
+    PRM_Name("PatchNumber",	"PatchNumber"),
     PRM_Name("TrackersFilename",	"Trackers Filename"),
-    PRM_Name("DeformableGridsFilename",	"Deformable Grids Filename"),
     PRM_Name("PatchAngleNormalThreshold",	"Patch Angle Normal Threshold"),
     PRM_Name("PoissonAngleNormalThreshold",	"Poisson Angle Normal Threshold"),
     PRM_Name("UVScaling",	"UV Scaling"),
-    PRM_Name("Yu2011Beta",	"Yu2011 Beta"),
     PRM_Name("CellSize",	"Cell Size"),
-    PRM_Name("UseDynamicFading",	"Use Dynamic Fading"),
 };
 
 static PRM_Default StartFrameDefault(1);
 static PRM_Default PoissonDiskRadiusDefault(1.0f);
 static PRM_Default MinimumDistanceProjectionDefault(0.01f);
-static PRM_Default FadingTauDefault(48);
-static PRM_Default Yu2011DMaxDefault(2.0f);
-static PRM_Default QvMinDefault(0.5f);
 static PRM_Default AngleNormalThresholdDefault(0.5f);
 static PRM_Default PoissonAngleNormalThresholdDefault(0.9f);
 static PRM_Default UVScalingDefault(2.0f);
-static PRM_Default Yu2011BetaDefault(0.6f);
 static PRM_Default CellSizeDefault(0.1f);
-static PRM_Default UseDynamicFadingDefault(1);
+
 
 PRM_Template
 DynamicLappedTexturePlugin::myTemplateList[] = {
     PRM_Template(PRM_FLT, 1, &names[0], &StartFrameDefault),
-    PRM_Template(PRM_TOGGLE, 1, &names[1]),
-    PRM_Template(PRM_TOGGLE, 1, &names[2]),
-    PRM_Template(PRM_TOGGLE, 1, &names[3]),
-    PRM_Template(PRM_FLT, 1, &names[4], &MinimumDistanceProjectionDefault),
-    PRM_Template(PRM_FLT, 1, &names[5],&PoissonDiskRadiusDefault),
-    PRM_Template(PRM_FLT, 1, &names[6], &FadingTauDefault),
-    PRM_Template(PRM_FLT, 1, &names[7]),
-    PRM_Template(PRM_FLT, 1, &names[8]),
-    PRM_Template(PRM_TOGGLE, 1, &names[9]),
-    PRM_Template(PRM_INT, 1, &names[10]),
-    PRM_Template(PRM_GEOFILE, 1, &names[11]),
-    PRM_Template(PRM_GEOFILE, 1, &names[12]),
-    PRM_Template(PRM_FLT, 1, &names[13], &AngleNormalThresholdDefault),
-    PRM_Template(PRM_FLT, 1, &names[14], &PoissonAngleNormalThresholdDefault),
-    PRM_Template(PRM_FLT, 1, &names[15], &UVScalingDefault),
-    PRM_Template(PRM_FLT, 1, &names[16], &Yu2011BetaDefault),
-    PRM_Template(PRM_FLT, 1, &names[17], &CellSizeDefault),
-    PRM_Template(PRM_TOGGLE, 1, &names[18]),
+    PRM_Template(PRM_FLT, 1, &names[1], &MinimumDistanceProjectionDefault),
+    PRM_Template(PRM_FLT, 1, &names[2], &PoissonDiskRadiusDefault),
+    PRM_Template(PRM_TOGGLE, 1, &names[3]), //TestPatch
+    PRM_Template(PRM_INT, 1, &names[4]), //PatchNumber
+    PRM_Template(PRM_GEOFILE, 1, &names[5]), //TrackersFilename
+    PRM_Template(PRM_FLT, 1, &names[6], &AngleNormalThresholdDefault),
+    PRM_Template(PRM_FLT, 1, &names[7], &PoissonAngleNormalThresholdDefault),
+    PRM_Template(PRM_FLT, 1, &names[8], &UVScalingDefault),
+    PRM_Template(PRM_FLT, 1, &names[9], &CellSizeDefault),
     PRM_Template(),
 
 };
@@ -222,65 +192,33 @@ DynamicLappedTexturePlugin::cookMySop(OP_Context &context)
     params.startFrame = startFrame;
     params.startNumber = startNumber;
     params.poissondiskradius = PoissonDiskRadius();
-    params.updateDistribution = UpdateDistribution();
     params.maximumProjectionDistance = MinimumDistanceProjection();
-    params.computeDistortion = ComputeDistortion();
-    params.fadingTau = FadingTau();
-    params.Yu2011DMax = Yu2011DMax();
-    params.QvMin = QvMin();
     params.testPatch = TestPatch();
     params.patchNumber = PatchNumber();
-    params.useDeformableGrids = UseDeformableGrids();
     params.angleNormalThreshold = PatchAngleNormalThreshold();
     params.poissonAngleNormalThreshold = PoissonAngleNormalThreshold();
     params.UVScaling = UVScaling();
-    params.Yu2011Beta = Yu2011Beta();
     params.CellSize = CellSize();
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
 
-    DeformableGridsFilename(deformableGridsFilename,now);
-    params.deformableGridsFilename = deformableGridsFilename;
+    cout << "======================== DynamicLappedTexturePlugin, frame  "<<frame<< "============================="<<endl;
 
-    params.useDynamicTau = UseDynamicFading();
-    if (params.useDynamicTau)
-    {
-        cout << "======================== DynamicLappedTexturePlugin, frame  "<<frame<< "============================="<<endl;
-    }
-    else
-    {
-        cout << "======================== YDynamicLappedTexturePlugin, frame  "<<frame<< "============================="<<endl;
-    }
-
-    const GU_Detail * surface = inputGeo(1);
-    surface = inputGeo(1);
-    GU_Detail *surfaceCopy = new GU_Detail();
-    surfaceCopy->clearAndDestroy();
-    surfaceCopy->copy(*surface);
-
-    const GU_Detail *trackersGdp = inputGeo(2);
+    const GU_Detail *trackersGdp = inputGeo(1);
     GU_Detail *trackersCopy = new GU_Detail();
     trackersCopy->clearAndDestroy();
     trackersCopy->copy(*trackersGdp);
 
-    const GU_Detail *levelSetRef = inputGeo(3);
+    const GU_Detail *levelSetRef = inputGeo(2);
     GU_Detail *levelSet = new GU_Detail();
     levelSet->clearAndDestroy();
     levelSet->copy(*levelSetRef);
 
-    const GU_Detail *surfaceLowResRef = inputGeo(4);
-    GU_Detail *surfaceLowRes = new GU_Detail();
-    surfaceLowRes->clearAndDestroy();
-    surfaceLowRes->copy(*surfaceLowResRef);
-
     DynamicLappedTexture interface;
-    //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
-    interface.Synthesis(surfaceCopy,trackersCopy,levelSet,surfaceLowRes, params);
+    interface.Synthesis(gdp,trackersCopy,levelSet, params);
 
     delete trackersCopy;
-    delete surfaceCopy;
     delete levelSet;
-    delete surfaceLowRes;
 
     unlockInputs();
     resetLocalVarRefs();

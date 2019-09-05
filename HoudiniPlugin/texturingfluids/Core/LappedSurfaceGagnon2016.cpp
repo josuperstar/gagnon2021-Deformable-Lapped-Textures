@@ -1,4 +1,4 @@
-#include "PatchedSurface.h"
+#include "LappedSurfaceGagnon2016.h"
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
@@ -29,11 +29,11 @@
 #include <Core/HoudiniUtils.h>
 
 
-PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsManager(surface, trackersGdp)
+LappedSurfaceGagnon2016::LappedSurfaceGagnon2016(GU_Detail *surface, GU_Detail *trackersGdp) : ParticleAndTrackerManagerGagnon2016(surface, trackersGdp)
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
-    this->gridCenterPosition.clear();
+
 
     /*
     uvsArray->clear(this->uvsAtt);
@@ -131,19 +131,15 @@ PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : Def
     }
     alphaArrayAtt->clearDataId();
 
-    this->uvFlatteningTime = 0;
-    this->gridMeshCreation = 0;
-    this->gridAdvectionTime = 0;
     this->markerAdvectionTime = 0;
     this->patchCreationTime = 0;
-    this->nbOfFlattenedPatch = 0;
     this->updatePatchesTime = 0;
     this->numberOfConcealedPatches = 0;
     this->numberOfNewPatches = 0;
     this->numberOfDetachedPatches = 0;
 }
 
-PatchedSurface::~PatchedSurface()
+LappedSurfaceGagnon2016::~LappedSurfaceGagnon2016()
 {
     this->rays.clear();
 }
@@ -156,7 +152,7 @@ PatchedSurface::~PatchedSurface()
 //================================================================================================
 
 
-void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void LappedSurfaceGagnon2016::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
 
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
@@ -179,7 +175,7 @@ void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *tracker
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 }
 
-void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
+void LappedSurfaceGagnon2016::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
 {
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
     //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
@@ -204,6 +200,7 @@ void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformableP
 }
 
 
+
 //================================================================================================
 
 //                                       ADD PATCHES USING BARYCENTRIC COORDONATE
@@ -211,33 +208,18 @@ void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformableP
 //================================================================================================
 
 
-void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree)
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
-    cout << "[AddPatchesUsingBarycentricCoordinates]" << endl;
+    cout << "[AddSolidPatchesUsingBarycentricCoordinates]" << endl;
 
     std::clock_t addPatchesStart;
     addPatchesStart = std::clock();
 
-
-    float beta = params.Yu2011Beta;
-    float d = params.poissondiskradius;
-    float gridwidth = (2+beta)*d; //same formula used in DeformableGrids.cpp
-    fpreal patchRadius = (fpreal)gridwidth;
-
+    fpreal patchRadius = 2*params.poissondiskradius;
+    float cs = params.CellSize;
     //================================ CREATE PATCH GROUPS ==============================
-    //GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
-
-    GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
-    const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
-
-    /*
-    GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
-    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    */
     GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attNumberOfPatch(surfaceGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
 
@@ -247,10 +229,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
         return;
     }
 
-
     set<int> patchTreated;
-    float thresholdDistance = params.maximumProjectionDistance;
-    float cs = params.CellSize;
     float r = params.poissondiskradius;
     GA_Offset ppt;
     UT_Vector3 N;
@@ -261,6 +240,8 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
     GA_Offset surfacePointOffset;
     int patchNumber = 0;
     {
+        //================== CREATE PATCHES =================
+        // create a group of point based on trackers position
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
             patchNumber = attId.get(ppt);
@@ -287,12 +268,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
             UT_String patchGroupName("patch"+str);
             //cout << "Create patch "<<patchGroupName<<endl;
             GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
-            UT_String gridGroupName("grid"+str);
-            GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
-            if (gridPrimitiveGroup == 0x0)
-                continue;
 
-            ray.init(deformableGridsGdp,gridPrimitiveGroup);
 
             set<GA_Offset> neighborhood;
             for(int j=0; j<close_particles_count;j++ )
@@ -315,7 +291,6 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
                 UT_Vector3 pos          = patchP;
                 //=====================================================
-
                 UT_Vector3 pNp          = position - pos;
                 pNp.normalize();
                 dotP              = dot(pNp, N);
@@ -326,30 +301,13 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
                 float k        = (1-dp)*r*3;
                 if (k < cs*2)
                     k = cs*2;
-                //bool insideBigEllipse    = d < k;
-                //if (!insideBigEllipse)
-                //    continue;
-
                 //=====================================================
-
-
-                //------------------------------------ RAY -----------------------------------------
-                //project patchP on trackers set
-                GU_MinInfo mininfo;
-                mininfo.init(thresholdDistance,0.0001);
-                ray.minimumPoint(patchP,mininfo);
-                if (mininfo.prim == 0x0)
-                {
-                    //we can't project the point on the surface
-                    continue;
-                }
                 patchGroup->addOffset(surfacePointOffset);
                 patchIdsAtt->get(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
                 int exist = patchArrayData.find(patchNumber);
                 if (exist == -1)
                 {
                     patchArrayData.append(patchNumber);
-
                     int numberOfPatch = attNumberOfPatch.get(surfacePointOffset);
                     numberOfPatch++;
                     attNumberOfPatch.set(surfacePointOffset,numberOfPatch);
@@ -359,7 +317,6 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
             neighborhood.clear();
         }
     }
-
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
@@ -405,12 +362,46 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
     this->patchCreationTime += (std::clock() - addPatchesStart) / (double) CLOCKS_PER_SEC;
 }
 
+void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+{
+    this->orthogonalUVProjectionTime = 0;
+    std::clock_t projectionStart;
+    projectionStart = std::clock();
+    GA_GroupType groupType = GA_GROUP_POINT;
+    const GA_GroupTable *gtable = surface->getGroupTable(groupType);
+    int patchNumber=0;
+    GA_Offset ppt;
+    UT_FloatArray         uvArrayData;
+
+    GA_FOR_ALL_PTOFF(trackersGdp, ppt)
+    {
+        patchNumber = attId.get(ppt);
+        UT_String patchGroupName("patch"+patchNumber);
+        GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(patchGroupName);
+        //cout << "UV projection on group patch"<<patchNumber<<endl;
+        GA_Offset p;
+        GA_FOR_ALL_GROUP_PTOFF(surface,pointGrp,p)
+        {
+            //compute orthogonal projection:
+            UT_Vector3 uvPatch = UT_Vector3(1,0,0);
+
+            // save the uv coordinate in the array of the point:
+            uvsArray->get(uvsAtt, p, uvArrayData);
+            uvArrayData.append(uvPatch.x());
+            uvArrayData.append(uvPatch.y());
+            uvArrayData.append(uvPatch.z());
+            // Write back
+            uvsArray->set(uvsAtt, p, uvArrayData);
+        }
+    }
+    this->orthogonalUVProjectionTime += (std::clock() - projectionStart) / (double) CLOCKS_PER_SEC;
+}
 
 //======================================================================================================================================
 //                                                  UpdateUsingBridson2012PoissonDisk
 //======================================================================================================================================
 
-void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void LappedSurfaceGagnon2016::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
     cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
     std::clock_t startUpdatePatches;
@@ -488,6 +479,7 @@ void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp,
 
     cout <<this->approachName<< " Added "<<(numberOfPatches-beforeAddingNumber) <<" new patches"<<endl;
     cout <<this->approachName<< " Removed "<<(numberOfConcealedPatches)<<" patches "<<endl;
+    cout <<this->approachName<< "uv projection time "<<orthogonalUVProjectionTime<< endl;
     this->updatePatchesTime += (std::clock() - startUpdatePatches) / (double) CLOCKS_PER_SEC;
     cout << this->approachName<<" TOTAL "<<numberOfPatches<< " patches"<<endl;
 }

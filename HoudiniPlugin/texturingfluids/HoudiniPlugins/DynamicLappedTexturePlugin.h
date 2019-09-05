@@ -40,25 +40,15 @@ public:
     fpreal  StartFrame() { return evalFloat("StartFrame", 0, 0); }
     fpreal  UpdateDistribution() { return evalFloat("UpdateDistribution", 0, 0); }
     fpreal  MinimumDistanceProjection() { return evalFloat("MinimumDistanceProjection", 0, 0); }
-    fpreal  ComputeDistortion() { return evalFloat("ComputeDistortion", 0, 0); }
-  
-    fpreal  FadingTau() { return evalFloat("FadingTau", 0, 0); }
     fpreal  PatchAngleNormalThreshold() { return evalFloat("PatchAngleNormalThreshold", 0, 0); }
     fpreal  PoissonAngleNormalThreshold() { return evalFloat("PoissonAngleNormalThreshold", 0, 0); }
     fpreal  UVScaling() { return evalFloat("UVScaling", 0, 0); }
-    fpreal  Yu2011Beta() { return evalFloat("Yu2011Beta", 0, 0); }
-    fpreal  Yu2011DMax() { return evalFloat("Yu2011DMax", 0, 0); }
-    fpreal  QvMin() { return evalFloat("QvMin", 0, 0); } 
     fpreal  TestPatch() { return evalFloat("TestPatch", 0, 0); }
     fpreal  PatchNumber() { return evalFloat("PatchNumber", 0, 0); }
-    fpreal  UseDeformableGrids() { return evalFloat("UseDeformableGrids", 0, 0); }
-    //fpreal  TrackersFilename() { return evalString(trackersFilename,"TrackersFilename", 0, 0); }
     void  TrackersFilename(UT_String &str, fpreal t)
     { STR_PARM("TrackersFilename",  0, t) }
-    void  DeformableGridsFilename(UT_String &str, fpreal t)
-    { STR_PARM("DeformableGridsFilename",  0, t) }
     fpreal  CellSize() { return evalFloat("CellSize", 0, 0); }
-    fpreal  UseDynamicFading() { return evalFloat("UseDynamicFading", 0, 0); }
+
 
 
 
@@ -86,7 +76,6 @@ private:
     DynamicLappedTexture interface;
 
     UT_String trackersFilename;
-    UT_String deformableGridsFilename;
     UT_String textureExemplar1Name;
     UT_String textureExemplar1MaskName;
     UT_String displacementMap1Name;

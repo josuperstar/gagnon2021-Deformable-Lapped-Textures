@@ -1,8 +1,8 @@
-#ifndef __PatchedSurface__
-#define __PatchedSurface__
+#ifndef __LAPPED_SURFACE_H__
+#define __LAPPED_SURFACE_H__
 
 #include <Math/Vec3.h>
-#include <Core/DeformableGridsManager.h>
+#include <Core/ParticleAndTrackerManagerGagnon2016.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
@@ -11,24 +11,29 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class PatchedSurface : public DeformableGridsManager
+class LappedSurfaceGagnon2016 : public ParticleAndTrackerManagerGagnon2016
 {
 public:
 
-    PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp);
-    ~PatchedSurface();
+    LappedSurfaceGagnon2016(GU_Detail *surface, GU_Detail *trackersGdp);
+    ~LappedSurfaceGagnon2016();
 
     void PoissonDiskSampling(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
-    void AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);
+    void AddSolidPatchesUsingBarycentricCoordinates(GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree);
+    void OrthogonalUVProjection(GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params);
     void DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
-
+    void FillSurfaceHoles(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
     //for test purpose
     void CreateAPatch(GU_Detail *trackers, ParametersDeformablePatches params);
 
     double poissondisk;
     double  patchCreationTime;
     double  updatePatchesTime;
-    const string approachName   = "[Yu 2011 extention]";
+    double orthogonalUVProjectionTime;
+    const string approachName   = "[DynamicLappedTexture]";
+    const string uvArrayName = "uvs";
+    const string alphaArrayName = "alphas";
+    const string patchIdsName = "patchIds";
 
 private :
 
