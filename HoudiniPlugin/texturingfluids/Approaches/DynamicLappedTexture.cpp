@@ -24,7 +24,7 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/PatchedSurface.h>
+#include <Core/LappedSurfaceGagnon2016.h>
 #include <Core/Bridson2012PoissonDiskDistribution.h>
 
 DynamicLappedTexture::DynamicLappedTexture()
@@ -35,16 +35,14 @@ DynamicLappedTexture::~DynamicLappedTexture()
 {
 }
 
-void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
+void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, ParametersDeformablePatches params)
 {
-    PatchedSurface surface(surfaceGdp, trackersGdp);
+    LappedSurfaceGagnon2016 surface(surfaceGdp, trackersGdp);
     cout << "[DynamicLappedTexture::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
     std::clock_t start;
     start = std::clock();
-    vector<GA_Offset> newPatchesPoints;
-    vector<GA_Offset> trackers;
     cout << "reference gdp created"<<endl;
     const GA_SaveOptions *options;
     UT_StringArray *errors;
@@ -59,29 +57,26 @@ void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
 
     GEO_PointTreeGAOffset surfaceTree;
     surfaceTree.build(surfaceGdp, NULL);
-    GEO_PointTreeGAOffset surfaceLowResTree;
-    surfaceLowResTree.build(surfaceLowResGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
 
-    bool usingOnlyPoissonDisk = false;
     if(params.startFrame == params.frame)
     {
         surface.PoissonDiskSampling(levelSet,trackersGdp,params);
-        surface.UpdateTrackersAndTangeant(surfaceGdp,trackersGdp, surfaceGroup,params);
-
+        //surface.InitializeTrackersAndTangeants(surfaceGdp,trackersGdp,surfaceGroup,params);
+        cout << "[DynamicLappedTexture::Synthesis] CreateAndUpdateTrackersBasedOnPoissonDisk"<<endl;
+        surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp,surfaceGroup,params);
     }
     else
     {
-        surface.AdvectTrackersAndTangeants(surfaceLowResGdp,trackersGdp, params);
-        surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
+        surface.AdvectTrackersAndTangeants(surfaceGdp, trackersGdp, params);
+
         surface.UpdateTrackersAndTangeant(surfaceGdp,trackersGdp, surfaceGroup,params);
     }
-    if (!usingOnlyPoissonDisk)
-    {
-        //For the blending computation, we create uv array per vertex that we called patch
-        surface.AddSolidPatchesUsingBarycentricCoordinates(surfaceGdp,trackersGdp, params,surfaceTree);
-    }
+
+    //For the blending computation, we create uv array per vertex that we called patch
+//    surface.AddSolidPatchesUsingBarycentricCoordinates(surfaceGdp,trackersGdp, params,surfaceTree);
+//    surface.OrthogonalUVProjection(surfaceGdp,trackersGdp,params);
 
     //=======================================================================
 
@@ -89,8 +84,9 @@ void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
     cout << "Clear surface tree"<<endl;
     surfaceTree.clear();
 
-    cout << surface.approachName<< " saving trackers data"<<endl;
     const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
+    cout << surface.approachName<< " saving trackers data in "<<filenameTrackers<<endl;
+
     trackersGdp->save(filenameTrackers,options,errors);
 
     //================================================================
@@ -103,9 +99,9 @@ void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
     cout << "--------------------------------------------------------------------------------"<<endl;
     cout << surface.approachName<<" Poisson Disk Sampling "<<surface.poissondisk<<endl;
-    cout << surface.approachName<<" Uv flattening time "<<surface.uvFlatteningTime<<" for "<<surface.nbOfFlattenedPatch<<" patches"<<endl;
     cout << surface.approachName<<" Tracker advection time "<<surface.markerAdvectionTime<<endl;
     cout << surface.approachName<<" Patch creation time "<<surface.patchCreationTime<<endl;
+    cout << surface.approachName<<" UV Orthogonal Projection "<<surface.orthogonalUVProjectionTime<<endl;
     cout << surface.approachName<<" Clear and Destroy "<<cleaningSurface<<endl;
     cout << surface.approachName<<" Update distribution "<<surface.updatePatchesTime<<endl;
 
@@ -114,8 +110,8 @@ void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
 
     std::ofstream outfile;
     outfile.open("core.csv", std::ios_base::app);
-    outfile <<surface.poissondisk<< ","<<surface.uvFlatteningTime << ","<<surface.markerAdvectionTime
-            <<","<<surface.gridAdvectionTime<<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
+    outfile <<surface.poissondisk<< ","<<surface.markerAdvectionTime
+            <<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
 
     cout << "--------------------------------------------------------------------------------"<<endl;
 }

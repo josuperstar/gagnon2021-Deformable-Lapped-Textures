@@ -1,4 +1,4 @@
-#include "ParticleTrackerManager.h"
+#include "ParticleAndTrackerManagerGagnon2016.h"
 
 #include <vector>
 #include <algorithm>
@@ -30,7 +30,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)
+ParticleAndTrackerManagerGagnon2016::ParticleAndTrackerManagerGagnon2016(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)
 {
     this->numberOfPatches = 0;
     this->maxId = 0;
@@ -58,13 +58,18 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
     this->refAttN  = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     this->temporalComponentKt = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
     this->attFadeIn  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
-
+    this->isTangeantTracker = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
     this->AttCd = GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
 
 
     this->attVSurface = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
     this->attDivergence = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"divergence",1));
 
+
+}
+
+vector<GA_Offset> ParticleAndTrackerManagerGagnon2016::InitializeTrackersAndTangeants(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params)
+{
 
 }
 
@@ -75,11 +80,11 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
 //================================================================================================
 
 
-void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
+void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
 {
 
     bool useDynamicTau = params.useDynamicTau;
-    cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau;
+    cout << "[ParticleAndTrackerManagerGagnon2016] CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau;
 
     if (surfaceGroup == 0x0)
         return;
@@ -105,7 +110,12 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
     GU_MinInfo mininfo;
     GU_RayIntersect ray(surface);
     ray.init();
-
+    //---------- Tangeant Tracker -----------
+    UT_Vector3 defaultDirection(1,0,0);
+    UT_Vector3 S,T;
+    float Tlenght = params.poissondiskradius/2.0f;
+    GA_Offset tracker_offset;
+    //--------------------------------------
     int id = 0;
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
@@ -254,10 +264,28 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         trackersGdp->setPos3(ppt,position);
         N.normalize();
 
+        //-------------------------------------------------
+        //adding adjacent tracker
+        //N.normalize();
+        S = cross(N,defaultDirection);
+        S.normalize();
+        T = cross(S,N);
+        T.normalize();
+
+        //--------------------------------------------------
+
         attV.set(ppt,velocity);
         attN.set(ppt,N);
         attCenterUV.set(ppt,centerUV);
         trackersGdp->setPos3(ppt,position);
+
+        UT_Vector3 translation = T*Tlenght;
+        cout << "Translation: "<<translation<<endl;
+        UT_Vector3 tangeantPosition = position + translation;
+        cout << "adding tangeant tracker"<<endl;
+        tracker_offset = trackersGdp->appendPoint();
+        isTangeantTracker.set(tracker_offset,1);
+        trackersGdp->setPos3(tracker_offset,tangeantPosition);
 
         float life = currentLife;
         attLife.set(ppt,life);
@@ -282,7 +310,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
 //================================================================================================
 
 
-void ParticleTrackerManager::UpdateTrackersAndTangeant(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
+void ParticleAndTrackerManagerGagnon2016::UpdateTrackersAndTangeant(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
 {
 
     bool useDynamicTau = params.useDynamicTau;
@@ -489,7 +517,7 @@ void ParticleTrackerManager::UpdateTrackersAndTangeant(GU_Detail *surface, GU_De
 //================================================================================================
 
 
-void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void ParticleAndTrackerManagerGagnon2016::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
     cout <<this->approachName<< " Advect Markers"<<endl;
 
@@ -649,7 +677,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 //================================================================================================
 
 
-void ParticleTrackerManager::AdvectTrackersAndTangeants(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void ParticleAndTrackerManagerGagnon2016::AdvectTrackersAndTangeants(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
     cout <<this->approachName<< " Advect Trackers And Tangeants"<<endl;
 
@@ -809,7 +837,7 @@ void ParticleTrackerManager::AdvectTrackersAndTangeants(GU_Detail *surfaceGdp, G
 
 //================================================================================================
 
-void ParticleTrackerManager::ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
+void ParticleAndTrackerManagerGagnon2016::ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
 {
 
     cout <<this->approachName<< " Compute Density"<<endl;
@@ -849,7 +877,7 @@ void ParticleTrackerManager::ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *tr
 
 //================================================================================================
 
-void ParticleTrackerManager::ComputeDivergence(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
+void ParticleAndTrackerManagerGagnon2016::ComputeDivergence(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree)
 {
 
     cout <<this->approachName<< " Compute Divergence"<<endl;

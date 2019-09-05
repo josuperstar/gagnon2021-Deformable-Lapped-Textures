@@ -31,8 +31,8 @@ void newSopOperator(OP_OperatorTable *table)
                                         "DynamicLappedTexture",
                                         DynamicLappedTexturePlugin::myConstructor,
                                         DynamicLappedTexturePlugin::myTemplateList,
-                                        5,
-                                        5,
+                                        3,
+                                        3,
                                         0));
 
      table->addOperator(new OP_Operator("hdk_SinglePatch",

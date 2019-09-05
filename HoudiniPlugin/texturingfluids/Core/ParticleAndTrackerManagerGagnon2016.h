@@ -1,5 +1,5 @@
-#ifndef __ParticleTracker_h__
-#define __ParticleTracker_h__
+#ifndef __ParticleAndTrackerManager_h__
+#define __ParticleAndTrackerManager_h__
 
 #include <Math/Vec3.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
@@ -11,11 +11,12 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class ParticleTrackerManager
+class ParticleAndTrackerManagerGagnon2016
 {
 public:
 
-    ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
+    ParticleAndTrackerManagerGagnon2016(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
+    vector<GA_Offset>  InitializeTrackersAndTangeants(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params);
     void  CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params);
     void  UpdateTrackersAndTangeant(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params);
     void AdvectSingleTrackers(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
@@ -61,6 +62,7 @@ protected :
     GA_RWHandleV3   refAttN;
     GA_RWHandleV3   tangeant;
     GA_RWHandleI    attFadeIn;
+    GA_RWHandleI    isTangeantTracker;
     GA_RWHandleF    temporalComponentKt;
     GA_RWHandleV3 AttCd;
 
