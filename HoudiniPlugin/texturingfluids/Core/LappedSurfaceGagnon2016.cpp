@@ -382,105 +382,96 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
     UT_Vector3 N;
     UT_Vector3 S,T;
     int isTangeant = 0;
-    UT_Vector3 p;
+    UT_Vector3 trackerPosition;
     int i = 0;
     GA_Offset numPoint = trackersGdp->getNumPointOffsets();
-    GA_RWHandleV3 attUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
+
+    UT_String s = UT_String("uv");
+    GA_AttributeOwner attribute_type = GA_ATTRIB_VERTEX;
+    surface->destroyAttribute(attribute_type,s);
+
+
+    GA_RWHandleV3 attUV(surface->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
+
+    GA_RWHandleV3 attUVTracker(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
 
     GA_FOR_ALL_PTOFF(trackersGdp, ppt)
     {
         patchNumber = attId.get(ppt);
+        if (params.testPatch == 1 && params.patchNumber != patchNumber)
+            continue;
 
         //replace the tangeant tracker
         isTangeant = isTangeantTracker.get(ppt);
         if (isTangeant == 1)
             continue;
         N = attN.get(ppt);
-        p = trackersGdp->getPos3(ppt);
+        trackerPosition = trackersGdp->getPos3(ppt);
         GA_Offset tracker_offset = ppt+numPoint/2;
-        UT_Vector3 currentDirection = trackersGdp->getPos3(tracker_offset)-p;
-
+        UT_Vector3 currentDirection = trackersGdp->getPos3(tracker_offset)-trackerPosition;
+        currentDirection.normalize();
+        N.normalize();
         S = cross(N,currentDirection);
         S.normalize();
         T = cross(S,N);
         T.normalize();
 
+        // Transform into local patch space (where STN is aligned with XYZ at the origin)
 
-
-        UT_String patchGroupName("patch"+patchNumber);
+        UT_Vector3 trackerTrianglePos;
+        trackerTrianglePos.x() = trackerPosition.dot(S);
+        trackerTrianglePos.y() = trackerPosition.dot(T);
+        trackerTrianglePos.z() = trackerPosition.dot(N);
+        UT_Vector3 centerUv;
+        centerUv.x() = trackerTrianglePos.x();
+        centerUv.y() = trackerTrianglePos.y();
+        centerUv.z() = trackerTrianglePos.z();
+        attUVTracker.set(ppt,centerUv);
+        cout << "center uv "<<centerUv<<endl;
+        //cout << "Projection for patch "<<patchNumber<<endl;
+        string patchGroupName= "patch"+std::to_string(patchNumber);
+        cout << "Getting point group "<<patchGroupName<<endl;
         //GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(patchGroupName);
-        GA_PrimitiveGroup* selectedPrimGroup = (GA_PrimitiveGroup*)gtable->find(patchGroupName);
+
+        GA_PointGroup*pointGrp = (GA_PointGroup*)gtable->find(patchGroupName.c_str());
+
+        //GA_PrimitiveGroup* selectedPrimGroup = (GA_PrimitiveGroup*)gtable->find(patchGroupName);
         //cout << "UV projection on group patch"<<patchNumber<<endl;
-        GA_Offset p;
-        GA_Offset pointOffset;
-        GEO_Primitive *prim;
-        GA_Offset vertexOffset;
-        GA_FOR_ALL_GROUP_PRIMITIVES(surface, selectedPrimGroup, prim)
+
+        if (pointGrp)
         {
-            //cout << "Prim "<<prim->getNum();
-            int nbrVertex = prim->getVertexCount();
-            //if (primCounter >= primGrpCopy->entries())
-            //    break;
-            for(int j= 0; j< nbrVertex; j++)
+            GA_Offset pointOffset;
+            int nbTreated = 0;
+            GA_FOR_ALL_GROUP_PTOFF(surface, pointGrp, pointOffset)
             {
-
-                UT_FloatArray         fdata;
-                UT_IntArray patchArrayData;
-
-                vertexOffset = prim->getVertexOffset(j);
-                pointOffset = surface->vertexPoint(vertexOffset);
-
+                //cout << "Projection for patch "<<pointGrp->getName()<<endl;
                 //----------------------- UV PROJECTION --------------
-                UT_Vector3 val = surface->getPos3(pointOffset);
+                UT_Vector3 currentPosition = surface->getPos3(pointOffset);
 
                 // Transform into local patch space (where STN is aligned with XYZ at the origin)
-                const UT_Vector3 relativePosistion = val-p;
+                const UT_Vector3 relativePosistion = currentPosition-trackerPosition;
                 UT_Vector3 triangleSpacePos;
                 triangleSpacePos.x() = relativePosistion.dot(S);
                 triangleSpacePos.y() = relativePosistion.dot(T);
                 triangleSpacePos.z() = relativePosistion.dot(N);
 
-                // Fetch array value
-                patchIdsAtt->get(patchIdsArrayAttrib, pointOffset, patchArrayData);
-                int nb = patchArrayData.size();
-                int index = -1;
-                for (int i = 0; i< nb; i++)
-                {
-                    if (patchArrayData.array()[i] == patchNumber)
-                        index = i;
-                }
-
                 UT_Vector3 uv;
                 uv.x() = triangleSpacePos.x();
                 uv.y() = triangleSpacePos.y();
-                uv.z() = 0;
+                uv.z() = triangleSpacePos.z();
 
                 float mid = 0.5;
-                uv /= params.UVScaling;
+                //uv /= params.UVScaling;
                 uv += mid;
                 //uv.z should be zero
-
+                //uv -= centerUv;
                 attUV.set(pointOffset,uv);
-
-                //----------------------------------------------------
-                i++;
-
-
-                // Fetch array value
-                uvsArray->get(uvsAtt, pointOffset, fdata);
-
-                if (index == -1)
-                    continue;
-
-                fdata.insertAt(uv.x(), (index*3)+0);
-                fdata.insertAt(uv.y(), (index*3)+1);
-                fdata.insertAt(uv.z(), (index*3)+2);
-
-                // Write back
-                uvsArray->set(uvsAtt, pointOffset, fdata);
+                nbTreated++;
             }
+            cout << "number of point with uv: "<<nbTreated<<endl;
         }
     }
+
     this->orthogonalUVProjectionTime += (std::clock() - projectionStart) / (double) CLOCKS_PER_SEC;
 }
 
