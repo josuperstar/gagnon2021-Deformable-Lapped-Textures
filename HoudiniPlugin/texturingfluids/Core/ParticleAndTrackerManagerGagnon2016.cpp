@@ -115,6 +115,7 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
     UT_Vector3 S,T;
     float Tlenght = params.poissondiskradius/2.0f;
     GA_Offset tracker_offset;
+    bool newPoint = false;
     //--------------------------------------
     int id = 0;
     GA_Offset ppt;
@@ -125,6 +126,8 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
         float currentLife = attLife.get(ppt);
         int currentSpawn = attSpawn.get(ppt);
 
+        if (currentLife < 1 && active == 1)
+            newPoint = true;
 
         UT_Vector3 velocity;
 
@@ -263,30 +266,26 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
         position = p1;
         trackersGdp->setPos3(ppt,position);
         N.normalize();
-
-        //-------------------------------------------------
-        //adding adjacent tracker
-        //N.normalize();
-        S = cross(N,defaultDirection);
-        S.normalize();
-        T = cross(S,N);
-        T.normalize();
-
-        //--------------------------------------------------
-
         attV.set(ppt,velocity);
         attN.set(ppt,N);
         attCenterUV.set(ppt,centerUV);
         trackersGdp->setPos3(ppt,position);
-
-        UT_Vector3 translation = T*Tlenght;
-        cout << "Translation: "<<translation<<endl;
-        UT_Vector3 tangeantPosition = position + translation;
-        cout << "adding tangeant tracker"<<endl;
-        tracker_offset = trackersGdp->appendPoint();
-        isTangeantTracker.set(tracker_offset,1);
-        trackersGdp->setPos3(tracker_offset,tangeantPosition);
-
+        if (newPoint)
+        {
+            //---------- ADD TANGEANT TRACKER ----------
+            //put this in a function, and/or move this where we already add point
+            S = cross(N,defaultDirection);
+            S.normalize();
+            T = cross(S,N);
+            T.normalize();
+            UT_Vector3 translation = T*Tlenght;
+            //cout << "Translation: "<<translation<<endl;
+            UT_Vector3 tangeantPosition = position + translation;
+            //cout << "adding tangeant tracker"<<endl;
+            tracker_offset = trackersGdp->appendPoint();
+            isTangeantTracker.set(tracker_offset,1);
+            trackersGdp->setPos3(tracker_offset,tangeantPosition);
+        }
         float life = currentLife;
         attLife.set(ppt,life);
 
@@ -701,6 +700,8 @@ void ParticleAndTrackerManagerGagnon2016::AdvectTrackersAndTangeants(GU_Detail *
         return;
     }
 
+    UT_Vector3 S,T;
+
     UT_Vector3 v;
     UT_Vector3 p;
     UT_Vector3 p1;
@@ -719,9 +720,10 @@ void ParticleAndTrackerManagerGagnon2016::AdvectTrackersAndTangeants(GU_Detail *
         int id;
         int density;
         float currentLife = 0;
+        int isTangeant = 0;
+        GA_Offset numPoint = trackersGdp->getNumPointOffsets();
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
-
             v = attV.get(ppt);
             N = attN.get(ppt);
             density = attDensity.get(ppt);
@@ -769,7 +771,7 @@ void ParticleAndTrackerManagerGagnon2016::AdvectTrackersAndTangeants(GU_Detail *
             if (distance3d(p1,hitPos) < thresholdDistance)
             {
                 p1 = hitPos;
-                trackersGdp->setPos3(ppt,p1);
+
                 AttCd.set(ppt,UT_Vector3(0,1,0));
 
                 //------------------------------PARAMETRIC COORDINATE -----------------------------------
@@ -799,6 +801,24 @@ void ParticleAndTrackerManagerGagnon2016::AdvectTrackersAndTangeants(GU_Detail *
                 attV.set(ppt,velocity);
 
                 attN.set(ppt,N);
+
+
+                //replace the tangeant tracker
+                isTangeant = isTangeantTracker.get(ppt);
+                if (isTangeant == 1)
+                    continue;
+                trackersGdp->setPos3(ppt,p1);
+                GA_Offset tracker_offset = ppt+numPoint/2;
+                UT_Vector3 currentDirection = trackersGdp->getPos3(tracker_offset)-p1;
+
+                S = cross(N,currentDirection);
+                S.normalize();
+                T = cross(S,N);
+                T.normalize();
+                UT_Vector3 translation = T*params.poissondiskradius/2.0f;
+                //cout << "Translation: "<<translation<<endl;
+                UT_Vector3 tangeantPosition = p1 + translation;
+                trackersGdp->setPos3(tracker_offset,tangeantPosition);
                 //------------------------------------------------------------------------------------
                 numberOfPatches++;
             }
