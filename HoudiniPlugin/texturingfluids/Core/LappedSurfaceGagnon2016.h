@@ -34,7 +34,7 @@ public:
     const string uvArrayName = "uvs";
     const string alphaArrayName = "alphas";
     const string patchIdsName = "patchIds";
-
+    int numberOfPatcheCreated=0;
 private :
 
     //-------------- VERTEX ARRAY -----------------
@@ -49,6 +49,7 @@ private :
     //---------------------------------------------
 
     map<string,GU_RayIntersect*> rays;
+
 
 };
 

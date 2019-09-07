@@ -70,13 +70,14 @@ void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
     else
     {
         surface.AdvectTrackersAndTangeants(surfaceGdp, trackersGdp, params);
-
+        //surface.PoissonDiskSampling(levelSet,trackersGdp,params);
+        //surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp,surfaceGroup,params);
         surface.UpdateTrackersAndTangeant(surfaceGdp,trackersGdp, surfaceGroup,params);
     }
 
     //For the blending computation, we create uv array per vertex that we called patch
-//    surface.AddSolidPatchesUsingBarycentricCoordinates(surfaceGdp,trackersGdp, params,surfaceTree);
-//    surface.OrthogonalUVProjection(surfaceGdp,trackersGdp,params);
+    surface.AddSolidPatchesUsingBarycentricCoordinates(surfaceGdp,trackersGdp, params,surfaceTree);
+    surface.OrthogonalUVProjection(surfaceGdp,trackersGdp,params);
 
     //=======================================================================
 
@@ -100,7 +101,7 @@ void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
     cout << "--------------------------------------------------------------------------------"<<endl;
     cout << surface.approachName<<" Poisson Disk Sampling "<<surface.poissondisk<<endl;
     cout << surface.approachName<<" Tracker advection time "<<surface.markerAdvectionTime<<endl;
-    cout << surface.approachName<<" Patch creation time "<<surface.patchCreationTime<<endl;
+    cout << surface.approachName<<" Patch creation time "<<surface.patchCreationTime<< " for "<<surface.numberOfPatcheCreated<<" patches"<<endl;
     cout << surface.approachName<<" UV Orthogonal Projection "<<surface.orthogonalUVProjectionTime<<endl;
     cout << surface.approachName<<" Clear and Destroy "<<cleaningSurface<<endl;
     cout << surface.approachName<<" Update distribution "<<surface.updatePatchesTime<<endl;
