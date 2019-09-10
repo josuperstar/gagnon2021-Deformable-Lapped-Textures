@@ -13,6 +13,8 @@
                                           useDeformableGrids,
                                           rays,
                                           patchColors,
+                                          alphaColor,
+                                          RM,
                                           attAlpha,
                                           attPointUV,
                                           attLife,
@@ -35,29 +37,30 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
                                 vector<int> &sortedPatches,
                                 vector<UT_Vector3> &surfaceUv,
                                 vector<UT_Vector3> &surfacePosition,
+                                map<int,UT_Vector3> &trackersPosition,
                                 bool useDeformableGrids,
-                                map<int,UT_Vector3> &trackersUVPosition,
                                 map<string,GU_RayIntersect*> &rays,
                                 map<int,Pixel> &patchColors,
+                                Pixel alphaColor,
+                                Pixel RM,           //Mean Value
                                 GA_ROHandleF &attAlpha,
                                 GA_RWHandleV3 &attPointUV,
+                                int life,
                                 map<int,float> &patchBlend,
-                                vector<ImageCV*> textureExemplars,
-                                vector<ImageCV*> textureExemplarImageMaskVector,
+                                map<int, vector<UT_Vector3> > &patchUvs,
+                                map<int, vector<float> > &alphasMap,
+                                ImageCV *textureExemplar1Image,
+                                ImageCV *textureExemplar1ImageMask,
                                 ImageCV *displacementMapImage,
                                 bool computeDisplacement,
                                 bool renderColoredPatches,
-                                Pixel &R1,
                                 Pixel &displacementSum,
                                 ParametersDeformablePatches params)
 {
 
 
-    //Equation 2, Quality of a triangle
-    GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
-    GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
 
-    Pixel alphaColor;
+
 
     bool debug = false;
     float thresholdDistance = 0.5;
@@ -178,103 +181,49 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         float   alphaPatch;
         UT_Vector3 positionInPolygon;
 
-
-        pointOffset0  = deformableGrids->vertexPoint(vertexOffset0);
-        pointOffset1  = deformableGrids->vertexPoint(vertexOffset1);
-        pointOffset2  = deformableGrids->vertexPoint(vertexOffset2);
-
-        float a0 = attAlpha.get(pointOffset0);
-        float a1 = attAlpha.get(pointOffset1);
-        float a2 = attAlpha.get(pointOffset2);
-
-        alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
-        if (alphaPatch < 0)
+        if (useDeformableGrids)
         {
-            alphaPatch = 0;
+            pointOffset0  = deformableGrids->vertexPoint(vertexOffset0);
+            pointOffset1  = deformableGrids->vertexPoint(vertexOffset1);
+            pointOffset2  = deformableGrids->vertexPoint(vertexOffset2);
+
+            float a0 = attAlpha.get(pointOffset0);
+            float a1 = attAlpha.get(pointOffset1);
+            float a2 = attAlpha.get(pointOffset2);
+
+            alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
+            if (alphaPatch < 0)
+            {
+                alphaPatch = 0;
+            }
+
+            if (attPointUV.isInvalid())
+                continue;
+
+            UT_Vector3 v0 = attPointUV.get(pointOffset0);
+            UT_Vector3 v1 = attPointUV.get(pointOffset1);
+            UT_Vector3 v2 = attPointUV.get(pointOffset2);
+
+            uvPatch = v0+u*(v1-v0)+v*(v2-v0);
+            positionInPolygon = uvPatch;
+
+        }
+        else
+        {
+            UT_Vector3 uvPatch1 = patchUvs[patchId][0];
+            UT_Vector3 uvPatch2 = patchUvs[patchId][1];
+            UT_Vector3 uvPatch3 = patchUvs[patchId][2];
+            positionInPolygon = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],uvPatch1,uvPatch2,uvPatch3,pixelPositionOnSurface);
+            float a0 = alphasMap[patchId][0];
+            float a1 = alphasMap[patchId][1];
+            float a2 = alphasMap[patchId][2];
+            alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
         }
 
-        if (attPointUV.isInvalid())
-            continue;
-
-        UT_Vector3 v0 = attPointUV.get(pointOffset0);
-        UT_Vector3 v1 = attPointUV.get(pointOffset1);
-        UT_Vector3 v2 = attPointUV.get(pointOffset2);
-
-        uvPatch = v0+u*(v1-v0)+v*(v2-v0);
-        positionInPolygon = uvPatch;
-
-
-        //-----------------------------------
-        //Q_v quality of the vertex, value from 0 to 1
-        float   Q_t = attQt.get(prim->getMapOffset());
-
-        if (Q_t < 0.001)
-            continue;
-        float   Q_V = Q_t;
-
-        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
-        float d_P = distance3d(positionInPolygon,centerUV);
-        //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
-        //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
-        float s = params.UVScaling;
-        float minDUV = 0.125*s;
-        float maxDUV = 0.25*s; //blending region
-        //float maxDUV = 0.5f;
-        //d_V =0 if V ∈ grid boundary 1 otherwise
-        //float d_V = 1.0f;
-        int     d_V = 1-attBorder.get(prim->getMapOffset());
-        //test
-        //maxDUV = params.poissondiskradius/2;
-        if (d_P > maxDUV)
-            d_V = 0.0f;
-
-        float C_s = 0.0f;
-        if (d_P > minDUV && d_P <= maxDUV)
-            C_s = 1-((d_P-minDUV)/(maxDUV-minDUV));
-        if (d_P <= minDUV)
-            C_s = 1.0f;
-
-        //float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;
-        float K_s = C_s*d_V*Q_V;
-        //cout << "Ks "<<K_s<<endl;
-        //cout << "d_V "<<d_V<<endl;
-
-        //K_s should be between 0 and 1
-        if (K_s < 0)
-            K_s = 0;
-        else if (K_s > 1.0f)
-            K_s = 1.0f;
-
-        //--------------------------Equation 6--------------------
-        //temporal componet
-
-        //from the Rapport de Chercher: https://hal.inria.fr/inria-00355827v4/document
-        //Also available in the doc directory of this project: doc/yu2009SPTA.pdf
-
-        //Temporal weights Finally we fade particles in and out at their creation and destruction,
-        //using two weights Fin(t) and Fout(t). The fading period τ can be long (in our
-        //implementation we used τ = 5 seconds). Fout is mainly used to force the fading out
-        //of grids whose distortion would stop increasing. And if τ is longer than the particles
-        //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
-
-        //The temporal component is simply a linear fade-in at the beginning of the life of a particle and a linear fade-out
-        //after the particle has been killed.
-        //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
-        float K_t = patchBlend[patchId];
-        if (K_t < 0)
-            K_t = 0;
-        else if (K_t > 1.0f)
-            K_t = 1.0f;
-
-
-
-        int w = textureExemplars[0]->GetWidth();
-        int h = textureExemplars[0]->GetHeight();
-        if (textureExemplarImageMaskVector.size() < 1)
-            continue;
-
-        int wm = textureExemplarImageMaskVector[0]->GetWidth();
-        int hm = textureExemplarImageMaskVector[0]->GetHeight();
+        int w = textureExemplar1Image->GetWidth();
+        int h = textureExemplar1Image->GetHeight();
+        int wm = textureExemplar1ImageMask->GetWidth();
+        int hm = textureExemplar1ImageMask->GetHeight();
 
         int i2 = static_cast<int>(floor(positionInPolygon.x()*w));
         int j2 = (h-1)-static_cast<int>(floor((positionInPolygon.y())*h));
@@ -294,24 +243,13 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         }
         else
         {
-            textureExemplars[0]->GetColor(i2,j2,0,color);
+            textureExemplar1Image->GetColor(i2,j2,0,color);
         }
-        float watershedIndices = (1.0f-K_t)*100.0f;
-        int index = watershedIndices;
-        textureExemplarImageMaskVector[index]->GetColor(i3,j3,0,alphaColor);
-        //temporal hack
-        /*
-        alphaColor.R = 1- alphaColor.R;
-        alphaColor.G = 1- alphaColor.G;
-        alphaColor.B = 1- alphaColor.B;
-        */
+        textureExemplar1ImageMask->GetColor(i3,j3,0,alphaColor);
         if (computeDisplacement)
             displacementMapImage->GetColor(i2,j2,0,displacement);
 
-        float alpha = ((alphaColor.R+alphaColor.G+alphaColor.B)/3) * K_s;
-        Pixel alphaShed;
-
-
+        float alpha = ((alphaColor.R+alphaColor.G+alphaColor.B)/3) * alphaPatch;
 
         alpha = alpha * patchBlend[patchId];
 
@@ -320,7 +258,8 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         {
             //alpha = 1;
         }
-
+        //HAACCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
+        alpha = 1;
         color.A = alpha;
 
         //---------------- Transparency Equation -----------------------
