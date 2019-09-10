@@ -378,7 +378,6 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
     const GA_GroupTable *gtable = surface->getGroupTable(groupType);
     int patchNumber=0;
     GA_Offset ppt;
-    UT_FloatArray         uvArrayData;
     UT_Vector3 N;
     UT_Vector3 S,T;
     int isTangeant = 0;
@@ -386,9 +385,9 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
     int i = 0;
     GA_Offset numPoint = trackersGdp->getNumPointOffsets();
 
-    UT_String s = UT_String("uv");
-    GA_AttributeOwner attribute_type = GA_ATTRIB_VERTEX;
-    surface->destroyAttribute(attribute_type,s);
+//    UT_String s = UT_String("uv");
+//    GA_AttributeOwner attribute_type = GA_ATTRIB_VERTEX;
+//    surface->destroyAttribute(attribute_type,s);
 
 
     GA_RWHandleV3 attUV(surface->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
@@ -465,6 +464,33 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
                 uv += mid;
                 //uv.z should be zero
                 //uv -= centerUv;
+
+                UT_FloatArray         fdata;
+                UT_IntArray patchArrayData;
+                // Fetch array value
+                patchIdsAtt->get(patchIdsArrayAttrib, pointOffset, patchArrayData);
+                int nb = patchArrayData.size();
+                int index = -1;
+                for (int i = 0; i< nb; i++)
+                {
+                    if (patchArrayData.array()[i] == patchNumber)
+                        index = i;
+                }
+
+                // Fetch array value
+                uvsArray->get(uvsAtt, pointOffset, fdata);
+
+                if (index == -1)
+                    continue;
+
+                fdata.insertAt(uv.x(), (index*3)+0);
+                fdata.insertAt(uv.y(), (index*3)+1);
+                fdata.insertAt(uv.z(), (index*3)+2);
+
+                // Write back
+                uvsArray->set(uvsAtt, pointOffset, fdata);
+
+                //cout << "fdata:"<<fdata<<endl;
                 attUV.set(pointOffset,uv);
                 nbTreated++;
             }

@@ -12,7 +12,7 @@
 #include "PoissonDiskPlugin.h"
 #include "SinglePatchTest.h"
 #include "DynamicLappedTexturePlugin.h"
-
+#include "AtlasGagnon2016Plugin.h"
 
 // -----------------------------------------------------------------------------
 // Add our plugins to Houdini's plugins list
@@ -54,6 +54,14 @@ void newSopOperator(OP_OperatorTable *table)
                                        "AtlasYu2011",
                                        AtlasYu2011Plugin::myConstructor,
                                        AtlasYu2011Plugin::myTemplateList,
+                                       3,
+                                       3,
+                                       0));
+
+     table->addOperator(new OP_Operator("hdk_AtlasGagnon2016",
+                                       "AtlasGagnon2016",
+                                       AtlasGagnon2016Plugin::myConstructor,
+                                       AtlasGagnon2016Plugin::myTemplateList,
                                        3,
                                        3,
                                        0));
