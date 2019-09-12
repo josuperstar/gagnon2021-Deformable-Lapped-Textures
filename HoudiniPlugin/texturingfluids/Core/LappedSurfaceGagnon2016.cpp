@@ -218,6 +218,8 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
     addPatchesStart = std::clock();
     this->patchCreationTime = 0;
 
+    map<int, set<int> > surfacePatchIds;
+
     fpreal patchRadius = 2*params.poissondiskradius;
     float cs = params.CellSize;
     //================================ CREATE PATCH GROUPS ==============================
@@ -232,7 +234,7 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
 
     set<int> patchTreated;
     float r = params.poissondiskradius;
-    GA_Offset ppt;
+
     UT_Vector3 N;
     UT_Vector3 NN;
     UT_Vector3 position;
@@ -243,6 +245,7 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
     {
         //================== CREATE PATCHES =================
         // create a group of point based on trackers position
+        GA_Offset ppt;
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
             isTangeant = isTangeantTracker.get(ppt);
@@ -250,6 +253,7 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
                 continue;
 
             patchNumber = attId.get(ppt);
+            cout << "id for point "<<ppt<<" is "<<patchNumber<<endl;
             int active = attActive.get(ppt);
             float life = attLife.get(ppt);
             if (active == 0 && life <= 0 )
@@ -258,6 +262,7 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
                 continue;
             N = attN.get(ppt);
             position = trackersGdp->getPos3(ppt);
+
 
             UT_IntArray         patchArrayData;
             //getting neigborhood
@@ -271,8 +276,9 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
 
             string str = std::to_string(patchNumber);
             UT_String patchGroupName("patch"+str);
-            //cout << "Create patch "<<patchGroupName<<endl;
-            GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
+            cout << "Create patch "<<patchGroupName<<endl;
+            GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName.c_str(), 0);
+            GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(patchGroupName.c_str());
 
 
             set<GA_Offset> neighborhood;
@@ -307,36 +313,41 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
                 if (k < cs*2)
                     k = cs*2;
                 //=====================================================
+
+                //add current patch id in the set:
+                surfacePatchIds[surfacePointOffset].insert(patchNumber);
+                //the next line creates a weird bug where the list of point in trackergdp is modified:
                 patchGroup->addOffset(surfacePointOffset);
-                patchIdsAtt->get(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
-                int exist = patchArrayData.find(patchNumber);
-                if (exist == -1)
-                {
-                    patchArrayData.append(patchNumber);
-                    int numberOfPatch = attNumberOfPatch.get(surfacePointOffset);
-                    numberOfPatch++;
-                    attNumberOfPatch.set(surfacePointOffset,numberOfPatch);
-                }
-                patchIdsAtt->set(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
+
                 numberOfPatcheCreated++;
             }
             neighborhood.clear();
+
         }
     }
     {
+        GA_Offset ppt;
+        cout << "We have now "<<trackersGdp->getNumPoints()<<" points"<<endl;
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
+            isTangeant = isTangeantTracker.get(ppt);
+            if (isTangeant == 1)
+                continue;
+
             patchNumber = attId.get(ppt);
+            cout << "id for point "<<ppt<<" is "<<patchNumber<<endl;
+
             if (patchTreated.count(patchNumber) > 0)
             {
                 cout << "We already treated patch "<< patchNumber << endl;
-                return;
+                continue;
             }
             patchTreated.insert(patchNumber);
 
             int active = attActive.get(ppt);
             float life = attLife.get(ppt);
 
+            cout << active << " life "<<life<<endl;
             if (active == 0 && life <= 0 )
                 continue;
 
@@ -346,7 +357,7 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
 
             string str = std::to_string(patchNumber);
             UT_String pointGroupName("patch"+str);
-            //cout << "Create primitive group" << str <<endl;
+            cout << "Create primitive group " << pointGroupName.c_str() <<endl;
             GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(pointGroupName);
             GA_GroupType groupType = GA_GROUP_POINT;
             const GA_GroupTable *gtable = surfaceGdp->getGroupTable(groupType);
@@ -354,10 +365,10 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
             GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(primGrp->getName());
             if (pointGrp == 0x0)
                 continue;
-
-            GA_FOR_ALL_GROUP_PTOFF(surfaceGdp,pointGrp,ppt)
+            GA_Offset surfacePpt;
+            GA_FOR_ALL_GROUP_PTOFF(surfaceGdp,pointGrp,surfacePpt)
             {
-                surfaceGdp->getPrimitivesReferencingPoint(primitives,ppt);
+                surfaceGdp->getPrimitivesReferencingPoint(primitives,surfacePpt);
                 for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); !prims_it.atEnd(); ++prims_it)
                 {
                     primGrp->addOffset(*prims_it);
@@ -365,6 +376,31 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
             }
         }
      }
+
+
+    //for each point of the surface, register the set of patch ids:
+    {
+        cout << "register patch ids to surface points"<<endl;
+        UT_IntArray         patchArrayData;
+        GA_Offset ppt;
+        set<int>::iterator it;
+
+        GA_FOR_ALL_PTOFF(surfaceGdp, ppt)
+        {
+            set<int> ids = surfacePatchIds[ppt];
+            patchIdsAtt->get(patchIdsArrayAttrib,ppt, patchArrayData);
+
+            for(it = ids.begin(); it != ids.end(); it++)
+            {
+                int patchNumber = *it;
+                patchArrayData.append(patchNumber);
+                int numberOfPatch = attNumberOfPatch.get(ppt);
+                numberOfPatch++;
+                attNumberOfPatch.set(ppt,numberOfPatch);
+            }
+            patchIdsAtt->set(patchIdsArrayAttrib,ppt, patchArrayData);
+        }
+    }
     this->patchCreationTime += (std::clock() - addPatchesStart) / (double) CLOCKS_PER_SEC;
 }
 
@@ -426,10 +462,10 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
         centerUv.y() = trackerTrianglePos.y();
         centerUv.z() = trackerTrianglePos.z();
         attUVTracker.set(ppt,centerUv);
-        cout << "center uv "<<centerUv<<endl;
+        //cout << "center uv "<<centerUv<<endl;
         //cout << "Projection for patch "<<patchNumber<<endl;
         string patchGroupName= "patch"+std::to_string(patchNumber);
-        cout << "Getting point group "<<patchGroupName<<endl;
+        //cout << "Getting point group "<<patchGroupName<<endl;
         //GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(patchGroupName);
 
         GA_PointGroup*pointGrp = (GA_PointGroup*)gtable->find(patchGroupName.c_str());
@@ -494,7 +530,7 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
                 attUV.set(pointOffset,uv);
                 nbTreated++;
             }
-            cout << "number of point with uv: "<<nbTreated<<endl;
+            //cout << "number of point with uv: "<<nbTreated<<endl;
         }
     }
 

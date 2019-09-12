@@ -239,7 +239,6 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
             color.G = 1;
             color.B = 1;
             color = patchColors[patchId];
-
         }
         else
         {
