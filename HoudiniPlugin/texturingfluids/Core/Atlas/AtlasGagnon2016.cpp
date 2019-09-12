@@ -7,6 +7,7 @@
 
 AtlasGagnon2016::~AtlasGagnon2016()
 {
+    /*
     if (this->diffuseImageBlendingGagnon->IsValid())
         delete this->diffuseImageBlendingGagnon;
 
@@ -37,7 +38,7 @@ AtlasGagnon2016::~AtlasGagnon2016()
         //patchesGeo.clear();
     }
     trackerPosition.clear();
-
+    */
 }
 
 
@@ -231,7 +232,7 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
     }
 
 
-    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"patchNumber",1));
     GA_Offset ppt;
     cout << "[HoudiniAtlas::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
     GA_FOR_ALL_PTOFF(trackers,ppt)
@@ -704,7 +705,7 @@ void AtlasGagnon2016::initPatchColors(GU_Detail *trackersGdp)
 {
 
     GA_RWHandleI    attM(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"M",0));
-    GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"patchNumber",1));
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
