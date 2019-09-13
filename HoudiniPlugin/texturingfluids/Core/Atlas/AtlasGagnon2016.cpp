@@ -7,7 +7,7 @@
 
 AtlasGagnon2016::~AtlasGagnon2016()
 {
-    /*
+    cout <<"Destorying AtlasGagnon2016";
     if (this->diffuseImageBlendingGagnon->IsValid())
         delete this->diffuseImageBlendingGagnon;
 
@@ -38,7 +38,7 @@ AtlasGagnon2016::~AtlasGagnon2016()
         //patchesGeo.clear();
     }
     trackerPosition.clear();
-    */
+    cout <<" Done"<<endl;
 }
 
 
@@ -92,9 +92,7 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
     }
     */
 
-
     surfaceTree.build(surface, NULL);
-
 
     //attLife = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"life", 1));
     attLife = life;
@@ -114,7 +112,6 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
         primGroupTable = deformableGrids->getGroupTable(primGroupType);
 
         cout << "[HoudiniAtlas::BuildAtlas] Atlas uses deformable grids"<<endl;
-
     }
     else
     {
@@ -143,7 +140,6 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
         return false;
     }
 
-
     diffuseImageBlendingGagnon = new ImageCV();
     diffuseImageBlendingGagnon->CreateImage(w,h,-1);
 
@@ -167,7 +163,6 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
     cout << "RM = ";
     RM.Print();
     cout<<endl;
-
 
     textureExemplar1ImageMask = new ImageCV();
     cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
@@ -231,29 +226,10 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
         }
     }
 
-
-    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"patchNumber",1));
-    GA_Offset ppt;
-    cout << "[HoudiniAtlas::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
-    GA_FOR_ALL_PTOFF(trackers,ppt)
-    {
-        int patchId =   attId.get(ppt);
-
-        //trackerUVPosition[patchId] = attCenterUV.get(ppt);
-        //cout << "patch "<<patchId<<" : "<<blend<<endl;
-
-        //if (patchId == 6655)
-        {
-            //cout << "========================================="<<endl;
-            //cout << "patch "<<patchId << " = "<< blend<<endl;
-            //cout << "========================================="<<endl;
-        }
-
-    }
+    cout << "[AtlasGagnon2016::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
 
     if(renderColoredPatches)
         initPatchColors(trackers);
-
 
     for(int i =0; i < w; i++)
     {
@@ -265,6 +241,7 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
         }
         this->pixelUsed.push_back(line);
     }
+    cout << "[AtlasGagnon2016::BuildAtlas] Done"<<endl;
     return true;
 }
 
@@ -342,8 +319,6 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
 {
     //rasterize primitive
 
-    float thresholdDistance = 0.5;
-
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
         return;
@@ -361,8 +336,6 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
     vector<UT_Vector3> surfaceUv;
     vector<UT_Vector3> surfacePosition;
     vector<int> sortedPatches;
-
-
 
     map<int,int> numberOfLinkedPatch;
     map<int, vector<UT_Vector3> > patchUvs;
@@ -705,7 +678,7 @@ void AtlasGagnon2016::initPatchColors(GU_Detail *trackersGdp)
 {
 
     GA_RWHandleI    attM(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"M",0));
-    GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"patchNumber",1));
+    GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
