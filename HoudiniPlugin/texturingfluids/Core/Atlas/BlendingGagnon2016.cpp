@@ -250,7 +250,7 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
 
         float alpha = ((alphaColor.R+alphaColor.G+alphaColor.B)/3) * alphaPatch;
 
-        alpha = alpha * patchBlend[patchId];
+        //alpha = alpha * patchBlend[patchId];
 
         //alphaSum += alpha;
         if (renderColoredPatches)
@@ -266,21 +266,9 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         sumW2 += alpha*alpha;
         sumW += alpha;
 
-        float alpha2 = alpha*alpha;
-
         colorSum0.R += color.R;
         colorSum0.G += color.G;
         colorSum0.B += color.B;
-
-        //colorSum0.R /= sumW;
-        //colorSum0.G /= sumW;
-        //colorSum0.B /= sumW;
-
-        /*
-        Cf.R =  (alpha2)*(color.R-RM.R) + (1.0f-alpha2)*(Cf.R);
-        Cf.G =  (alpha2)*(color.G-RM.G) + (1.0f-alpha2)*(Cf.G);
-        Cf.B =  (alpha2)*(color.B-RM.B) + (1.0f-alpha2)*(Cf.B);
-        */
 
         Cf.R =  (alpha)*(color.R) + (1.0f-alpha)*(Cf.R);
         Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);
@@ -289,26 +277,14 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         if (debug)
             cout << "patch "<<patchId<<" alpha "<<alpha<<endl;
 
-
         if (computeDisplacement)
         {
             displacementSum.R = alpha*displacement.R + (1.0f-alpha)*displacementSum.R;
             displacementSum.G = alpha*displacement.G + (1.0f-alpha)*displacementSum.G;
             displacementSum.B = alpha*displacement.B + (1.0f-alpha)*displacementSum.B;
         }
-
         k++;
     }
-
-    //------------------
-    //colorSum =textureExamplarMeanValue;
-
-    //---------------------
-    //Do we really need this ?
-    //Cf.R += RM.R;
-    //Cf.G += RM.G;
-    //Cf.B += RM.B;
-    //---------------------
 
     if (Cf.R > 1)
         Cf.R = 1;
@@ -324,11 +300,6 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
     if (Cf.B < 0)
         Cf.B = 0;
 
-
-
-
     return Cf;
-    //------------------
-
 }
 
