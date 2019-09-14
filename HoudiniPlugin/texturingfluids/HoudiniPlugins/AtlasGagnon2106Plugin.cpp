@@ -232,20 +232,13 @@ AtlasGagnon2016Plugin::cookMySop(OP_Context &context)
     OutputName(outputName,now);
     params.outputName = outputName;
 
-    const GU_Detail * surface = inputGeo(1);
-    surface = inputGeo(1);
-
-    GU_Detail *surfaceCopy = new GU_Detail();
-    surfaceCopy->clearAndDestroy();
-    surfaceCopy->copy(*surface);
-
-    const GU_Detail *trackersGdp = inputGeo(2);
+    const GU_Detail *trackersGdp = inputGeo(1);
     GU_Detail *trackersCopy = new GU_Detail();
     trackersCopy->clearAndDestroy();
     trackersCopy->copy(*trackersGdp);
 
     AtlasGagnon2016Synthesis interface;
-    bool synthesised = interface.Synthesis(gdp, surfaceCopy,trackersCopy, params);
+    bool synthesised = interface.Synthesis(gdp,trackersCopy, params);
     if (synthesised)
         cout << "was able to synthesis the atlas"<<endl;
     else
