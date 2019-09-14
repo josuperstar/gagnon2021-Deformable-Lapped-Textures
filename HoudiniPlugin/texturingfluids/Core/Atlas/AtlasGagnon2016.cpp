@@ -39,6 +39,9 @@ AtlasGagnon2016::~AtlasGagnon2016()
     }
     trackerPosition.clear();
     cout <<" Done"<<endl;
+    this->rays.clear();
+    this->pixelUsed.clear();
+    this->patchColors.clear();
 }
 
 
