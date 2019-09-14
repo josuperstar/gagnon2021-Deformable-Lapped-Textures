@@ -102,14 +102,13 @@ private:
    map<string,GU_RayIntersect*> rays;
    map<string,GU_Detail*> patchesGeo;
    map<GA_Offset,GA_Offset> pointsList;
-   map<string,map<GA_Offset,GA_Offset> > initialOffsetList;
+   //map<string,map<GA_Offset,GA_Offset> > initialOffsetList;
 
    vector< vector<bool> > pixelUsed;
    map<int,float> patchBlend;
    map<int,UT_Vector3> trackerPosition;
    map<int,UT_Vector3> trackerUVPosition;
 
-   bool useCopyGUDetail = false;
    bool useDeformableGrids = false;
    bool renderColoredPatches = false;
    bool debug = false;

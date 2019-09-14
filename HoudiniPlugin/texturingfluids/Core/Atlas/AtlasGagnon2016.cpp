@@ -26,22 +26,20 @@ AtlasGagnon2016::~AtlasGagnon2016()
         delete this->displacementMap;
     }
 
-    if (useDeformableGrids)
+    GA_PrimitiveGroup *primGroup;
+    GA_FOR_ALL_PRIMGROUPS(surface,primGroup)
     {
-        GA_PrimitiveGroup *primGroup;
-        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-        {
-             string name = primGroup->getName().toStdString();
-             delete rays[name];
-             delete patchesGeo[name];
-        }
-        //patchesGeo.clear();
+         string name = primGroup->getName().toStdString();
+         delete rays[name];
     }
+    //patchesGeo.clear();
+
     trackerPosition.clear();
     cout <<" Done"<<endl;
     this->rays.clear();
     this->pixelUsed.clear();
     this->patchColors.clear();
+
 }
 
 
@@ -87,43 +85,17 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
 
     //---------------------------------------------------------------
 
-    /*
-    GA_ROHandleS texture(trackers->findStringTuple(GA_ATTRIB_POINT, "texture", 1));
-    if (texture.isInvalid())
-    {
-        cout << "There is no texture attribute on trackers"<<endl;
-    }
-    */
-
     surfaceTree.build(surface, NULL);
 
     //attLife = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"life", 1));
     attLife = life;
     attFadeIn = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"fadeIn", 1));
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"blend", 1));
-    //attLife = GA_RWHandleF(trackers->findIntTuple(GA_ATTRIB_POINT,"life", 1));
+    attPointUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
+    attAlpha = GA_ROHandleF(surface->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
 
-    if(useDeformableGrids)
-    {
-        gridTree.build(deformableGrids,NULL);
-
-        //attGridUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uv", 3));
-        attPointUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
-        attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
-
-        pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
-        primGroupTable = deformableGrids->getGroupTable(primGroupType);
-
-        cout << "[HoudiniAtlas::BuildAtlas] Atlas uses deformable grids"<<endl;
-    }
-    else
-    {
-        attPointUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
-        attAlpha = GA_ROHandleF(surface->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
-
-        pointGroupTable = surface->getGroupTable(pointGroupType);
-        primGroupTable = surface->getGroupTable(primGroupType);
-    }
+    pointGroupTable = surface->getGroupTable(pointGroupType);
+    primGroupTable = surface->getGroupTable(primGroupType);
 
     attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
     if (attUV.isInvalid())
@@ -197,36 +169,14 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
         cout << "[HoudiniAtlas::BuildAtlas] Displacement map name is not defined"<<endl;
     }
 
-    if(useCopyGUDetail)
+    GA_PrimitiveGroup *primGroup;
+    GA_FOR_ALL_PRIMGROUPS(surface,primGroup)
     {
-        CreateListGUDetails();
-    }
-    else
-    {
-        GA_PrimitiveGroup *primGroup;
-
-        if (useDeformableGrids)
-        {
-            GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-            {
-                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-                string name = primGroup->getName().toStdString();
-                GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
-                ray->init();
-                rays[name] = ray;
-            }
-        }
-        else
-        {
-            GA_FOR_ALL_PRIMGROUPS(surface,primGroup)
-            {
-                //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-                string name = primGroup->getName().toStdString();
-                GU_RayIntersect *ray = new GU_RayIntersect(surface,primGroup);
-                ray->init();
-                rays[name] = ray;
-            }
-        }
+        //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+        string name = primGroup->getName().toStdString();
+        GU_RayIntersect *ray = new GU_RayIntersect(surface,primGroup);
+        ray->init();
+        rays[name] = ray;
     }
 
     cout << "[AtlasGagnon2016::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
@@ -246,74 +196,6 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
     }
     cout << "[AtlasGagnon2016::BuildAtlas] Done"<<endl;
     return true;
-}
-
-//================================= CREATE LIST OF GEO GU_DETAIL =================================
-void AtlasGagnon2016::CreateListGUDetails()
-{
-    GA_PrimitiveGroup *primGroup;
-
-    GA_RWHandleV3   attNRef(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-    {
-
-
-        //map<GA_Offset,GA_Offset> pointsListTest;
-        map<GA_Offset,GA_Offset>::iterator m;
-        GU_Detail *geoGdp = new GU_Detail();
-        GA_RWHandleV3   attN(geoGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-        string name = primGroup->getName().toStdString();
-        map<GA_Offset,GA_Offset> initialOffset;
-
-        GA_PointGroup *pointGrp = (GA_PointGroup*)pointGroupTable->find(name.c_str());
-        GA_Offset ppt;
-        {
-            //cout << "Working with point group "<<pointGrp->getName()<<endl;
-            GA_FOR_ALL_GROUP_PTOFF(deformableGrids,pointGrp,ppt)
-            {
-
-                GA_Offset newPoint = geoGdp->appendPoint();
-                pointsList[ppt] = newPoint;
-
-                UT_Vector3 newPosition = deformableGrids->getPos3(ppt);
-                geoGdp->setPos3(newPoint,newPosition);
-                //attN.set(newPoint,attNRef.get(ppt));
-
-                initialOffset[newPoint] = ppt;
-            }
-        }
-
-        initialOffsetList[name] = initialOffset;
-
-        GEO_Primitive* prim;
-        {
-            GA_FOR_ALL_GROUP_PRIMITIVES(deformableGrids,primGroup,prim)
-            {
-                int nbVertex = prim->getVertexCount();
-                GEO_PrimPoly *prim_poly_ptr = (GEO_PrimPoly *)geoGdp->appendPrimitive(GA_PRIMPOLY);
-                prim_poly_ptr->setSize(0);
-
-                for(int i = 0; i < nbVertex; i++)
-                {
-                    GA_Offset vertex = prim->getVertexOffset(i);
-                    GA_Offset point = deformableGrids->vertexPoint(vertex);
-                    m = pointsList.find(point);
-                    if (m != pointsList.end())
-                    {
-                        GA_Size idx = prim_poly_ptr->appendVertex(pointsList[point]);
-                    }
-                }
-                prim_poly_ptr->close();
-            }
-        }
-        //cout << "Creating temp geo "<<name<<endl;
-        patchesGeo[name] = geoGdp;
-        GU_RayIntersect *ray = new GU_RayIntersect(geoGdp);
-        //GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
-        ray->init();
-        rays[name] = ray;
-        //cout << "Created ray "<<name<<endl;
-    }
 }
 
 //================================= RASTERIZE PRIMITIVE =================================
