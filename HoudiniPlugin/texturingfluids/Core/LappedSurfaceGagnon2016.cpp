@@ -35,11 +35,11 @@ LappedSurfaceGagnon2016::LappedSurfaceGagnon2016(GU_Detail *surface, GU_Detail *
     this->maxId = 0;
 
 
-    /*
-    uvsArray->clear(this->uvsAtt);
-    patchIdsAtt->clear(patchIdsArrayAttrib);
-    alphaAtt->clear(alphaArrayAtt);
-    */
+
+//    uvsArray->clear(this->uvsAtt);
+//    patchIdsAtt->clear(patchIdsArrayAttrib);
+//    alphaAtt->clear(alphaArrayAtt);
+
     //=========================== PATCH ID ARRAY ATTRIB ==========================
     UT_String patchName(this->patchIdsName);
     patchIdsArrayAttrib = surface->findIntArray(GA_ATTRIB_POINT,
@@ -141,6 +141,7 @@ LappedSurfaceGagnon2016::LappedSurfaceGagnon2016(GU_Detail *surface, GU_Detail *
 
 LappedSurfaceGagnon2016::~LappedSurfaceGagnon2016()
 {
+    cout << "[LappedSurfaceGagnon2016] Destroying"<<endl;
     this->rays.clear();
 }
 
@@ -426,7 +427,7 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
 //    surface->destroyAttribute(attribute_type,s);
 
 
-    GA_RWHandleV3 attUV(surface->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
+    //GA_RWHandleV3 attUV(surface->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
 
     GA_RWHandleV3 attUVTracker(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
 
@@ -527,7 +528,7 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
                 uvsArray->set(uvsAtt, pointOffset, fdata);
 
                 //cout << "fdata:"<<fdata<<endl;
-                attUV.set(pointOffset,uv);
+                //attUV.set(pointOffset,uv);
                 nbTreated++;
             }
             //cout << "number of point with uv: "<<nbTreated<<endl;
