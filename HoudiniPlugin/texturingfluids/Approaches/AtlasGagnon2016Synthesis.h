@@ -29,7 +29,7 @@ public:
 
     //==========================================================================
 
-    bool Synthesis(GU_Detail* gdp,  GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
+    bool Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
 
 
 private :

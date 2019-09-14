@@ -62,8 +62,8 @@ void newSopOperator(OP_OperatorTable *table)
                                        "AtlasGagnon2016",
                                        AtlasGagnon2016Plugin::myConstructor,
                                        AtlasGagnon2016Plugin::myTemplateList,
-                                       3,
-                                       3,
+                                       2,
+                                       2,
                                        0));
 
     table->addOperator(new OP_Operator("hdk_AtlasSeamCarving",

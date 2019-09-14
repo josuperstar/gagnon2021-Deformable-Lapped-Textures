@@ -35,7 +35,7 @@ AtlasGagnon2016Synthesis::~AtlasGagnon2016Synthesis()
 {
 }
 
-bool AtlasGagnon2016Synthesis::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+bool AtlasGagnon2016Synthesis::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
     cout << "[AtlasGagnon2016::Synthesis] "<<params.frame<<endl;
 
@@ -47,7 +47,7 @@ bool AtlasGagnon2016Synthesis::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp,
         params.outputName = params.trackersFilename+".png";
     atlas.SetFilename(params.outputName+".png");
     atlas.SetSurface(surfaceGdp);
-    atlas.SetDeformableGrids(gdp);
+
     atlas.SetTrackers(trackersGdp);
     atlas.SetTextureExemplar1(params.textureExemplar1Name);
     atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
@@ -67,15 +67,7 @@ bool AtlasGagnon2016Synthesis::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp,
     }
     atlas.SetTrackersPosition(trackerPositions);
 
-    if(params.useDeformableGrids)
-    {
-        atlas.UseDeformableGrids();
-        cout << "[AtlasGagnon2016::Synthesis] "<< "Compute pixel using deformable grids parametric coordinates."<<endl;
-    }
-    else
-    {
-        cout << "[AtlasGagnon2016::Synthesis] "<< "Compute pixel using overlapping uv and alpha."<<endl;
-    }
+    cout << "[AtlasGagnon2016::Synthesis] "<< "Compute pixel using overlapping uv and alpha."<<endl;
     bool atlasBuilded = atlas.BuildAtlas(params.atlasWidth,params.atlasHeight, params.fadingTau);
     if(!atlasBuilded)
     {
