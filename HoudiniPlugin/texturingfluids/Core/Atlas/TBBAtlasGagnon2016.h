@@ -5,9 +5,9 @@
 
 using namespace TexturingFluids;
 
-struct executor
+struct Gagnon2016_executor
 {
-  executor(AtlasGagnon2016 &rasterizer, int w, int h,
+  Gagnon2016_executor(AtlasGagnon2016 &rasterizer, int w, int h,
            ParametersDeformablePatches params) : _rasterizer(rasterizer),
             _w(w), _h(h), _params(params)
   {

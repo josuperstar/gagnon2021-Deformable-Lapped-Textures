@@ -105,7 +105,7 @@ bool AtlasGagnon2016Synthesis::Synthesis(GU_Detail *surfaceGdp, GU_Detail *track
     else
     {
         cout << "[AtlasGagnon2016::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
-        executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
+        Gagnon2016_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
         tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
     }
     atlas.SaveAtlas();
