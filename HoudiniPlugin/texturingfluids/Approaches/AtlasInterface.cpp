@@ -113,7 +113,7 @@ bool AtlasInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfaceGdp, GU_Detail
     else
     {
         cout << "[AtlasInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
-        executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
+        Yu2011_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
         tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
     }
     atlas.SaveAtlas();
