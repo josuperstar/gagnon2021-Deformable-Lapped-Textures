@@ -108,6 +108,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     GA_RWHandleF    attDMin(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dmin",1));
     GA_RWHandleF    attDistortion(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"distortion",1));
     GA_RWHandleF    attQt(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
+    GA_RWHandleF    attQv(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Qv",1));
 
     GA_RWHandleF    attA(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"a",1));
     GA_RWHandleF    attB(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"b",1));
@@ -252,7 +253,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                 attIsTreated.set(newPoint,0);
                 attCd.set(newPoint,UT_Vector3(1,1,1));
                 attGridId.set(newPoint,id);
-
+                attQv.set(newPoint,1.0f);
                 pointList.push_back(newPoint);
                 tempPointList.push_back(tempNewPoint);
                 pointsLink[neighbor] = newPoint;
@@ -459,6 +460,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                 attDistortion.set(prim_poly_ptr->getMapOffset(),dt);
                 //cout << "set Qt "<<1.0<<endl;
                 attQt.set(prim_poly_ptr->getMapOffset(),1.0f);
+
             }
             //====================================================================
             //=====================================================================================
