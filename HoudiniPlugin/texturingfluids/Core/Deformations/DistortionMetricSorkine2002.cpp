@@ -14,6 +14,7 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
     GA_RWHandleF    attRefDistortion(deformableGridsGdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"distortion",1));
     GA_RWHandleF    attDt(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dt",1));
     GA_RWHandleF    attQt(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
+    GA_RWHandleF    attQv(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Qv",1));
 
     GA_RWHandleV3   attRP(deformableGridsGdp->findFloatTuple(GA_ATTRIB_VERTEX,"refPosition",3));
 
@@ -23,6 +24,8 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
     GA_RWHandleI    attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleF    attMaxQt(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxQt", 1));
 
+
+
     bool killParticle = false;
     bool overDistorted = false;
     {
@@ -31,16 +34,19 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
         int nbVertex;
 
         float minQt = 10000.0f;
+        GA_Offset primOffset;
         GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
         {
-            //move this into a function
+            primOffset = prim->getMapOffset();
+                    //move this into a function
             vector<UT_Vector3> trianglePoints;
-
+            vector<GA_Offset> offsetArray;
             nbVertex = prim->getVertexCount();
             for (int i = 0; i < nbVertex; i++)
             {
                 GA_Offset vertexPoint = prim->getVertexOffset(i);
                 GA_Offset point = deformableGridsGdp->vertexPoint(vertexPoint);
+                offsetArray.push_back(point);
                 trianglePoints.push_back(deformableGridsGdp->getPos3(point));
             }
 
@@ -98,7 +104,7 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
                 float Qt = std::max((dmax-dt)/(dmax-1.0f),0.0f);
 
                 //Qt is equal to 1 for an un-distorted triangle, and is equal to 0 for a triangle where the distortion is larger
-                //than δmax. For each grid vertex V , we then compute its quality, QV as the mean of the quality of its incident triangles.
+                //than δmax.
 
                 //for debuging purpose:
                 attSs.set(prim->getMapOffset(),Ss);
@@ -108,6 +114,42 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
                 attDt.set(prim->getMapOffset(),dt);
                 //The vertex quality measure. It is also use in the blending function.
                 attQt.set(prim->getMapOffset(),Qt);
+
+                //For each grid vertex V , we then compute its quality, QV as the mean of the quality of its incident triangles.
+                //TODO compute Qv:
+
+
+                GA_OffsetArray primitives;
+                vector<GA_Offset>::iterator itPoint;
+                GA_OffsetArray::const_iterator itPrim;
+                float sumQt = 0;
+                float nbQt = 0;
+                for(itPoint = offsetArray.begin(); itPoint != offsetArray.end(); itPoint++)
+                {
+                    deformableGridsGdp->getPrimitivesReferencingPoint(primitives,*itPoint);
+                    for(itPrim = primitives.begin(); itPrim != primitives.end(); itPrim++)
+                    {
+                        if (itPrim.item() != primOffset)
+                        {
+                            //this is an incident triangle:
+                            float nqt = attQt.get(itPrim.item());
+                            sumQt += nqt;
+                            nbQt++;
+                        }
+                    }
+                    float Qv = 0;
+                    //cout << "sumQt "<<sumQt<<" nbQt "<<nbQt;
+                    if (nbQt > 0)
+                    {
+                        Qv = sumQt/nbQt;
+                        attQv.set(*itPoint, Qv);
+                    }
+                    else
+                    {
+                        attQv.set(*itPoint, 0);
+                    }
+                }
+
 
                 //We kill a particle if, for any vertex in the grid, we have QV < 1/2 (i.e., we keep a margin of quality for the fading-out).
                 float QvMin = params.QvMin;
@@ -125,6 +167,7 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
 
             }
             //====================================================================
+            offsetArray.clear();
         }
         attMaxQt.set(trackerPpt,minQt);
     }
