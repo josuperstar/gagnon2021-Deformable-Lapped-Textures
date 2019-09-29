@@ -1145,7 +1145,7 @@ void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
 
 void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
 {
-    GA_RWHandleI    attBorder(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
+    GA_RWHandleI    attBorder(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"border",1));
 
     GA_Primitive *prim;
     GA_FOR_ALL_PRIMITIVES(deformableGridsGdp, prim)
@@ -1213,7 +1213,12 @@ void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
         }
         if (AB == 0 || AC == 0 || BC == 0)
         {
-            attBorder.set(prim->getMapOffset(),1);
+            for(int i=0;i<nb;i++)
+            {
+                GA_Offset point = points[i];
+                attBorder.set(point,1);
+            }
+
         }
     }
 
