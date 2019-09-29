@@ -67,6 +67,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
     //Equation 2, Quality of a triangle
     GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
+    GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
     if (attBorder.isInvalid())
         return R_eq4;
@@ -127,7 +128,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         mininfo.init(thresholdProjectionDistance,0.0001f);
 
         ray->minimumPoint(positionOnSurface,mininfo);
-        //ray->minimumPoint(positionOnSurface,mininfo);
         if (!mininfo.prim)
             continue;
         //--------------------------------------------------
@@ -215,21 +215,25 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
-        float   Q_t = attQt.get(prim->getMapOffset());
+        //The weights are computed for each vertex. During reconstruction, weights at arbitrary locations are interpolated
+        //from vertices values.
+
+        float Q_t1 = attQv.get(pointOffset0);
+        float Q_t2 = attQv.get(pointOffset1);
+        float Q_t3 = attQv.get(pointOffset2);
+
+        float Q_t = Q_t1+u*(Q_t2-Q_t1)+v*(Q_t3-Q_t1);
+//        float   Q_t = attQt.get(prim->getMapOffset());
 
         if (Q_t < 0.001)
             continue;
+
         float   Q_V = Q_t;
 
         //-----------------------------------------------------------------
         //getting the color from the texture exemplar
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
-
-
-
-
-        //-----------------------------------------------------------------
 
         //--------------------------Equation 7--------------------
         //spatial component
@@ -243,8 +247,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         where d_V =0 if V ∈ grid boundary
         1 otherwise
 
-        The weights are computed for each vertex. During reconstruction, weights at arbitrary locations are interpolated
-        from vertices values.
+
         */
 
         //Here, we use a alpha chanel with linear fading from the center to compute the fall-off
