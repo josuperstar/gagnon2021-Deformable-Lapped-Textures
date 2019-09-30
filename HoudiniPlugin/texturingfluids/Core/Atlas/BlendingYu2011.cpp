@@ -147,8 +147,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (distance3d(positionOnSurface,hitPos) > thresholdProjectionDistance)
             continue;
 
-
-
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
         GA_Offset vertexOffset1 = prim->getVertexOffset(1);
         GA_Offset vertexOffset2 = prim->getVertexOffset(2);
@@ -227,7 +225,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         float Q_t = Q_t1+u*(Q_t2-Q_t1)+v*(Q_t3-Q_t1);
         float d_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
-//        float   Q_t = attQt.get(prim->getMapOffset());
+        //float   Q_t = attQt.get(prim->getMapOffset());
 
         if (Q_t < 0.001)
             continue;
@@ -264,7 +262,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         float d_P = distance3d(positionInPolygon,centerUV);
         //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
-
 
         float minDUV = 0.125*params.PatchScaling;
         float maxDUV = 0.25*params.PatchScaling; //blending region
