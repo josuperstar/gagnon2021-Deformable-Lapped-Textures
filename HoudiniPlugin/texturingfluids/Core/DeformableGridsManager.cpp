@@ -876,6 +876,8 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         deformableGridsgdp->destroyPrimitiveGroup(primGrpToDestroy);
     }
     deformableGridsgdp->deletePoints(*grpToDestroy,mode);
+    this->FlagBoundaries(deformableGridsgdp);
+
     cout << "Ok"<<endl;
 
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
