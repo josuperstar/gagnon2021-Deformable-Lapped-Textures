@@ -278,7 +278,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
             // Close particles indices
             GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
             surfaceTree.findAllCloseIdx(position,
-                                 patchRadius,
+                                 patchRadius*2,
                                  surfaceNeighborhoodVertices);
 
             unsigned close_particles_count = surfaceNeighborhoodVertices.entries();
@@ -307,7 +307,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
                 surfacePointOffset = *itG;
                 NN = attNSurface.get(surfacePointOffset);
                 float dotP = dot(N,NN); //exlude points that are not in the same plane.
-                //if (dotP < params.angleNormalThreshold)
+                //if (dotP < params.angleNormalThreshold*2)
                 //    continue;
 
                 patchP = surfaceGdp->getPos3(surfacePointOffset);
