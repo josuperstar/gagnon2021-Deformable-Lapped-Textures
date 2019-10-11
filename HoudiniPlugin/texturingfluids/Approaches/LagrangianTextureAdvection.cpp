@@ -91,7 +91,11 @@ void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp
         surface.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
         if (!usingOnlyPoissonDisk)
             surface.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
-        surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
+        if (params.updateDistribution)
+        {
+            surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
+            //surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
+        }
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
             surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
