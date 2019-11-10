@@ -8,17 +8,17 @@
 AtlasGagnon2016::~AtlasGagnon2016()
 {
     cout <<"Destorying AtlasGagnon2016";
-    if (this->diffuseImageBlendingGagnon->IsValid())
+    if (this->diffuseImageBlendingGagnon && this->diffuseImageBlendingGagnon->IsValid())
         delete this->diffuseImageBlendingGagnon;
 
-    if (this->diffuseImageBlendingYu2011Equation3->IsValid())
+    if (this->diffuseImageBlendingYu2011Equation3 && this->diffuseImageBlendingYu2011Equation3->IsValid())
         delete this->diffuseImageBlendingYu2011Equation3;
 
-    if (this->diffuseImageBlendingYu2011Equation4->IsValid())
+    if (this->diffuseImageBlendingYu2011Equation4 && this->diffuseImageBlendingYu2011Equation4->IsValid())
         delete this->diffuseImageBlendingYu2011Equation4;
-    if (this->textureExemplar1Image->IsValid())
+    if (this->textureExemplar1Image && this->textureExemplar1Image->IsValid())
         delete this->textureExemplar1Image;
-    if (this->textureExemplar1ImageMask->IsValid())
+    if (this->textureExemplar1ImageMask && this->textureExemplar1ImageMask->IsValid())
         delete this->textureExemplar1ImageMask;
     if (computeDisplacement)
     {

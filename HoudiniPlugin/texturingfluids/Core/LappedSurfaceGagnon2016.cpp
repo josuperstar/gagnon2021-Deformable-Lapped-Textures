@@ -444,7 +444,8 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
         N = attN.get(ppt);
         trackerPosition = trackersGdp->getPos3(ppt);
         GA_Offset tracker_offset = ppt+numPoint/2;
-        UT_Vector3 currentDirection = trackersGdp->getPos3(tracker_offset)-trackerPosition;
+        UT_Vector3 tangeantPosition = trackersGdp->getPos3(tracker_offset);
+        UT_Vector3 currentDirection = tangeantPosition-trackerPosition;
         currentDirection.normalize();
         N.normalize();
         S = cross(N,currentDirection);
