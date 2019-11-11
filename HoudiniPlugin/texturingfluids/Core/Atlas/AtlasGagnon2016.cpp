@@ -204,6 +204,8 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
 {
     //rasterize primitive
 
+    bool debug = true;
+
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
         return;
@@ -294,9 +296,20 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
             if (data == 3)
             {
                 //cout << "w00t !"<<endl;
-                sortedPatches.push_back(patchId);
+                if (params.testPatch == 1 && params.patchNumber == patchId)
+                {
+                    if (debug)
+                        cout << "using patch number only"<<endl;
+                    sortedPatches.push_back(patchId);
+                }
+                else if (params.testPatch == 0)
+                {
+                    cout << "not using patch number test"<<endl;
+                    sortedPatches.push_back(patchId);
+                }
             }
 
+            debug = false;
             int uvIndex = patchIndex*3;
             UT_Vector3 uvPatch = UT_Vector3(uvsData.array()[uvIndex],uvsData.array()[uvIndex+1],uvsData.array()[uvIndex+2]);
             patchUvs[patchId][vertexIt] = uvPatch;
@@ -316,7 +329,7 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
     Pixel alphaColor;
     UT_Vector3 point;
 
-    bool debug = false;
+    debug = false;
 
     //-----------------------------------------------------------------
     for(int i =min.x()-pixelCellSize; i < max.x()+pixelCellSize; i++)

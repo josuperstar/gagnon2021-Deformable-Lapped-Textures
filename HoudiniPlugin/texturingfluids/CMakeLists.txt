@@ -52,6 +52,11 @@ target_include_directories( ${library_name} PRIVATE
     ${Images}
 )
 
+# Force c++14
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 ##########################
 # Register the libraries #
 ##########################
@@ -103,7 +108,7 @@ if( DEFINED ENV{OPENCV_DIR} )
     message( STATUS "OpenCV directory: " $ENV{OPENCV_DIR} )
     list( APPEND CMAKE_PREFIX_PATH "$ENV{OPENCV_DIR}/lib" )
 endif()
-find_package( OpenCV REQUIRED )
+find_package( OpenCV REQUIRED PATHS "/Volumes/Projects/Production/packages/tools/opencv/4.1.2/bin")
 
 # Link against the libraries
 target_link_libraries( ${library_name} ${OpenCV_LIBS} )

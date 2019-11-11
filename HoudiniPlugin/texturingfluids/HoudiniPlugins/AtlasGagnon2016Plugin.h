@@ -54,7 +54,8 @@ public:
     fpreal  PoissonDiskRadius() { return evalFloat("PoissonDiskRadius", 0, 0); }
     fpreal  UVScaling(fpreal t) { return evalFloat("UVScaling", 0, t); }
     fpreal  PatchScaling(fpreal t) { return evalFloat("PatchScaling", 0, t); }
-
+    fpreal  TestPatch() { return evalFloat("TestPatch", 0, 0); }
+    fpreal  PatchNumber() { return evalFloat("PatchNumber", 0, 0); }
 
 protected:
     //virtual unsigned		 disableParms();

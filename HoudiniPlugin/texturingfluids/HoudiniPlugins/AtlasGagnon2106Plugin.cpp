@@ -54,6 +54,8 @@ static PRM_Name        names[] = {
     PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),
     PRM_Name("UVScaling",	"UV Scaling"),
     PRM_Name("PatchScaling",	"Patch Scaling"),
+    PRM_Name("TestPatch", "Test Patch"),
+    PRM_Name("PatchNumber",	"PatchNumber"),
 };
 
 static PRM_Default PatchScalingDefault(1.0f);
@@ -74,6 +76,8 @@ AtlasGagnon2016Plugin::myTemplateList[] =
     PRM_Template(PRM_FLT, 1, &names[10]),
     PRM_Template(PRM_FLT, 1, &names[11]),
     PRM_Template(PRM_FLT, 1, &names[12], &PatchScalingDefault),
+    PRM_Template(PRM_TOGGLE, 1, &names[13]), //TestPatch
+    PRM_Template(PRM_INT, 1, &names[14]), //PatchNumber
     PRM_Template(),
 };
 
@@ -195,7 +199,8 @@ AtlasGagnon2016Plugin::cookMySop(OP_Context &context)
     params.coloredPatches = RenderColoredPatches();
     params.UVScaling = UVScaling(now);
     params.PatchScaling = PatchScaling(now);
-
+    params.testPatch = TestPatch();
+    params.patchNumber = PatchNumber();
     params.NumberOfTextureSampleFrame = 1;
 
     if (params.atlasHeight <= 0)
