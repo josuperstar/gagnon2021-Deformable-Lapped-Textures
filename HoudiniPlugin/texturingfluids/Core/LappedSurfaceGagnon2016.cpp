@@ -295,8 +295,8 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
                 surfacePointOffset = *itG;
                 NN = attNSurface.get(surfacePointOffset);
                 float dotP = dot(N,NN); //exlude points that are not in the same plane.
-                //if (dotP < params.angleNormalThreshold)
-                //    continue;
+                if (dotP < params.angleNormalThreshold)
+                    continue;
 
                 patchP = surfaceGdp->getPos3(surfacePointOffset);
                 //respect poisson disk criterion
@@ -421,13 +421,11 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
     UT_Vector3 trackerPosition;
     int i = 0;
     GA_Offset numPoint = trackersGdp->getNumPointOffsets();
+    float possonDisk = params.poissondiskradius;
 
 //    UT_String s = UT_String("uv");
 //    GA_AttributeOwner attribute_type = GA_ATTRIB_VERTEX;
 //    surface->destroyAttribute(attribute_type,s);
-
-
-    //GA_RWHandleV3 attUV(surface->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
 
     GA_RWHandleV3 attUVTracker(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
 
@@ -452,6 +450,8 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
         S.normalize();
         T = cross(S,N);
         T.normalize();
+
+        GA_RWHandleV3 surfaceAttUV(surface->addFloatTuple(GA_ATTRIB_POINT,"uv"+std::to_string(patchNumber), 3));
 
         // Transform into local patch space (where STN is aligned with XYZ at the origin)
 
@@ -498,7 +498,7 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
                 uv.z() = triangleSpacePos.z();
 
                 float mid = 0.5;
-                //uv /= params.UVScaling;
+                uv /= params.UVScaling;
                 uv += mid;
                 //uv.z should be zero
                 //uv -= centerUv;
@@ -530,6 +530,7 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
 
                 //cout << "fdata:"<<fdata<<endl;
                 //attUV.set(pointOffset,uv);
+                surfaceAttUV.set(pointOffset,uv);
                 nbTreated++;
             }
             //cout << "number of point with uv: "<<nbTreated<<endl;

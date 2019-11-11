@@ -284,6 +284,7 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
             //cout << "adding tangeant tracker"<<endl;
             tracker_offset = trackersGdp->appendPoint();
             isTangeantTracker.set(tracker_offset,1);
+            attId.set(tracker_offset,id);
             trackersGdp->setPos3(tracker_offset,tangeantPosition);
         }
         float life = currentLife;
@@ -655,7 +656,6 @@ void ParticleAndTrackerManagerGagnon2016::AdvectSingleTrackers(GU_Detail *surfac
                 numberOfDetachedPatches++;
 
                 trackersGdp->setPos3(ppt,p1);
-                //cout << "new new position "<<p1<<endl;
             }
         }
     }
