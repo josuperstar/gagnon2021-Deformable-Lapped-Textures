@@ -51,7 +51,6 @@ public:
 
 
 
-
 protected:
     //virtual unsigned		 disableParms();
 	virtual const char          *inputLabel(unsigned idx) const;

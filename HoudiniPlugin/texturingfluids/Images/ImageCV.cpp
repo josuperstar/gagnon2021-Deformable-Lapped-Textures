@@ -1,4 +1,5 @@
 #include "ImageCV.h"
+#include <opencv2/imgproc/imgproc.hpp>
 
 ImageCV::~ImageCV()
 {
@@ -20,7 +21,7 @@ ImageCV::~ImageCV()
         //cv::imshow("test",temp);
         this->image = temp;
         //cv::waitKey();
-        cv::cvtColor(temp,this->image,CV_BGR2BGRA);
+        cv::cvtColor(temp,this->image,cv::COLOR_BGR2BGRA);
         //m_width = image.size()[1];
         this->m_width = this->image.size().width;
         this->m_height = this->image.size().height;
@@ -37,7 +38,7 @@ ImageCV::~ImageCV()
     bool ImageCV::OpenPNM(const string& file_name, long id)
     {
         //cout << "Open image "<< file_name <<" : ";
-        cv::Mat temp = cv::imread(file_name,CV_LOAD_IMAGE_UNCHANGED);
+        cv::Mat temp = cv::imread(file_name);
         if (temp.empty())
         {
             cout << " file "<<file_name<<" does not exist"<<endl;
@@ -47,7 +48,7 @@ ImageCV::~ImageCV()
         //cv::imshow("test",temp);
         this->image = temp;
         //cv::waitKey();
-        cv::cvtColor(temp,this->image,CV_GRAY2RGBA);
+        cv::cvtColor(temp,this->image,cv::COLOR_GRAY2RGBA);
         //m_width = image.size()[1];
         this->m_width = this->image.size().width;
         this->m_height = this->image.size().height;
@@ -94,7 +95,7 @@ ImageCV::~ImageCV()
         {
             //cout << "open image "<<file_name<<endl;
             this->image = temp;
-            cv::cvtColor(temp,this->image,CV_BGR2BGRA);
+            cv::cvtColor(temp,this->image,cv::COLOR_BGR2RGB);
             m_width = this->image.size().width;
             m_height = this->image.size().height;
             this->m_depth = 1;
