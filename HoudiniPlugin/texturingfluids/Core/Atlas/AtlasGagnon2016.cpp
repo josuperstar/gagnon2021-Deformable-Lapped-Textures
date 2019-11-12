@@ -90,9 +90,12 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
     //attLife = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"life", 1));
     attLife = life;
     attFadeIn = GA_ROHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"fadeIn", 1));
+    isTangeantTracker = GA_RWHandleI(trackers->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"blend", 1));
     attPointUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
     attAlpha = GA_ROHandleF(surface->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
+
+    GA_RWHandleV3   attCenterUV(trackers->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
 
     pointGroupTable = surface->getGroupTable(pointGroupType);
     primGroupTable = surface->getGroupTable(primGroupType);
@@ -180,6 +183,25 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
     }
 
     cout << "[AtlasGagnon2016::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
+
+
+    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_Offset ppt;
+    GA_FOR_ALL_PTOFF(trackers,ppt)
+    {
+        float blend = attBlend.get(ppt);
+        int patchId =   attId.get(ppt);
+        int isTangeant = isTangeantTracker.get(ppt);
+        if (isTangeant == 1)
+            continue;
+
+        if (isinf(blend))
+            blend = 1.0f;
+        //temporalComponetKt[patchId] = blend;
+        cout << "Buidling tracker uv position "<<attCenterUV.get(ppt)<<endl;
+        trackerUVPosition[patchId] = attCenterUV.get(ppt);
+    }
+
 
     if(renderColoredPatches)
         initPatchColors(trackers);
@@ -304,7 +326,7 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
                 }
                 else if (params.testPatch == 0)
                 {
-                    cout << "not using patch number test"<<endl;
+                    //cout << "not using patch number test"<<endl;
                     sortedPatches.push_back(patchId);
                 }
             }
@@ -429,6 +451,7 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
                                           surfaceUv,
                                           surfacePosition,
                                           trackerPosition,
+                                          trackerUVPosition,
                                           useDeformableGrids,
                                           rays,
                                           patchColors,

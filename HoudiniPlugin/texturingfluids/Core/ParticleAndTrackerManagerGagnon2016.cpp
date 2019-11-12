@@ -119,9 +119,18 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
     //--------------------------------------
     int id = 0;
     GA_Offset ppt;
+
+    //trackersGdp->reorderPoint()
+
+    //randomize list
+    trackersGdp->sortPointList(0);
+
+    int nbOfPoint = 1;
+
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        id = attId.get(ppt);
+        id = nbOfPoint;//attId.get(ppt);
+        attId.set(ppt,id);
         int active = attActive.get(ppt);
         float currentLife = attLife.get(ppt);
         int currentSpawn = attSpawn.get(ppt);
@@ -299,6 +308,7 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
         attRandT.set(ppt,randt);
 
         //numberOfPatches++;
+        nbOfPoint++;
     }
     cout <<" DONE"<<endl;
 }

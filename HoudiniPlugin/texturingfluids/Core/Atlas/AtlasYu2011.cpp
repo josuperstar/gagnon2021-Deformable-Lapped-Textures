@@ -73,7 +73,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     attLife = life;
 
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
-    GA_RWHandleV3   attCenterUV(trackers->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
+    attCenterUV = GA_RWHandleV3(trackers->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
 
 
     gridTree.build(deformableGrids,NULL);
