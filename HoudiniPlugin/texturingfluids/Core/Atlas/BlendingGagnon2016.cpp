@@ -38,6 +38,7 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
                                 vector<UT_Vector3> &surfaceUv,
                                 vector<UT_Vector3> &surfacePosition,
                                 map<int,UT_Vector3> &trackersPosition,
+                                map<int,UT_Vector3> &trackersUVPosition,
                                 bool useDeformableGrids,
                                 map<string,GU_RayIntersect*> &rays,
                                 map<int,Pixel> &patchColors,
@@ -141,7 +142,6 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
             continue;
         }
 
-
         rays[groupName]->minimumPoint(positionOnSurface,mininfo);
 
         if (!mininfo.prim)
@@ -220,6 +220,9 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
             alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
         }
 
+
+        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
+
         int w = textureExemplar1Image->GetWidth();
         int h = textureExemplar1Image->GetHeight();
         int wm = textureExemplar1ImageMask->GetWidth();
@@ -257,8 +260,17 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         {
             //alpha = 1;
         }
+
+        centerUV.z() = 0;
+        positionInPolygon.z() = 0;
+        float d_P = distance3d(positionInPolygon,centerUV);
+        //cout <<centerUV<<" "<<positionInPolygon<< " "<< d_P<<endl;
+
         //HAACCKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK
         alpha = 1;
+
+        if (d_P > 0.125*params.PatchScaling)
+            alpha = 0;
         color.A = alpha;
 
         //---------------- Transparency Equation -----------------------

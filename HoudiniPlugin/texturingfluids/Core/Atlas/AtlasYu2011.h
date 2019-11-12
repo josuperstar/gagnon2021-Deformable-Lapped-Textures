@@ -87,6 +87,7 @@ private:
    float attLife;
    GA_ROHandleI attFadeIn;
    GA_RWHandleF attBlend;
+   GA_RWHandleV3   attCenterUV;
 
    bool computeDisplacement = false;
    GA_GroupType pointGroupType = GA_GROUP_POINT;

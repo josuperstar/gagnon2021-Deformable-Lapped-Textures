@@ -137,7 +137,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (prim->getVertexCount() < 3)
             continue;
 
-        //------------------------------PARAMETRIC COORDINATE -----------------------------------
+        //------------------------------ PARAMETRIC COORDINATE -----------------------------------
         float u = mininfo.u1;
         float v = mininfo.v1;
 
