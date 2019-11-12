@@ -92,6 +92,7 @@ private:
    float attLife;
    GA_ROHandleI attFadeIn;
    GA_RWHandleF attBlend;
+   GA_RWHandleI    isTangeantTracker;
 
    bool computeDisplacement = false;
    GA_GroupType pointGroupType = GA_GROUP_POINT;
@@ -108,6 +109,7 @@ private:
    map<int,float> patchBlend;
    map<int,UT_Vector3> trackerPosition;
    map<int,UT_Vector3> trackerUVPosition;
+
 
    bool useDeformableGrids = false;
    bool renderColoredPatches = false;

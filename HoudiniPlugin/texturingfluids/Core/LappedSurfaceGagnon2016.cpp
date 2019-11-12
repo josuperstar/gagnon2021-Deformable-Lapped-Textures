@@ -221,7 +221,7 @@ void LappedSurfaceGagnon2016::AddSolidPatchesUsingBarycentricCoordinates(GU_Deta
 
     map<int, set<int> > surfacePatchIds;
 
-    fpreal patchRadius = 2*params.poissondiskradius;
+    fpreal patchRadius = 2*params.poissondiskradius*1.5;
     float cs = params.CellSize;
     //================================ CREATE PATCH GROUPS ==============================
     GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -429,6 +429,7 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
 
     GA_RWHandleV3 attUVTracker(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"uv", 3));
 
+
     GA_FOR_ALL_PTOFF(trackersGdp, ppt)
     {
         patchNumber = attId.get(ppt);
@@ -479,6 +480,7 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
         {
             GA_Offset pointOffset;
             int nbTreated = 0;
+            UT_Vector3 centerUV = UT_Vector3(0,0,0);
             GA_FOR_ALL_GROUP_PTOFF(surface, pointGrp, pointOffset)
             {
                 //cout << "Projection for patch "<<pointGrp->getName()<<endl;
@@ -531,8 +533,20 @@ void LappedSurfaceGagnon2016::OrthogonalUVProjection(GU_Detail* surface, GU_Deta
                 //cout << "fdata:"<<fdata<<endl;
                 //attUV.set(pointOffset,uv);
                 surfaceAttUV.set(pointOffset,uv);
+
+
+                centerUV += uv;
+
                 nbTreated++;
             }
+
+            if (nbTreated > 0)
+            {
+                centerUV /= nbTreated;
+                cout << "Center UV "<<centerUV<<endl;
+                attCenterUV.set(ppt,centerUV);
+            }
+
             //cout << "number of point with uv: "<<nbTreated<<endl;
         }
     }

@@ -52,7 +52,7 @@ target_include_directories( ${library_name} PRIVATE
     ${Images}
 )
 
-# Force c++14
+# Force c++11
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
