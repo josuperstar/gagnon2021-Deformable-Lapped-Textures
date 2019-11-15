@@ -198,7 +198,7 @@ bool AtlasGagnon2016::BuildAtlas(int w, int h, int life)
         if (isinf(blend))
             blend = 1.0f;
         //temporalComponetKt[patchId] = blend;
-        cout << "Buidling tracker uv position "<<attCenterUV.get(ppt)<<endl;
+        //cout << "Buidling tracker uv position "<<attCenterUV.get(ppt)<<endl;
         trackerUVPosition[patchId] = attCenterUV.get(ppt);
     }
 
@@ -227,8 +227,8 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
     //rasterize primitive
 
     bool debug = false;
-    if (primOffset == 880)
-        debug = true;
+    //if (primOffset == 880)
+    //    debug = true;
 
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)

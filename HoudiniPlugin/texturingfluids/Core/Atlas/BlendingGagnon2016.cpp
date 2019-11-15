@@ -61,8 +61,8 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
 
     bool debug = false;
 
-    if (life == 880)
-        debug = true;
+    //if (life == 880)
+    //    debug = true;
 
     float thresholdDistance = 0.5;
     Pixel Cf = Pixel(0,0,0);
@@ -129,14 +129,27 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
 
 
         UT_Vector3 positionInPolygon;
-
+        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
 
         UT_Vector3 uvPatch1 = patchUvs[patchId][0];
         UT_Vector3 uvPatch2 = patchUvs[patchId][1];
         UT_Vector3 uvPatch3 = patchUvs[patchId][2];
+
+        uvPatch1 -= centerUV;
+        uvPatch2 -= centerUV;
+        uvPatch3 -= centerUV;
+
+        uvPatch1 *= params.UVScaling;
+        uvPatch2 *= params.UVScaling;
+        uvPatch3 *= params.UVScaling;
+
+        uvPatch1 += centerUV;
+        uvPatch2 += centerUV;
+        uvPatch3 += centerUV;
+
         positionInPolygon = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],uvPatch1,uvPatch2,uvPatch3,pixelPositionOnSurface);
 
-        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
+
 
         int w = textureExemplar1Image->GetWidth();
         int h = textureExemplar1Image->GetHeight();
