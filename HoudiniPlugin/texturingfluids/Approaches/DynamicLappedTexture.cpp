@@ -63,18 +63,18 @@ void DynamicLappedTexture::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
     if(params.startFrame == params.frame)
     {
         surface.PoissonDiskSampling(levelSet,trackersGdp,params);
-        //surface.InitializeTrackersAndTangeants(surfaceGdp,trackersGdp,surfaceGroup,params);
-        cout << "[DynamicLappedTexture::Synthesis] CreateAndUpdateTrackersBasedOnPoissonDisk"<<endl;
-        surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp,surfaceGroup,params);
+        //surface.ShufflePoints(trackersGdp);
+
+
     }
     else
     {
         surface.AdvectTrackersAndTangeants(surfaceGdp, trackersGdp, params);
-        //surface.PoissonDiskSampling(levelSet,trackersGdp,params);
-        //surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp,surfaceGroup,params);
         surface.UpdateTrackersAndTangeant(surfaceGdp,trackersGdp, surfaceGroup,params);
+        surface.PoissonDiskSampling(levelSet,trackersGdp,params);
     }
 
+    surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp,surfaceGroup,params);
     //For the blending computation, we create uv array per vertex that we called patch
     surface.AddSolidPatchesUsingBarycentricCoordinates(surfaceGdp,trackersGdp, params,surfaceTree);
     surface.OrthogonalUVProjection(surfaceGdp,trackersGdp,params);

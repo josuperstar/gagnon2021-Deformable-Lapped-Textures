@@ -226,7 +226,9 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
 {
     //rasterize primitive
 
-    bool debug = true;
+    bool debug = false;
+    if (primOffset == 880)
+        debug = true;
 
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
@@ -239,6 +241,8 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
         cout << "Primitive "<<prim->getMapOffset()<< " has "<<vertexCount<< " vertices"<<endl;
         return;
     }
+    if (debug)
+        cout << "Rasterizing primitive "<<primOffset<<endl;
 
     //--------------------- SORTED DATA PER PATCH ------------------------
     vector<UT_Vector3> surfaceTexturePosition;
@@ -304,6 +308,11 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
         alphaArray->get(alphas, pointOffset, alphasData);
 
 
+        if (debug)
+        {
+            cout << "adding point "<<pointOffset<<endl;
+        }
+
         //for this vertex, we go through all patches
         //we are trying to keep only patches that are on the three vertices
         //vector<UT_Vector3> sortedUVs;
@@ -327,11 +336,15 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
                 else if (params.testPatch == 0)
                 {
                     //cout << "not using patch number test"<<endl;
+                    if (debug)
+                    {
+                        cout << "adding patch "<<patchId<<endl;
+                    }
                     sortedPatches.push_back(patchId);
                 }
             }
 
-            debug = false;
+            //debug = false;
             int uvIndex = patchIndex*3;
             UT_Vector3 uvPatch = UT_Vector3(uvsData.array()[uvIndex],uvsData.array()[uvIndex+1],uvsData.array()[uvIndex+2]);
             patchUvs[patchId][vertexIt] = uvPatch;
@@ -339,6 +352,19 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
         }
 
         //sortedPatches.push_back(patchList);
+    }
+    if (debug)
+    {
+        cout << "sorted patches "<<endl;
+        vector<int>::iterator itP;
+        for(itP = sortedPatches.begin(); itP != sortedPatches.end(); itP++)
+            cout << *itP<<endl;
+        //cout << "patch uv "<<patchUvs<<endl;
+        map<int,int>::iterator itLink;
+
+        cout << "numberOfLinkedPatch "<<endl;
+        for(itLink = numberOfLinkedPatch.begin(); itLink != numberOfLinkedPatch.end(); itLink++)
+            cout << *itLink<<endl;
     }
     //-------------------------------------------------------------------
 
@@ -452,14 +478,14 @@ void AtlasGagnon2016::RasterizePrimitive(GA_Offset primOffset, int w, int h, Par
                                           surfacePosition,
                                           trackerPosition,
                                           trackerUVPosition,
-                                          useDeformableGrids,
+                                          false,
                                           rays,
                                           patchColors,
                                           alphaColor,
                                           RM,
                                           attAlpha,
                                           attPointUV,
-                                          attLife,
+                                          primOffset,
                                           patchBlend,
                                           patchUvs,
                                           alphasMap,
@@ -598,7 +624,7 @@ Pixel AtlasGagnon2016::SetRandomColor(int patchNumber)
 void AtlasGagnon2016::initPatchColors(GU_Detail *trackersGdp)
 {
 
-    GA_RWHandleI    attM(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"M",0));
+    GA_RWHandleI    attM(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",0));
     GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
