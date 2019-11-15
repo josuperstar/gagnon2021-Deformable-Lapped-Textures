@@ -59,11 +59,11 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
                                 ParametersDeformablePatches params)
 {
 
-
-
-
-
     bool debug = false;
+
+    if (life == 880)
+        debug = true;
+
     float thresholdDistance = 0.5;
     Pixel Cf = Pixel(0,0,0);
     Cf.A = 1;
@@ -90,8 +90,6 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
     point.x() = i;
     point.y() = j;
     point.z() = 0;
-
-
 
     //test color
     color.R = 1;
@@ -121,105 +119,22 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         //int patchId = patches[k];
         int patchId = *itPatch;
 
-        //if (debugPatch && patchNumber != patchId)
+        //if (params.testPatch == 1 && params.patchNumber != patchId)
         //    continue;
 
-        //-------------------------------------------------------------
-        //get deformable grids according to patchId in deformableGrids
+        //cout << "blending patch "<<patchId<<endl;
 
-        string str = std::to_string(patchId);
-        string groupName;
-        if (useDeformableGrids)
-            groupName = "grid"+str;
-        else
-            groupName = "patch"+str;
 
-        GU_MinInfo mininfo;
-        mininfo.init(thresholdDistance,0.0001);
-        map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
-        if (it==rays.end())
-        {
-            continue;
-        }
-
-        rays[groupName]->minimumPoint(positionOnSurface,mininfo);
-
-        if (!mininfo.prim)
-        {
-            //cout << "No primitive to project on"<<endl;
-            continue;
-        }
-
-        const GEO_Primitive *prim = mininfo.prim;
-        //get pos of hit
-        UT_Vector4 hitPos;
-        mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
-
-        if (prim->getVertexCount() < 3)
-        {
-            cout << "prim vertex count "<<prim->getVertexCount()<<endl;
-            continue;
-        }
         //------------------------------PARAMETRIC COORDINATE -----------------------------------
-        float u = mininfo.u1;
-        float v = mininfo.v1;
-
-        GA_Offset vertexOffset0 = prim->getVertexOffset(0);
-        GA_Offset localOffset0;
-        GA_Offset pointOffset0;
-
-        GA_Offset vertexOffset1 = prim->getVertexOffset(1);
-        GA_Offset localOffset1;
-        GA_Offset pointOffset1;
-
-        GA_Offset vertexOffset2 = prim->getVertexOffset(2);
-        GA_Offset localOffset2;
-        GA_Offset pointOffset2;
 
 
-        UT_Vector3 uvPatch;
-        float   alphaPatch;
         UT_Vector3 positionInPolygon;
 
-        if (useDeformableGrids)
-        {
-            pointOffset0  = deformableGrids->vertexPoint(vertexOffset0);
-            pointOffset1  = deformableGrids->vertexPoint(vertexOffset1);
-            pointOffset2  = deformableGrids->vertexPoint(vertexOffset2);
 
-            float a0 = attAlpha.get(pointOffset0);
-            float a1 = attAlpha.get(pointOffset1);
-            float a2 = attAlpha.get(pointOffset2);
-
-            alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
-            if (alphaPatch < 0)
-            {
-                alphaPatch = 0;
-            }
-
-            if (attPointUV.isInvalid())
-                continue;
-
-            UT_Vector3 v0 = attPointUV.get(pointOffset0);
-            UT_Vector3 v1 = attPointUV.get(pointOffset1);
-            UT_Vector3 v2 = attPointUV.get(pointOffset2);
-
-            uvPatch = v0+u*(v1-v0)+v*(v2-v0);
-            positionInPolygon = uvPatch;
-
-        }
-        else
-        {
-            UT_Vector3 uvPatch1 = patchUvs[patchId][0];
-            UT_Vector3 uvPatch2 = patchUvs[patchId][1];
-            UT_Vector3 uvPatch3 = patchUvs[patchId][2];
-            positionInPolygon = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],uvPatch1,uvPatch2,uvPatch3,pixelPositionOnSurface);
-            float a0 = alphasMap[patchId][0];
-            float a1 = alphasMap[patchId][1];
-            float a2 = alphasMap[patchId][2];
-            alphaPatch = a0+u*(a1-a0)+v*(a2-a0);
-        }
-
+        UT_Vector3 uvPatch1 = patchUvs[patchId][0];
+        UT_Vector3 uvPatch2 = patchUvs[patchId][1];
+        UT_Vector3 uvPatch3 = patchUvs[patchId][2];
+        positionInPolygon = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],uvPatch1,uvPatch2,uvPatch3,pixelPositionOnSurface);
 
         UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
 
@@ -251,7 +166,10 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         if (computeDisplacement)
             displacementMapImage->GetColor(i2,j2,0,displacement);
 
-        float alpha = ((alphaColor.R+alphaColor.G+alphaColor.B)/3) * alphaPatch;
+        float alpha = ((alphaColor.R+alphaColor.G+alphaColor.B)/3);
+
+        if (debug)
+            cout << "Adding color "<<color.R<<" "<<color.G<<" "<<color.B<<" "<<alpha<<endl;
 
         //alpha = alpha * patchBlend[patchId];
 
@@ -270,7 +188,11 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         alpha = 1;
 
         if (d_P > 0.125*params.PatchScaling)
+        {
+            if (debug)
+                cout << "d_P "<<d_P << " > "<<0.125*params.PatchScaling<<endl;
             alpha = 0;
+        }
         color.A = alpha;
 
         //---------------- Transparency Equation -----------------------
@@ -296,6 +218,11 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
             displacementSum.B = alpha*displacement.B + (1.0f-alpha)*displacementSum.B;
         }
         k++;
+    }
+
+    if (debug)
+    {
+        cout << "Cd = "<<Cf.R<<" "<<Cf.G<<" "<<Cf.B<<endl;
     }
 
     if (Cf.R > 1)

@@ -66,7 +66,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
-
+    GA_RWHandleI    isTangeantTracker(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
 
 
     // Find first vdb primitive of input 0
@@ -99,6 +99,12 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
         int numberOfClosePoint;
+
+        if (isTangeantTracker.isValid())
+        if (isTangeantTracker.get(ppt) == 1)
+        {
+            continue;
+        }
 
         UT_Vector3 pointPosition = trackersGdp->getPos3(ppt);
         UT_Vector3 pointNormal   = attN.get(ppt);
@@ -293,10 +299,22 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
+    GA_RWHandleI    isTangeantTracker(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
 
-    if (trackersGdp->getNumPoints() > this->maxId) //existing points
+
+    //---------- Tangeant Tracker -----------
+    UT_Vector3 defaultDirection(1,0,0);
+    UT_Vector3 S,T;
+    float Tlenght = params.poissondiskradius/2.0f;
+    GA_Offset tracker_offset;
+
+    int divider = 1;
+    if (isTangeantTracker.isValid())
+        divider = 2;
+    if (trackersGdp->getNumPoints()/divider > this->maxId) //existing points
     {
-        this->maxId = trackersGdp->getNumPoints();
+        cout << "New Max Id = "<<trackersGdp->getNumPoints()/divider<<endl;
+        this->maxId = trackersGdp->getNumPoints()/divider;
     }
     int id = this->maxId+1;
     this->maxId = id;
@@ -311,6 +329,24 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     attLife.set(newPoint,0.001f);
     attIsMature.set(newPoint,0);
     attMaxDeltaOnD.set(newPoint,0);
+
+    if (isTangeantTracker.isValid())
+    {
+        //---------- ADD TANGEANT TRACKER ----------
+        //put this in a function, and/or move this where we already add point
+        S = cross(N,defaultDirection);
+        S.normalize();
+        T = cross(S,N);
+        T.normalize();
+        UT_Vector3 translation = T*Tlenght;
+        //cout << "Translation: "<<translation<<endl;
+        UT_Vector3 tangeantPosition = p + translation;
+        //cout << "adding tangeant tracker"<<endl;
+        tracker_offset = trackersGdp->appendPoint();
+        isTangeantTracker.set(tracker_offset,1);
+        attId.set(tracker_offset,id);
+        trackersGdp->setPos3(tracker_offset,tangeantPosition);
+    }
 
     if(params.startFrame == params.frame)
     {
@@ -331,10 +367,15 @@ void Bridson2012PoissonDiskDistribution::CreateAPointDisk(GU_Detail* trackersGdp
     GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+    GA_RWHandleI    isTangeantTracker(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
 
-    if (trackersGdp->getNumPoints() > this->maxId) //existing points
+    int divider = 1;
+    if (isTangeantTracker.isValid())
+        divider = 2;
+    if (trackersGdp->getNumPoints()/divider > this->maxId) //existing points
     {
-        this->maxId = trackersGdp->getNumPoints();
+        cout << "New Max Id = "<<trackersGdp->getNumPoints()/divider<<endl;
+        this->maxId = trackersGdp->getNumPoints()/divider;
     }
     int id = this->maxId+1;
     this->maxId = id;
