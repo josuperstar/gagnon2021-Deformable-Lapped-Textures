@@ -204,6 +204,8 @@ DynamicLappedTexturePlugin::cookMySop(OP_Context &context)
 
     cout << "======================== DynamicLappedTexturePlugin, frame  "<<frame<< "============================="<<endl;
 
+    cout << "With UV Scaling "<<params.UVScaling<<endl;
+
     const GU_Detail *trackersGdp = inputGeo(1);
     GU_Detail *trackersCopy = new GU_Detail();
     trackersCopy->clearAndDestroy();
