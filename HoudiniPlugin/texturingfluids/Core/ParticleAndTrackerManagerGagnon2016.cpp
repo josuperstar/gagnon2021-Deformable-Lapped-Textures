@@ -110,37 +110,28 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
     GU_MinInfo mininfo;
     GU_RayIntersect ray(surface);
     ray.init();
-    //---------- Tangeant Tracker -----------
-    UT_Vector3 defaultDirection(1,0,0);
-    UT_Vector3 S,T;
-    float Tlenght = params.poissondiskradius/2.0f;
-    GA_Offset tracker_offset;
-    bool newPoint = false;
-    //--------------------------------------
+
     int id = 0;
     GA_Offset ppt;
 
     //trackersGdp->reorderPoint()
 
     //randomize list
-    trackersGdp->sortPointList(0);
-
+    if (params.frame == params.startFrame)
+    {
+        cout << "The is the first frame, so we randomize the point id order."<<endl;
+        //trackersGdp->sortPointList(0);
+    }
     int nbOfPoint = 1;
 
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        id = nbOfPoint;//attId.get(ppt);
-        attId.set(ppt,id);
+        id = attId.get(ppt);
         int active = attActive.get(ppt);
         float currentLife = attLife.get(ppt);
         int currentSpawn = attSpawn.get(ppt);
 
-        if (currentLife < 1 && active == 1)
-            newPoint = true;
-
         UT_Vector3 velocity;
-
-        float dynamicTau = attMaxDeltaOnD.get(ppt);
         UT_Vector3 centerUV = attCenterUV.get(ppt);
 
         //Dead patches are not updated
@@ -206,69 +197,15 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
             attActive.set(ppt,0);
         }
 
-
-        //========================================================================
-
         //========================= UPDATE ===============================
-        //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
-        //or that are too close to each other
 
-        int maxNumberOfNeighbour = 5; // TODO promotve that variable
-        int density = attDensity.get(ppt);
-        //-------------- deleting faster logic ------------------
-        //Can we move this to the ParticleTracker update ?
-        int deleteFaster = attDeleteFaster.get(ppt);
-        int numberOfNeighbourThreshold = 1; // TODO: promote this variable
-        if (density > numberOfNeighbourThreshold && deleteFaster == 0)
-        {
-            attDeleteFaster.set(ppt, 1);
-        }
-        else if(deleteFaster == 1 && density <= numberOfNeighbourThreshold)
-        {
-            attDeleteFaster.set(ppt, 0);
-        }
-        //-------------------------------------------------------
+        currentLife += 1.0f;
+        currentSpawn+= 1;
 
-        int increment = density;
-        if (maxNumberOfNeighbour <= density)
-            increment = maxNumberOfNeighbour;
-
-        if (!useDynamicTau)
-            increment = 0;
-
-        //int deleteFaster = attDeleteFaster.get(ppt);
-        bool isMature = (currentSpawn >= params.fadingTau);
-        if (isMature)
-            attIsMature.set(ppt,1);
-        if (active == 0 && deleteFaster == 1 && isMature)
-        {
-            currentLife -= 1.0f+((float)increment);
-        }
-        else if(active == 0 && deleteFaster == 0 && isMature)
-        {
-            currentLife -= 1.0f;
-        }
-        //fade in
-        else if (currentSpawn < params.fadingTau)
-        {
-            //currentLife++;
-            //currentSpawn++;
-
-            currentLife += 1.0f+(float)increment;
-            if (currentSpawn == 0)
-                currentSpawn+= 1;
-            else
-                currentSpawn+= 1+increment;
-
-        }
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;
         if (currentLife < 0)
             currentLife = 0;
-
-        float deletionLife = params.fadingTau;
-        float blending = (float)currentLife/(float(deletionLife));
-        attBlend.set(ppt,blending);
 
         //==============================================
 
@@ -279,36 +216,18 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
         attN.set(ppt,N);
         attCenterUV.set(ppt,centerUV);
         trackersGdp->setPos3(ppt,position);
-        if (newPoint)
-        {
-            //---------- ADD TANGEANT TRACKER ----------
-            //put this in a function, and/or move this where we already add point
-            S = cross(N,defaultDirection);
-            S.normalize();
-            T = cross(S,N);
-            T.normalize();
-            UT_Vector3 translation = T*Tlenght;
-            //cout << "Translation: "<<translation<<endl;
-            UT_Vector3 tangeantPosition = position + translation;
-            //cout << "adding tangeant tracker"<<endl;
-            tracker_offset = trackersGdp->appendPoint();
-            isTangeantTracker.set(tracker_offset,1);
-            attId.set(tracker_offset,id);
-            trackersGdp->setPos3(tracker_offset,tangeantPosition);
-        }
+
         float life = currentLife;
         attLife.set(ppt,life);
 
-        float temporalComponetKt = ((float)life)/params.fadingTau;
-
-        attBlend.set(ppt,temporalComponetKt);
         attSpawn.set(ppt,currentSpawn);
-        attMaxDeltaOnD.set(ppt,dynamicTau);
+
         float randt = (((double) rand() / (RAND_MAX)));
         attRandT.set(ppt,randt);
 
         //numberOfPatches++;
-        nbOfPoint++;
+        if (isTangeantTracker.get(ppt) == 0)
+            nbOfPoint++;
     }
     cout <<" DONE"<<endl;
 }
@@ -452,42 +371,11 @@ void ParticleAndTrackerManagerGagnon2016::UpdateTrackersAndTangeant(GU_Detail *s
         }
         //-------------------------------------------------------
 
-        int increment = density;
-        if (maxNumberOfNeighbour <= density)
-            increment = maxNumberOfNeighbour;
 
-        if (!useDynamicTau)
-            increment = 0;
 
-        //int deleteFaster = attDeleteFaster.get(ppt);
-        bool isMature = (currentSpawn >= params.fadingTau);
-        if (isMature)
-            attIsMature.set(ppt,1);
-        if (active == 0 && deleteFaster == 1 && isMature)
-        {
-            currentLife -= 1.0f+((float)increment);
-        }
-        else if(active == 0 && deleteFaster == 0 && isMature)
-        {
-            currentLife -= 1.0f;
-        }
-        //fade in
-        else if (currentSpawn < params.fadingTau)
-        {
-            //currentLife++;
-            //currentSpawn++;
 
-            currentLife += 1.0f+(float)increment;
-            if (currentSpawn == 0)
-                currentSpawn+= 1;
-            else
-                currentSpawn+= 1+increment;
-
-        }
-        if (currentLife > (float)params.fadingTau)
-            currentLife = (float)params.fadingTau;
-        if (currentLife < 0)
-            currentLife = 0;
+        currentLife++;
+        currentSpawn++;
 
         float deletionLife = params.fadingTau;
         float blending = (float)currentLife/(float(deletionLife));
@@ -818,7 +706,7 @@ void ParticleAndTrackerManagerGagnon2016::AdvectTrackersAndTangeants(GU_Detail *
                 if (isTangeant == 1)
                     continue;
                 trackersGdp->setPos3(ppt,p1);
-                GA_Offset tracker_offset = ppt+numPoint/2;
+                GA_Offset tracker_offset = ppt+1;
                 UT_Vector3 currentDirection = trackersGdp->getPos3(tracker_offset)-p1;
 
                 S = cross(N,currentDirection);
