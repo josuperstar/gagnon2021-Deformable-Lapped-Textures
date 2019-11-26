@@ -202,6 +202,7 @@ AtlasGagnon2016Plugin::cookMySop(OP_Context &context)
     params.testPatch = TestPatch();
     params.patchNumber = PatchNumber();
     params.NumberOfTextureSampleFrame = 1;
+    params.useTangeantTracker = 1;
 
     if (params.atlasHeight <= 0)
     {
