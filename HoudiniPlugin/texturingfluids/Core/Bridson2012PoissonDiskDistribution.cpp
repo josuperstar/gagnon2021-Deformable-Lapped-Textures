@@ -299,7 +299,7 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
-    GA_RWHandleI    isTangeantTracker(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
+
 
 
     //---------- Tangeant Tracker -----------
@@ -309,7 +309,7 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     GA_Offset tracker_offset;
 
     int divider = 1;
-    if (isTangeantTracker.isValid())
+    if (params.useTangeantTracker == 1)
         divider = 2;
     if (trackersGdp->getNumPoints()/divider > this->maxId) //existing points
     {
@@ -330,8 +330,9 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     attIsMature.set(newPoint,0);
     attMaxDeltaOnD.set(newPoint,0);
 
-    if (isTangeantTracker.isValid())
+    if (params.useTangeantTracker == 1)
     {
+        GA_RWHandleI    isTangeantTracker(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
         //---------- ADD TANGEANT TRACKER ----------
         //put this in a function, and/or move this where we already add point
         S = cross(N,defaultDirection);

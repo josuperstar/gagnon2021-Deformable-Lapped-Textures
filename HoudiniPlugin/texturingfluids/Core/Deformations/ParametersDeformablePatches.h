@@ -47,6 +47,7 @@ struct ParametersDeformablePatches
     float Yu2011Beta;
     float CellSize;
     int NumberOfTextureSampleFrame = 1;
+    int useTangeantTracker = 0;
 };
 }
 
