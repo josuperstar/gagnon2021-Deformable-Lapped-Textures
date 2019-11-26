@@ -93,7 +93,6 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
     if (markerGrp == 0x0)
         markerGrp = trackersGdp->newPointGroup(markerGroupName.c_str());
 
-
     GA_PrimitiveGroup *markerGrpPrims;
     if (tackerPolygon)
     {
@@ -114,16 +113,7 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
     int id = 0;
     GA_Offset ppt;
 
-    //trackersGdp->reorderPoint()
-
-    //randomize list
-    if (params.frame == params.startFrame)
-    {
-        cout << "The is the first frame, so we randomize the point id order."<<endl;
-        //trackersGdp->sortPointList(0);
-    }
     int nbOfPoint = 1;
-
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
         id = attId.get(ppt);
@@ -164,7 +154,6 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
         if (distance3d(p1,hitPos) < thresholdDistance)
         {
             p1 = hitPos;
-
             //------------------------------PARAMETRIC COORDINATE -----------------------------------
             GA_Offset primOffset = mininfo.prim->getMapOffset();
             float u = mininfo.u1;
@@ -187,7 +176,7 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
             UT_Vector3 n2 = refAttN.get(pointOffset2);
             UT_Vector3 v2 = refAttV.get(pointOffset2);
 
-            N                   = n0+u*(n1-n0)+v*(n2-n0);
+            N        = n0+u*(n1-n0)+v*(n2-n0);
             velocity = v0+u*(v1-v0)+v*(v2-v0);
         }
         else
@@ -198,15 +187,13 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
         }
 
         //========================= UPDATE ===============================
-
-        currentLife += 1.0f;
-        currentSpawn+= 1;
+        currentLife  += 1.0f;
+        currentSpawn += 1;
 
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;
         if (currentLife < 0)
             currentLife = 0;
-
         //==============================================
 
         position = p1;
