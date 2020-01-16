@@ -199,6 +199,7 @@ DynamicLappedTexturePlugin::cookMySop(OP_Context &context)
     params.poissonAngleNormalThreshold = PoissonAngleNormalThreshold();
     params.UVScaling = UVScaling();
     params.CellSize = CellSize();
+    params.useTangeantTracker = 1;
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
 

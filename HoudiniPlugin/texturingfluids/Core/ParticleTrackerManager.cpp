@@ -531,13 +531,14 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
         int id;
         int density;
         float currentLife = 0;
+        cout <<this->approachName<< " Start advection loop"<<endl;
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
-
+            cout << "advecting point "<<ppt;
             v = attV.get(ppt);
             N = attN.get(ppt);
             density = attDensity.get(ppt);
-            //cout << "advecting point "<<ppt<<endl;
+            cout << v << " "<<N << " "<<density;
             if (N.length() < epsilon)
             {
                 //cout << "N lenght is too small"<<endl;
@@ -551,6 +552,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 
             currentLife = attLife.get(ppt);
 
+            cout << " "<<currentLife;
             //-----------------------------------------
             //advection
             UT_Vector3 d = v*dt;
@@ -559,6 +561,9 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
             //-----------------------------------------
 
             p1 = trackersGdp->getPos3(ppt);
+
+            cout << " "<<p1<<endl;
+
             mininfo.init(thresholdDistance,0.0001);
             ray.minimumPoint(p1,mininfo);
 
@@ -589,7 +594,9 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
                 float u = mininfo.u1;
                 float v = mininfo.v1;
                 GEO_Primitive *prim = surfaceGdp->getGEOPrimitive(primOffset);
-
+                int numberOfVertices = prim->getVertexCount();
+                if (numberOfVertices != 3)
+                    continue;
                 GA_Offset vertexOffset0 = prim->getVertexOffset(0);
 
                 GA_Offset pointOffset0  = surfaceGdp->vertexPoint(vertexOffset0);

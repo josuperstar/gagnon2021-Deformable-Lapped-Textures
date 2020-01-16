@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "Approaches/AtlasInterface.h"
+#include "Approaches/AtlasGagnon2016Synthesis.h"
 
 
 
@@ -83,7 +83,7 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    AtlasInterface interface;
+    AtlasGagnon2016Synthesis interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;

@@ -101,11 +101,12 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         int numberOfClosePoint;
 
         if (isTangeantTracker.isValid())
-        if (isTangeantTracker.get(ppt) == 1)
         {
-            continue;
+            if (isTangeantTracker.get(ppt) == 1)
+            {
+                continue;
+            }
         }
-
         UT_Vector3 pointPosition = trackersGdp->getPos3(ppt);
         UT_Vector3 pointNormal   = attN.get(ppt);
         if (attId.get(ppt) > this->maxId)
@@ -334,6 +335,7 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     {
         GA_RWHandleI    isTangeantTracker(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
         //---------- ADD TANGEANT TRACKER ----------
+        cout << "Add Tangeant Tracker"<<endl;
         //put this in a function, and/or move this where we already add point
         S = cross(N,defaultDirection);
         S.normalize();
