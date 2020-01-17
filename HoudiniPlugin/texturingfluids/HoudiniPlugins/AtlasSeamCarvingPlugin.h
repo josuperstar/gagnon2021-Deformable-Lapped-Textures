@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "Approaches/AtlasGagnon2016Synthesis.h"
+#include "Approaches/AtlasInterface.h"
 
 
 
@@ -59,6 +59,7 @@ public:
     fpreal  RenderColoredPatches() { return evalFloat("RenderColoredPatches", 0, 0); }
     fpreal  PoissonDiskRadius() { return evalFloat("PoissonDiskRadius", 0, 0); }
     fpreal  UVScaling() { return evalFloat("UVScaling", 0, 0); }
+    fpreal  PatchScaling(fpreal t) { return evalFloat("PatchScaling", 0, t); }
     fpreal  NumberOfTextureSample() { return evalFloat("NumberOfFrame", 0, 0); }
 
 
@@ -83,7 +84,7 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    AtlasGagnon2016Synthesis interface;
+    AtlasInterface interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;

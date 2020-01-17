@@ -129,8 +129,6 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
             //string currentName = std::regex_replace(textureExemplar1Name, std::regex("\\$F"), std::to_string(i));
             string currentName = textureExemplar1Name;
             // HACK !!!!
-            string home = "/home/jonathan";
-            currentName.replace(currentName.find("$HOME"), sizeof("$HOME") - 1, home);
             currentName.replace(currentName.find("$F"), sizeof("$F") - 1, std::to_string(i+1));
             cout << "[HoudiniAtlas::BuildAtlas] Opening "<<currentName<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);

@@ -55,6 +55,7 @@
         PRM_Name("PoissonDiskRadius",	"Poisson Disk Radius"),
         PRM_Name("UVScaling",	"UV Scaling"),
         PRM_Name("NumberOfFrame",	"Number of Frame"),
+        PRM_Name("PatchScaling",	"Patch Scaling"),
     };
 
     static PRM_Default NumberOfFrameDefault(100);
@@ -75,6 +76,7 @@
         PRM_Template(PRM_FLT, 1, &names[10]),
         PRM_Template(PRM_FLT, 1, &names[11]),
         PRM_Template(PRM_INT, 1, &names[12], &NumberOfFrameDefault),
+        PRM_Template(PRM_FLT, 1, &names[13]),
         PRM_Template(),
     };
 
@@ -196,7 +198,11 @@
         params.coloredPatches = RenderColoredPatches();
         params.UVScaling = UVScaling();
         params.NumberOfTextureSampleFrame = NumberOfTextureSample();
-
+        params.PatchScaling = PatchScaling(now);
+        if (params.PatchScaling <= 0)
+        {
+            params.PatchScaling = 1;
+        }
         if (params.atlasHeight <= 0)
         {
             params.atlasHeight = 100;
@@ -237,8 +243,8 @@
         trackersCopy->copy(*trackersGdp);
 
         // We need to create a new Interface here:
-        AtlasGagnon2016Synthesis interface;
-        bool synthesised = interface.Synthesis(gdp,trackersCopy, params);
+        AtlasInterface interface;
+        bool synthesised = interface.Synthesis(gdp,surfaceCopy,trackersCopy, params);
         if (synthesised)
             cout << "was able to synthesis the atlas"<<endl;
         else

@@ -328,6 +328,7 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             color = patchColors[patchId];
         else
             textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+            //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
 
         if (computeDisplacement)
             displacementMapImage->GetColor(i2,j2,0,displacement);
