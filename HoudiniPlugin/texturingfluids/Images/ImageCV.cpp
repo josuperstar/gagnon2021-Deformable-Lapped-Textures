@@ -11,7 +11,7 @@ ImageCV::~ImageCV()
     bool ImageCV::OpenImage(const string& file_name, long id)
     {
         //cout << "Open image "<<id<< " "<< file_name <<" : ";
-        cv::Mat temp = cv::imread(file_name);
+        cv::Mat temp = cv::imread(file_name, cv::IMREAD_UNCHANGED);
         if (temp.empty())
         {
             cout << " file "<<file_name<<" does not exist"<<endl;
@@ -22,6 +22,8 @@ ImageCV::~ImageCV()
         this->image = temp;
         //cv::waitKey();
         cv::cvtColor(temp,this->image,cv::COLOR_BGR2BGRA);
+        //cv::cvtColor(temp,this->image, cv::IMREAD_UNCHANGED);
+
         //m_width = image.size()[1];
         this->m_width = this->image.size().width;
         this->m_height = this->image.size().height;
@@ -190,7 +192,7 @@ ImageCV::~ImageCV()
         float r = (float)this->image.at<cv::Vec4b>(y,x)[2];
         float g = (float)this->image.at<cv::Vec4b>(y,x)[1];
         float b = (float)this->image.at<cv::Vec4b>(y,x)[0];
-        float a = this->image.at<cv::Vec4b>(y,x)[3];
+        float a = (float)this->image.at<cv::Vec4b>(y,x)[3];
         //float a = 1;
         r /= 255.0f;
         g /= 255.0f;

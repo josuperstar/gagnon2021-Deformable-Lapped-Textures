@@ -298,6 +298,40 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (w_v < epsilon)
             continue;
 
+
+
+
+        int seamCarvingIndex = ((K_t) * params.NumberOfTextureSampleFrame)-1;
+        /*
+        //WTF dirty hack:
+        if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-1)
+            seamCarvingIndex = params.NumberOfTextureSampleFrame-1;
+        if (seamCarvingIndex < 0)
+            seamCarvingIndex = 0;
+        */
+
+        //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
+        if (renderColoredPatches)
+            //set random colors per patch
+            color = patchColors[patchId];
+        else
+        {
+            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+        }
+            //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
+
+        if (computeDisplacement)
+            displacementMapImage->GetColor(i2,j2,0,displacement);
+
+        //clamping color values ...
+        if (color.B > 1.0f)
+            color.B = 1.0f;
+        if (color.G > 1.0f)
+            color.G = 1.0f;
+        if (color.R > 1.0f)
+            color.R = 1.0f;
+        // We use the alpha from the animated images to influence the weight
+        w_v *= color.A;
         //cout << "w_i "<<w_v<<endl;
         w_i_list.push_back(w_v);
 
@@ -313,33 +347,6 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         sumW += w_v;
 
 
-        int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
-        /*
-        //WTF dirty hack:
-        if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-1)
-            seamCarvingIndex = params.NumberOfTextureSampleFrame-1;
-        if (seamCarvingIndex < 0)
-            seamCarvingIndex = 0;
-        */
-
-        //textureExemplar1Image->GetColor(pixelPositionX,pixelPositionY,0,color);
-        if (renderColoredPatches)
-            //set random colors per patch
-            color = patchColors[patchId];
-        else
-            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
-            //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
-
-        if (computeDisplacement)
-            displacementMapImage->GetColor(i2,j2,0,displacement);
-
-        //clamping color values ...
-        if (color.B > 1.0f)
-            color.B = 1.0f;
-        if (color.G > 1.0f)
-            color.G = 1.0f;
-        if (color.R > 1.0f)
-            color.R = 1.0f;
 
         colorsList.push_back(color);
         //cout <<color.R << "," <<color.G << "," <<color.B<<endl;
