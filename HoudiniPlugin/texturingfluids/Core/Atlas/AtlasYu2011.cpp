@@ -5,6 +5,13 @@
 #include "BlendingYu2011.h"
 #include "../HoudiniUtils.h"
 
+
+std::string format_account_number(int acct_no) {
+  ostringstream out;
+  out << std::internal << std::setfill('0') << std::setw(4) << acct_no;
+  return out.str();
+}
+
 HoudiniAtlas::~HoudiniAtlas()
 {
     if (this->diffuseImageBlendingGagnon->IsValid())
@@ -129,7 +136,11 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
             //string currentName = std::regex_replace(textureExemplar1Name, std::regex("\\$F"), std::to_string(i));
             string currentName = textureExemplar1Name;
             // HACK !!!!
-            currentName.replace(currentName.find("$F"), sizeof("$F") - 1, std::to_string(i+1));
+            // Does not work with padding, ex : 0001, 0002..
+
+            string paddedNumber = format_account_number(i+1);
+
+            currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
             cout << "[HoudiniAtlas::BuildAtlas] Opening "<<currentName<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
