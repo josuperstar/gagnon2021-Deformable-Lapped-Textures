@@ -300,8 +300,8 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
 
 
-
-        int seamCarvingIndex = ((K_t) * params.NumberOfTextureSampleFrame)-1;
+        //int seamCarvingIndex = ((w_v) * params.NumberOfTextureSampleFrame)-1;
+        int seamCarvingIndex = ((1-w_v) * params.NumberOfTextureSampleFrame);
         /*
         //WTF dirty hack:
         if (seamCarvingIndex >= params.NumberOfTextureSampleFrame-1)
@@ -331,7 +331,9 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
         if (color.R > 1.0f)
             color.R = 1.0f;
         // We use the alpha from the animated images to influence the weight
-        w_v *= color.A;
+        if (params.NumberOfTextureSampleFrame > 1)
+            w_v *= color.A;
+
         //cout << "w_i "<<w_v<<endl;
         w_i_list.push_back(w_v);
 
