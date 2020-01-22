@@ -1,9 +1,9 @@
-#include "BlendingYu2011.h"
+#include "BlendingAnimatedTexture.h"
 #include "../HoudiniUtils.h"
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, float h,
+Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, float w, float h,
                                 int pixelPositionX, int pixelPositionY,
                                 vector<int> &sortedPatches,
                                 vector<UT_Vector3> &surfaceUv,
@@ -191,6 +191,12 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
         float s = params.UVScaling;
 
+        if (params.NumberOfTextureSampleFrame > 1)
+        {
+            //We are probably using seam carving
+            //s /= (K_t)+0.001;
+        }
+
         v0 = UT_Vector3(v0.x()-centerUV.x(),v0.y()-centerUV.y(),v0.z()-centerUV.z());
         v1 = UT_Vector3(v1.x()-centerUV.x(),v1.y()-centerUV.y(),v1.z()-centerUV.z());
         v2 = UT_Vector3(v2.x()-centerUV.x(),v2.y()-centerUV.y(),v2.z()-centerUV.z());
@@ -295,13 +301,13 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
 
 
         //int seamCarvingIndex = ((w_v) * params.NumberOfTextureSampleFrame)-1;
-        int textureSampleIndex = 0;
+        int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
         if (renderColoredPatches)
             //set random colors per patch
             color = patchColors[patchId];
         else
         {
-            textureExemplars[textureSampleIndex]->GetColor(i2,j2,0,color);
+            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
         }
             //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
 
@@ -315,6 +321,9 @@ Pixel BlendingYu2011::Blend(GU_Detail* deformableGrids, int i, int j, float w, f
             color.G = 1.0f;
         if (color.R > 1.0f)
             color.R = 1.0f;
+        // We use the alpha from the animated images to influence the weight
+
+        w_v = color.A;
 
         //cout << "w_i "<<w_v<<endl;
         w_i_list.push_back(w_v);

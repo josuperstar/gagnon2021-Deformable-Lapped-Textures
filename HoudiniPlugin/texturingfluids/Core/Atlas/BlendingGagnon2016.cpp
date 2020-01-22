@@ -68,17 +68,11 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
     Pixel Cf = Pixel(0,0,0);
     Cf.A = 1;
 
-    Pixel colorSum0 = Pixel(0,0,0);
-    colorSum0.A = 1;
-
     Pixel colorSum1 = Pixel(0,0,0);
     colorSum1.A = 1;
 
     Pixel colorSum2 = Pixel(0,0,0);
     colorSum2.A = 1;
-
-    float sumW2 = 0;
-    float sumW = 0;
 
     Pixel color = Pixel(0,0,0);
     color.A = 1;
@@ -184,13 +178,6 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         if (debug)
             cout << "Adding color "<<color.R<<" "<<color.G<<" "<<color.B<<" "<<alpha<<endl;
 
-        //alpha = alpha * patchBlend[patchId];
-
-        //alphaSum += alpha;
-        if (renderColoredPatches)
-        {
-            //alpha = 1;
-        }
 
         centerUV.z() = 0;
         positionInPolygon.z() = 0;
@@ -209,13 +196,6 @@ Pixel BlendingGagnon2016::Blend(GU_Detail* trackersGdp,GU_Detail* deformableGrid
         color.A = alpha;
 
         //---------------- Transparency Equation -----------------------
-
-        sumW2 += alpha*alpha;
-        sumW += alpha;
-
-        colorSum0.R += color.R;
-        colorSum0.G += color.G;
-        colorSum0.B += color.B;
 
         Cf.R =  (alpha)*(color.R) + (1.0f-alpha)*(Cf.R);
         Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);

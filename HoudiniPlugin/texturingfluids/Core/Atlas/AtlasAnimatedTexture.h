@@ -1,5 +1,5 @@
-#ifndef __HoudiniAtlas_h__
-#define __HoudiniAtlas_h__
+#ifndef __AtlasAnimatedTexture_h__
+#define __AtlasAnimatedTexture_h__
 
 #include "Atlas.h"
 #include "Images/ImageCV.h"
@@ -13,12 +13,12 @@
 namespace TexturingFluids {
 
 
-class HoudiniAtlas : public Atlas
+class AtlasAnimatedTexture : public Atlas
 {
 
 public:
 
-    ~HoudiniAtlas();
+    ~AtlasAnimatedTexture();
 
    bool BuildAtlas(int w, int h, int life);
 
@@ -51,8 +51,6 @@ private:
    Pixel SetRandomColor(int patchNumber);
    map<int,Pixel> patchColors;
    void initPatchColors(GU_Detail *trackersGdp);
-
-   std::string format_account_number(int acct_no);
 
    GU_Detail* surface;
    GU_Detail* deformableGrids;
