@@ -1,18 +1,18 @@
-#include "AtlasYu2011.h"
+#include "AtlasAnimatedTexture.h"
 #include <GU/GU_PrimPoly.h>
 //#include "TBBAtlas.h"
 
-#include "BlendingYu2011.h"
+#include "BlendingAnimatedTexture.h"
 #include "../HoudiniUtils.h"
 
 
-std::string HoudiniAtlas::format_account_number(int acct_no) {
+std::string format_account_number(int acct_no) {
   ostringstream out;
   out << std::internal << std::setfill('0') << std::setw(4) << acct_no;
   return out.str();
 }
 
-HoudiniAtlas::~HoudiniAtlas()
+AtlasAnimatedTexture::~AtlasAnimatedTexture()
 {
     if (this->diffuseImageBlendingGagnon->IsValid())
         delete this->diffuseImageBlendingGagnon;
@@ -57,20 +57,20 @@ HoudiniAtlas::~HoudiniAtlas()
 
 }
 
-bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
+bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
 {
     if (surface == 0x0 || (deformableGrids == 0x0 && useDeformableGrids) || trackers == 0x0)
         return false;
 
-    cout << "[HoudiniAtlas::BuildAtlas]("<<w<<","<< h <<")"<<endl;
+    cout << "[AtlasAnimatedTexture::BuildAtlas]("<<w<<","<< h <<")"<<endl;
 
-    cout << "[HoudiniAtlas::BuildAtlas] setting varialbes"<<endl;
+    cout << "[AtlasAnimatedTexture::BuildAtlas] setting varialbes"<<endl;
     //-------------------------------------------------------
     UT_String patchname("patchIds");
     patchIds = surface->findIntArray(GA_ATTRIB_POINT,patchname,-1, -1);
     if (!patchIds)
     {
-        cout << "[HoudiniAtlas::BuildAtlas] There is no patch id attribute"<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] There is no patch id attribute"<<endl;
         return false;
     }
     patchArray = patchIds->getAIFNumericArray();
@@ -88,30 +88,30 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
     pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
     primGroupTable = deformableGrids->getGroupTable(primGroupType);
-    cout << "[HoudiniAtlas::BuildAtlas] Atlas uses deformable grids"<<endl;
+    cout << "[AtlasAnimatedTexture::BuildAtlas] Atlas uses deformable grids"<<endl;
 
     attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
     if (attUV.isInvalid())
     {
-        cout << "[HoudiniAtlas::BuildAtlas] There is no uv on the surface"<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] There is no uv on the surface"<<endl;
         return false;
     }
 
     if (textureExemplar1Name.size() == 0)
     {
-        cout << "[HoudiniAtlas::BuildAtlas] There is no texture exemplar name assigned"<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] There is no texture exemplar name assigned"<<endl;
         return false;
     }
     if (textureExemplar1MaskName.size() == 0)
     {
-        cout << "[HoudiniAtlas::BuildAtlas] There is no texture exemplar mask name assigned"<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] There is no texture exemplar mask name assigned"<<endl;
         return false;
     }
 
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
     if (attBorder.isInvalid())
     {
-        cout << "[HoudiniAtlas::BuildAtlas] There is no border attribute."<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] There is no border attribute."<<endl;
     }
 
     diffuseImageBlendingGagnon = new ImageCV();
@@ -123,16 +123,46 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     diffuseImageBlendingYu2011Equation4 = new ImageCV();
     diffuseImageBlendingYu2011Equation4->CreateImage(w,h,-1);
 
-    cout << "[HoudiniAtlas::BuildAtlas] Opening single texture examplar "<<textureExemplar1Name<<endl;
-    ImageCV *image = new ImageCV();
-    textureExemplars.push_back(image);
-    bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
-    if (!opened)
-    {
-        cout << "[HoudiniAtlas::BuildAtlas] Can't open "<< textureExemplar1Name<<endl;
-        return false;
-    }
 
+    std::size_t found = textureExemplar1Name.find("$F");
+    if (found !=std::string::npos)
+    {
+        cout << "texture example is a list"<<endl;
+        // Here we need to replace $F with the sequence of texture exemplar between 1 and NumberOfTextureSampleFrame
+        for (int i = 0; i < this->numberOfTextureSampleFrame; i++)
+        {
+            ImageCV *image = new ImageCV();
+            textureExemplars.push_back(image);
+            //string currentName = std::regex_replace(textureExemplar1Name, std::regex("\\$F"), std::to_string(i));
+            string currentName = textureExemplar1Name;
+            // HACK !!!!
+            // Does not work with padding, ex : 0001, 0002..
+
+            string paddedNumber = format_account_number(i+1);
+
+            currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
+            cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<currentName<<endl;
+            bool opened = textureExemplars[i]->OpenImage(currentName,-1);
+            if (!opened)
+            {
+                cout << "[AtlasAnimatedTexture::BuildAtlas] Can't open "<< currentName<<endl;
+                return false;
+            }
+
+        }
+    }
+    else
+    {
+        cout << "[AtlasAnimatedTexture::BuildAtlas] Opening single texture examplar "<<textureExemplar1Name<<endl;
+        ImageCV *image = new ImageCV();
+        textureExemplars.push_back(image);
+        bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
+        if (!opened)
+        {
+            cout << "[AtlasAnimatedTexture::BuildAtlas] Can't open "<< textureExemplar1Name<<endl;
+            return false;
+        }
+    }
 
     RM = textureExemplars[0]->MeanValue();
     cout << "RM = ";
@@ -140,20 +170,20 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
     cout<<endl;
 
     textureExemplar1ImageMask = new ImageCV();
-    cout << "[HoudiniAtlas::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
-    opened = textureExemplar1ImageMask->OpenImage(textureExemplar1MaskName,-1);
+    cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
+    bool opened = textureExemplar1ImageMask->OpenImage(textureExemplar1MaskName,-1);
     if (!opened)
     {
-        cout << "[HoudiniAtlas::BuildAtlas] Can't open "<< textureExemplar1MaskName<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] Can't open "<< textureExemplar1MaskName<<endl;
         return false;
     }
 
     if (displacementMapImageName.size() != 0)
     {
         displacementMapImage = new ImageCV();
-        cout << "[HoudiniAtlas::BuildAtlas] Opening "<<displacementMapImageName<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<displacementMapImageName<<endl;
         computeDisplacement = displacementMapImage->OpenImage(displacementMapImageName,-1);
-        cout << "[HoudiniAtlas::BuildAtlas] Done"<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] Done"<<endl;
         if (computeDisplacement)
         {
             displacementMapEquation3 = new ImageCV();
@@ -163,12 +193,12 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         }
         else
         {
-            cout << "[HoudiniAtlas::BuildAtlas] Can't open displacement map file "<<displacementMapImageName<<endl;
+            cout << "[AtlasAnimatedTexture::BuildAtlas] Can't open displacement map file "<<displacementMapImageName<<endl;
         }
     }
     else
     {
-        cout << "[HoudiniAtlas::BuildAtlas] Displacement map name is not defined"<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] Displacement map name is not defined"<<endl;
     }
 
     if(useCopyGUDetail)
@@ -180,7 +210,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
         GA_PrimitiveGroup *primGroup;
         vector<string> groupNames;
 
-        cout << "[HoudiniAtlas::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
+        cout << "[AtlasAnimatedTexture::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
         GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
         {
             //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
@@ -206,7 +236,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 
     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_Offset ppt;
-    cout << "[HoudiniAtlas::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
+    cout << "[AtlasAnimatedTexture::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
     GA_FOR_ALL_PTOFF(trackers,ppt)
     {
         float blend = attBlend.get(ppt);
@@ -236,7 +266,7 @@ bool HoudiniAtlas::BuildAtlas(int w, int h, int life)
 }
 
 //================================= CREATE LIST OF GEO GU_DETAIL =================================
-void HoudiniAtlas::CreateListGUDetails()
+void AtlasAnimatedTexture::CreateListGUDetails()
 {
     GA_PrimitiveGroup *primGroup;
 
@@ -296,7 +326,7 @@ void HoudiniAtlas::CreateListGUDetails()
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,ParametersDeformablePatches params)
+void AtlasAnimatedTexture::RasterizePrimitive(GA_Offset primOffset, int w, int h,ParametersDeformablePatches params)
 {
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
@@ -445,7 +475,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
                 color.G = 1;
                 color.B = 1;
                 //======================== Yu2011  function =====================
-                Pixel R_eq4 = BlendingYu2011::Blend(deformableGrids,i,j,w,h,
+                Pixel R_eq4 = BlendingAnimatedTexture::Blend(deformableGrids,i,j,w,h,
                                           pixelPositionX,pixelPositionY,
                                           sortedPatches,
                                           surfaceUv,
@@ -483,7 +513,7 @@ void HoudiniAtlas::RasterizePrimitive(GA_Offset primOffset, int w, int h,Paramet
 }
 
 
-void HoudiniAtlas::SaveAtlas()
+void AtlasAnimatedTexture::SaveAtlas()
 {
     //write the image to the disk
     //diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
@@ -505,7 +535,7 @@ void HoudiniAtlas::SaveAtlas()
     }
 }
 
-void HoudiniAtlas::BoundingBox2D(UT_Vector3 a, UT_Vector3 b, UT_Vector3 c,UT_Vector3 &min,UT_Vector3 &max)
+void AtlasAnimatedTexture::BoundingBox2D(UT_Vector3 a, UT_Vector3 b, UT_Vector3 c,UT_Vector3 &min,UT_Vector3 &max)
 {
     min.x() = a.x();
     min.y() = a.y();
@@ -554,7 +584,7 @@ void HoudiniAtlas::BoundingBox2D(UT_Vector3 a, UT_Vector3 b, UT_Vector3 c,UT_Vec
 
 }
 
-bool HoudiniAtlas::IsPointInTriangle(UT_Vector3  p, UT_Vector3 a,UT_Vector3 b,UT_Vector3 c)
+bool AtlasAnimatedTexture::IsPointInTriangle(UT_Vector3  p, UT_Vector3 a,UT_Vector3 b,UT_Vector3 c)
 {
     UT_Vector3 v0 = c - a;
     UT_Vector3 v1 = b - a;
@@ -577,7 +607,7 @@ bool HoudiniAtlas::IsPointInTriangle(UT_Vector3  p, UT_Vector3 a,UT_Vector3 b,UT
 }
 
 
-Pixel HoudiniAtlas::SetRandomColor(int patchNumber)
+Pixel AtlasAnimatedTexture::SetRandomColor(int patchNumber)
 {
     //initialize random seed
     srand(patchNumber);
@@ -595,7 +625,7 @@ Pixel HoudiniAtlas::SetRandomColor(int patchNumber)
     return patchColor;
 }
 
-void HoudiniAtlas::initPatchColors(GU_Detail *trackersGdp)
+void AtlasAnimatedTexture::initPatchColors(GU_Detail *trackersGdp)
 {
 
     GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
