@@ -63,6 +63,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     Pixel color = Pixel(0,0,0);
     color.A = 1;
 
+    Pixel Cf = Pixel(0,0,0);
+    Cf.A = 1;
+
     Pixel displacement = Pixel(0,0,0);
 
     //Equation 2, Quality of a triangle
@@ -264,7 +267,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
 
         float minDUV = 0.125*params.PatchScaling;
-        float maxDUV = 0.25*params.PatchScaling; //blending region
+        float maxDUV = 1.5*params.PatchScaling; //blending region
         //float maxDUV = 0.5f;
         //d_V =0 if V ∈ grid boundary 1 otherwise
         //float d_V = 1.0f;
@@ -299,9 +302,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             continue;
 
 
-
-        //int seamCarvingIndex = ((w_v) * params.NumberOfTextureSampleFrame)-1;
-        int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
+        int seamCarvingIndex = ((1-w_v) * params.NumberOfTextureSampleFrame);
+        //int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
         if (renderColoredPatches)
             //set random colors per patch
             color = patchColors[patchId];
@@ -323,7 +325,10 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             color.R = 1.0f;
         // We use the alpha from the animated images to influence the weight
 
-        w_v = color.A;
+        float alpha = color.A;// * w_v;
+        Cf.R =  (alpha)*(color.R) + (1.0f-alpha)*(Cf.R);
+        Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);
+        Cf.B =  (alpha)*(color.B) + (1.0f-alpha)*(Cf.B);
 
         //cout << "w_i "<<w_v<<endl;
         w_i_list.push_back(w_v);
@@ -482,7 +487,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     //we need to invertigate why we need to check that:
     Clamp(R_eq4);
 
-    return R_eq4;
+    //return R_eq4;
+    return Cf;
 }
 
 
