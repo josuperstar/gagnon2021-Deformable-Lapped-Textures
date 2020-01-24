@@ -48,6 +48,7 @@ struct ParametersDeformablePatches
     float CellSize;
     int NumberOfTextureSampleFrame = 1;
     int useTangeantTracker = 0;
+    int fadingIn = 1;
 };
 }
 

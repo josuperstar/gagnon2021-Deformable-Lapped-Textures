@@ -55,6 +55,7 @@ bool AtlasAnimatedTextureInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfac
     atlas.RenderColoredPatches(params.coloredPatches);
     atlas.SetNumberOfTextureSampleFrame(params.NumberOfTextureSampleFrame);
 
+
     GA_RWHandleI attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     map<int,UT_Vector3> trackerPositions;
     {

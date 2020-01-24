@@ -59,7 +59,7 @@ public:
     { STR_PARM("DeformableGridsFilename",  0, t) }
     fpreal  CellSize() { return evalFloat("CellSize", 0, 0); }
     fpreal  UseDynamicFading() { return evalFloat("UseDynamicFading", 0, 0); }
-
+    fpreal FadingIn() { return evalInt("FadingIn",0,0);}
 
 
 protected:
