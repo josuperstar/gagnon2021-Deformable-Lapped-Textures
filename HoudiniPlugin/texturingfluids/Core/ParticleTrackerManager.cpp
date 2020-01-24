@@ -216,6 +216,8 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
 
         //int deleteFaster = attDeleteFaster.get(ppt);
         bool isMature = (currentSpawn >= params.fadingTau);
+        if (params.fadingIn == 0)
+            isMature = true;
         if (isMature)
             attIsMature.set(ppt,1);
         if (active == 0 && deleteFaster == 1 && isMature)
@@ -238,6 +240,12 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
             else
                 currentSpawn+= 1+increment;
 
+            //HACK TO TEST ANIMATED TEXTURE
+            if (params.fadingIn == 0)
+            {
+                //currentSpawn = params.fadingTau;
+                currentLife = params.fadingTau;
+            }
         }
         if (currentLife > (float)params.fadingTau)
             currentLife = (float)params.fadingTau;
@@ -534,11 +542,11 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
         cout <<this->approachName<< " Start advection loop"<<endl;
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
-            cout << "advecting point "<<ppt;
+            //cout << "advecting point "<<ppt;
             v = attV.get(ppt);
             N = attN.get(ppt);
             density = attDensity.get(ppt);
-            cout << v << " "<<N << " "<<density;
+            //cout << v << " "<<N << " "<<density;
             if (N.length() < epsilon)
             {
                 //cout << "N lenght is too small"<<endl;
@@ -552,7 +560,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 
             currentLife = attLife.get(ppt);
 
-            cout << " "<<currentLife;
+            //cout << " "<<currentLife;
             //-----------------------------------------
             //advection
             UT_Vector3 d = v*dt;
@@ -562,7 +570,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 
             p1 = trackersGdp->getPos3(ppt);
 
-            cout << " "<<p1<<endl;
+            //cout << " "<<p1<<endl;
 
             mininfo.init(thresholdDistance,0.0001);
             ray.minimumPoint(p1,mininfo);

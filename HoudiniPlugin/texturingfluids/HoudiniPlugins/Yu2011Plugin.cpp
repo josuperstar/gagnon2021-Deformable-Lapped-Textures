@@ -71,6 +71,7 @@ static PRM_Name        names[] = {
     PRM_Name("Yu2011Beta",	"Yu2011 Beta"),
     PRM_Name("CellSize",	"Cell Size"),
     PRM_Name("UseDynamicFading",	"Use Dynamic Fading"),
+    PRM_Name("FadingIn",	"Use Fading In"),
 };
 
 static PRM_Default StartFrameDefault(1);
@@ -85,6 +86,7 @@ static PRM_Default UVScalingDefault(2.0f);
 static PRM_Default Yu2011BetaDefault(0.6f);
 static PRM_Default CellSizeDefault(0.1f);
 static PRM_Default UseDynamicFadingDefault(1);
+static PRM_Default FadingInDefault(1);
 
 PRM_Template
 LagrangianTextureAdvectionPlugin::myTemplateList[] = {
@@ -106,6 +108,7 @@ LagrangianTextureAdvectionPlugin::myTemplateList[] = {
     PRM_Template(PRM_FLT, 1, &names[15], &UVScalingDefault),
     PRM_Template(PRM_FLT, 1, &names[16], &Yu2011BetaDefault),
     PRM_Template(PRM_FLT, 1, &names[17], &CellSizeDefault),
+    PRM_Template(PRM_INT, 1, &names[19], &FadingInDefault),
     PRM_Template(PRM_TOGGLE, 1, &names[18]),
     PRM_Template(),
 
@@ -239,6 +242,7 @@ LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
     params.CellSize = CellSize();
     TrackersFilename(trackersFilename,now);
     params.trackersFilename = trackersFilename;
+    params.fadingIn = FadingIn();
 
     DeformableGridsFilename(deformableGridsFilename,now);
     params.deformableGridsFilename = deformableGridsFilename;
