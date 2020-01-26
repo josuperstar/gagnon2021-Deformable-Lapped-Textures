@@ -5,6 +5,8 @@
 #include "BlendingAnimatedTexture.h"
 #include "../HoudiniUtils.h"
 
+#include <iostream>
+#include <iomanip>
 
 std::string format_account_number(int acct_no) {
   ostringstream out;
@@ -139,9 +141,10 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
             // Does not work with padding, ex : 0001, 0002..
 
             string paddedNumber = format_account_number(i+1);
+            string noPaddedNumber = std::to_string(i+1);
 
-            currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
-            cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<currentName<<endl;
+            currentName.replace(currentName.find("$F"), sizeof("$F") - 1, noPaddedNumber);
+            cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<noPaddedNumber<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
             {

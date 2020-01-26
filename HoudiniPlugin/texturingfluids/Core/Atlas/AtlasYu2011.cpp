@@ -5,6 +5,8 @@
 #include "BlendingYu2011.h"
 #include "../HoudiniUtils.h"
 
+#include <iostream>
+#include <iomanip>
 
 std::string HoudiniAtlas::format_account_number(int acct_no) {
   ostringstream out;
