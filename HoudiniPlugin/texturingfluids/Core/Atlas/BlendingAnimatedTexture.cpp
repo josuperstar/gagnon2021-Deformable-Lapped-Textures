@@ -53,12 +53,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     color_wi_sum.A = 1;
 
     vector<Pixel> colorsList;
-    vector<float> w_i_list;
 
     R_eq3 = Pixel(0,0,0);
     R_eq3.A = 1;
-    float sumW2 = 0;
-    float sumW = 0;
 
     Pixel color = Pixel(0,0,0);
     color.A = 1;
@@ -268,12 +265,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         float minDUV = 0.125*params.PatchScaling;
         float maxDUV = 1.5*params.PatchScaling; //blending region
-        //float maxDUV = 0.5f;
-        //d_V =0 if V ∈ grid boundary 1 otherwise
-        //float d_V = 1.0f;
 
-        //test
-        //maxDUV = params.poissondiskradius/2;
+        //d_V =0 if V ∈ grid boundary 1 otherwise
+
         if (d_P > maxDUV)
             d_V = 0.0f;
 
@@ -329,57 +323,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);
         Cf.B =  (alpha)*(color.B) + (1.0f-alpha)*(Cf.B);
 
-        //cout << "w_i "<<w_v<<endl;
-        w_i_list.push_back(w_v);
-
-        //--------------------------------------------------------
-        //Section 3.5.1
-        //• Allocate the intermediate texture R at the required resolution (see discussion in 3.5.3), with one channel
-        //for each aj (RGB), plus one channel for the wi (resp. wi2 if using Eq. 4).
-
-        //• For each particle i: splat its grid into the texture (e.g., using a render target and the ordinary drawing API),
-        //thus accumulating the sum(wi(x)aj (ui(x)) and the sum(wi(x)) (resp. sum(w2i) ) into their respective channels.
-
-        sumW2 += w_v*w_v;
-        sumW += w_v;
-
-
-
         colorsList.push_back(color);
-        //cout <<color.R << "," <<color.G << "," <<color.B<<endl;
-        //---------------- YU 2011 Equation 3 -----------------------
-        //blending function
-        R_eq3.R += w_v*(color.R);
-        R_eq3.G += w_v*(color.G);
-        R_eq3.B += w_v*(color.B);
 
-        if (computeDisplacement)
-        {
-            displacementSumEq3.R += w_v*(displacement.R);
-            displacementSumEq3.G += w_v*(displacement.G);
-            displacementSumEq3.B += w_v*(displacement.B );
-        }
-
-        //---------------- YU 2011 Equation 4 -----------------------
-        //blending function
-        color_wi_sum.R += w_v*(color.R - RM.R);
-        color_wi_sum.G += w_v*(color.G - RM.G);
-        color_wi_sum.B += w_v*(color.B - RM.B);
-        //blending function
-        //R_eq4.R += (color.R - RM.R);
-        //R_eq4.G += (color.G - RM.G);
-        //R_eq4.B += (color.B - RM.B);
-
-
-        //cout << "w_i "<< w_v<<endl;
-        //cout << "color "<<color.R<< " "<<color.G<<" "<<color.B<<endl;
-
-        if (computeDisplacement)
-        {
-            displacementSumEq4.R += w_v*(displacement.R - displaceMean.R);
-            displacementSumEq4.G += w_v*(displacement.G - displaceMean.G);
-            displacementSumEq4.B += w_v*(displacement.B - displaceMean.B);
-        }
         k--;
 
         if (useLocalRayIntersect)
@@ -389,102 +334,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
     }
     //========================= END SUM ==================================
-
-
-    //if the sumW is close to 0, that means we should have a new poisson disk there.
-    //But how to handle the creation of a new patch from here ?
-
-    if (sumW <= epsilon && sumW >= -epsilon )
-    {
-        displacementSumEq3.R = 0;
-        displacementSumEq3.G = 0;
-        displacementSumEq3.B = 0;
-        displacementSumEq3.A = 0;
-
-        //----------
-        R_eq4.R = 0;
-        R_eq4.G = 0;
-        R_eq4.B = 0;
-        R_eq4.A = 0;
-
-        R_eq3.R = 0;
-        R_eq3.G = 0;
-        R_eq3.B = 0;
-        R_eq3.A = 0;
-        //----------
-
-        displacementSumEq4.R = 0;
-        displacementSumEq4.G = 0;
-        displacementSumEq4.B = 0;
-        displacementSumEq4.A = 0;
-        return R_eq4;
-    }
-
-    //Section 3.5.1
-    //During rendering in the fragment shader, for a given pixel (having texture coordinates x):
-    //• For each channel aj : finalize the channel value computation by dividing the accumulated values by
-    //sum(wi)
-    //(resp. by sqrt(sum(wi2)) if using Eq. 4).
-    //• Compute the texture value for the current pixel,
-    //F (R(x)).
-    //• Use the texture value as we would with a standard texture.
-
-    //---------------- YU 2011 Equation 3 -----------------------
-    //blending function, division part
-    R_eq3.R = R_eq3.R/sumW;
-    R_eq3.G = R_eq3.G/sumW;
-    R_eq3.B = R_eq3.B/sumW;
-
-    //---------------- YU 2011 Equation 4 -----------------------
-    //blending function, division part
-    float sqw = sqrtf(sumW2);
-
-    if (outputCSV)
-    {
-
-        outfile.open("blending.csv", std::ios_base::app);
-        vector<Pixel>::iterator itPixel;
-        int i = 0;
-        for(itPixel=colorsList.begin(); itPixel != colorsList.end(); itPixel++)
-        {
-            cout << "color "<<(*itPixel).R<<" "<<(*itPixel).G<<" "<<(*itPixel).B<<endl;
-            //outfile << *itPixel<<",";
-            cout << "w_i "<<w_i_list[i]<<endl;
-            i++;
-        }
-        outfile <<sumW<<","<<sumW2<<","<< sqw << ","<<color_wi_sum.R << "," <<color_wi_sum.G << "," <<color_wi_sum.B << ","<<RM.R<<","<<RM.G<<","<<RM.B<< ",";
-        cout << "sumW "<<sumW <<endl
-                <<"sumW2 "<<sumW2 <<endl
-                <<"sqw "<< sqw <<endl
-                << "color_wi_sum "<<color_wi_sum.R << " " <<color_wi_sum.G << " " <<color_wi_sum.B <<endl
-                << "RM "<<RM.R<<" "<<RM.G<<" "<<RM.B <<endl;
-    }
-    R_eq4.R = (color_wi_sum.R)/sqw    + RM.R;
-    R_eq4.G = (color_wi_sum.G)/sqw    + RM.G;
-    R_eq4.B = (color_wi_sum.B)/sqw    + RM.B;
-
-    if (outputCSV)
-    {
-        outfile <<R_eq4.R << "," <<R_eq4.G << "," <<R_eq4.B<<endl;
-        cout << R_eq4.R << " " <<R_eq4.G << " " <<R_eq4.B<<endl;
-    }
-    if (computeDisplacement)
-    {
-        displacementSumEq4.R = (displacementSumEq4.R)/sqw    + displaceMean.R;
-        displacementSumEq4.G = (displacementSumEq4.G)/sqw    + displaceMean.G;
-        displacementSumEq4.B = (displacementSumEq4.B)/sqw    + displaceMean.B;
-
-        Clamp(displacementSumEq4);
-    }
-
-    float Af = sqw;
-    if (Af > 1)
-        Af = 1;
-    //If we don't use the alpha, we are having black spot where sumW is 0
-    //R_eq4.A = Af;
-    //R1.A = Af;
-    //we need to invertigate why we need to check that:
-    Clamp(R_eq4);
 
     //return R_eq4;
     return Cf;
