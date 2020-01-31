@@ -304,7 +304,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (w_v < epsilon)
             continue;
 
-        int seamCarvingIndex = ((1-w_v) * params.NumberOfTextureSampleFrame);
+        int seamCarvingIndex = ((1-Q_V) * params.NumberOfTextureSampleFrame);
 
         //int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
         if (renderColoredPatches)
