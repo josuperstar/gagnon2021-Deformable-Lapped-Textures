@@ -54,6 +54,12 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
     vector<Pixel> colorsList;
 
+    vector<float> w_i_list;
+
+
+    float sumW2 = 0;
+    float sumW = 0;
+
     R_eq3 = Pixel(0,0,0);
     R_eq3.A = 1;
 
@@ -92,6 +98,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     //give more weight to the first patch and decrease afterward
 
     int k = sortedPatches.size();
+    int nbPatches = k;
     vector<int>::iterator itPatch;
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
     {
@@ -264,7 +271,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
 
         float minDUV = 0.125*params.PatchScaling;
-        float maxDUV = 1.5*params.PatchScaling; //blending region
+        float maxDUV = 1.25*params.PatchScaling; //blending region
 
         //d_V =0 if V ∈ grid boundary 1 otherwise
 
@@ -278,6 +285,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             C_s = 1.0f;
 
         //float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;
+        //float K_s = C_s*d_V*Q_V;
         float K_s = C_s*d_V*Q_V;
         //cout << "Ks "<<K_s<<endl;
         //cout << "d_V "<<d_V<<endl;
@@ -291,11 +299,13 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights
         //The weight for each vertex is defined as the product of a spatial component and a temporal component
+
         float w_v = K_s * K_t;
         if (w_v < epsilon)
             continue;
 
         int seamCarvingIndex = ((1-w_v) * params.NumberOfTextureSampleFrame);
+
         //int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
         if (renderColoredPatches)
             //set random colors per patch
@@ -325,6 +335,20 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         colorsList.push_back(color);
 
+        //cout << "w_i "<<w_v<<endl;
+        w_i_list.push_back(w_v);
+
+        //--------------------------------------------------------
+        //Section 3.5.1
+        //• Allocate the intermediate texture R at the required resolution (see discussion in 3.5.3), with one channel
+        //for each aj (RGB), plus one channel for the wi (resp. wi2 if using Eq. 4).
+
+        //• For each particle i: splat its grid into the texture (e.g., using a render target and the ordinary drawing API),
+        //thus accumulating the sum(wi(x)aj (ui(x)) and the sum(wi(x)) (resp. sum(w2i) ) into their respective channels.
+
+        sumW2 += w_v*w_v;
+        sumW += w_v;
+
         k--;
 
         if (useLocalRayIntersect)
@@ -332,10 +356,10 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             delete ray;
         }
 
+
     }
     //========================= END SUM ==================================
 
-    //return R_eq4;
     return Cf;
 }
 
