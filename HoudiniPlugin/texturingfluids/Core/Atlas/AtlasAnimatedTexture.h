@@ -25,7 +25,7 @@ public:
    void SetSurface(GU_Detail *data) {surface = data;}
    void SetDeformableGrids(GU_Detail *data) {deformableGrids = data;}
    void SetTrackers(GU_Detail *data) {trackers = data;}
-   void SetTrackersPosition(map<int,UT_Vector3> data){ trackerPosition = data;}
+   void SetTrackersPosition(map<int,UT_Vector3> data){ trackerNormal = data;}
    void SetNumberOfTextureSampleFrame(int data){ numberOfTextureSampleFrame = data;}
 
    void SetTextureExemplar1(string data){textureExemplar1Name = data;}
@@ -103,7 +103,7 @@ private:
 
    vector< vector<bool> > pixelUsed;
    map<int,float> temporalComponetKt;
-   map<int,UT_Vector3> trackerPosition;
+   map<int,UT_Vector3> trackerNormal;
    map<int,UT_Vector3> trackerUVPosition;
 
    bool useCopyGUDetail = false;

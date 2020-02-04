@@ -596,6 +596,8 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     GA_RWHandleF    attDeltaOnD(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
     GA_RWHandleF    attQt(deformableGridsgdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
 
+
+
     /*
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
@@ -789,6 +791,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                                 UT_Vector3 normal   = n0+u*(n1-n0)+v*(n2-n0);
                                 UT_Vector3 velocity = v0+u*(v1-v0)+v*(v2-v0);
                                 attVDeformable.set(ppt,velocity);
+
                                 attNSurface.set(ppt,normal);
                                 attAlpha.set(ppt,gridAlpha);
                                 //------------------------------------------------------------------------------------

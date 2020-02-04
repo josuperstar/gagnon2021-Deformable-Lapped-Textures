@@ -55,7 +55,7 @@ AtlasAnimatedTexture::~AtlasAnimatedTexture()
         }
         //patchesGeo.clear();
     }
-    trackerPosition.clear();
+    trackerNormal.clear();
 
 }
 
@@ -238,6 +238,7 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
     }
 
     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleV3   attN(trackers->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_Offset ppt;
     cout << "[AtlasAnimatedTexture::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
     GA_FOR_ALL_PTOFF(trackers,ppt)
@@ -249,6 +250,7 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
             blend = 1.0f;
         temporalComponetKt[patchId] = blend;
         trackerUVPosition[patchId] = attCenterUV.get(ppt);
+        trackerNormal[patchId] = attN.get(ppt);
     }
 
     if(renderColoredPatches)
@@ -483,7 +485,7 @@ void AtlasAnimatedTexture::RasterizePrimitive(GA_Offset primOffset, int w, int h
                                           sortedPatches,
                                           surfaceUv,
                                           surfacePosition,
-                                          trackerPosition,
+                                          trackerNormal,
                                           trackerUVPosition,
                                           rays,
                                           patchColors,

@@ -8,7 +8,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
                                 vector<int> &sortedPatches,
                                 vector<UT_Vector3> &surfaceUv,
                                 vector<UT_Vector3> &surfacePosition,
-                                map<int,UT_Vector3> &trackersPosition,
+                                map<int,UT_Vector3> &trackersNormal,
                                 map<int,UT_Vector3> &trackersUVPosition,
                                 map<string,GU_RayIntersect*> &rays,
                                 map<int,Pixel> &patchColors,
@@ -140,6 +140,11 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //--------------------------------------------------
 
         const GEO_Primitive *prim = mininfo.prim;
+
+//        UT_Vector3 primN = prim->computeNormal();
+//        if (dot(primN, trackersNormal[patchId]) < 0.7)
+//            continue;
+
         //We don't work with primitive that don't have at least 3 vertices
         if (prim->getVertexCount() < 3)
             continue;
@@ -232,7 +237,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         float Q_t = Q_t1+u*(Q_t2-Q_t1)+v*(Q_t3-Q_t1);
         float d_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
-        //float   Q_t = attQt.get(prim->getMapOffset());
 
         if (Q_t < 0.001)
             continue;
@@ -255,23 +259,17 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         K_s(V) = (1- (||v||-p)/d)*d_V*Q_V
         where d_V =0 if V ∈ grid boundary
         1 otherwise
-
-
         */
 
         //Here, we use a alpha chanel with linear fading from the center to compute the fall-off
         //Qv is an interpolation of the alpha chanel of the polygon use in the grid, for this patch.
         //Therefore, the Quality of the vertex has been computed before and stored in the alpha chanel
 
-        //float dP = ((falloff.R+falloff.G+falloff.B)/3);
-
 
         float d_P = distance3d(positionInPolygon,centerUV);
-        //float maxDUV = 0.175f; //should comme from the scaling used for the uv projection.
-        //float maxDUV = (0.5f*sqrt(1.0f/params.UVScaling))/2.0f;
 
         float minDUV = 0.125*params.PatchScaling;
-        float maxDUV = 1.25*params.PatchScaling; //blending region
+        float maxDUV = 0.25*params.PatchScaling; //edge region
 
         //d_V =0 if V ∈ grid boundary 1 otherwise
 
@@ -284,11 +282,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (d_P <= minDUV)
             C_s = 1.0f;
 
-        //float K_s = (1.0f-(d_P/maxDUV))*d_V*Q_V;
-        //float K_s = C_s*d_V*Q_V;
         float K_s = C_s*d_V*Q_V;
-        //cout << "Ks "<<K_s<<endl;
-        //cout << "d_V "<<d_V<<endl;
 
         //K_s should be between 0 and 1
         if (K_s < 0)
@@ -305,8 +299,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             continue;
 
         int seamCarvingIndex = ((1-Q_V) * params.NumberOfTextureSampleFrame);
-
-        //int seamCarvingIndex = ((1-K_t) * params.NumberOfTextureSampleFrame);
         if (renderColoredPatches)
             //set random colors per patch
             color = patchColors[patchId];
@@ -335,28 +327,12 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         colorsList.push_back(color);
 
-        //cout << "w_i "<<w_v<<endl;
-        w_i_list.push_back(w_v);
-
-        //--------------------------------------------------------
-        //Section 3.5.1
-        //• Allocate the intermediate texture R at the required resolution (see discussion in 3.5.3), with one channel
-        //for each aj (RGB), plus one channel for the wi (resp. wi2 if using Eq. 4).
-
-        //• For each particle i: splat its grid into the texture (e.g., using a render target and the ordinary drawing API),
-        //thus accumulating the sum(wi(x)aj (ui(x)) and the sum(wi(x)) (resp. sum(w2i) ) into their respective channels.
-
-        sumW2 += w_v*w_v;
-        sumW += w_v;
-
         k--;
 
         if (useLocalRayIntersect)
         {
             delete ray;
         }
-
-
     }
     //========================= END SUM ==================================
 
