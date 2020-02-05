@@ -89,7 +89,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
     UT_Vector3 positionOnSurface = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],surfacePosition[0],surfacePosition[1],surfacePosition[2],pixelPositionOnSurface);
 
-    float thresholdProjectionDistance = d/2.0f;
+    float thresholdProjectionDistance = d/10.0f;
 
     //================================= SUMARIZE ========================================
     // compute color according to the list of patch
@@ -159,6 +159,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (distance3d(positionOnSurface,hitPos) > thresholdProjectionDistance)
             continue;
 
+        //cout << "Hit pos "<<hitPos<<endl;
+
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
         GA_Offset vertexOffset1 = prim->getVertexOffset(1);
         GA_Offset vertexOffset2 = prim->getVertexOffset(2);
@@ -223,6 +225,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
 
+
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
         //The weights are computed for each vertex. During reconstruction, weights at arbitrary locations are interpolated
@@ -241,7 +244,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (Q_t < 0.001)
             continue;
 
-        float   Q_V = Q_t;
+        float   Q_V = Q_t*d_V;
 
         //-----------------------------------------------------------------
         //getting the color from the texture exemplar
