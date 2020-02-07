@@ -9,6 +9,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
                                 vector<UT_Vector3> &surfaceUv,
                                 vector<UT_Vector3> &surfacePosition,
                                 map<int,UT_Vector3> &trackersNormal,
+                                map<int,UT_Vector3> &trackersPosition,
                                 map<int,UT_Vector3> &trackersUVPosition,
                                 map<string,GU_RayIntersect*> &rays,
                                 map<int,Pixel> &patchColors,
@@ -89,7 +90,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
     UT_Vector3 positionOnSurface = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],surfacePosition[0],surfacePosition[1],surfacePosition[2],pixelPositionOnSurface);
 
-    float thresholdProjectionDistance = d/10.0f;
+    float thresholdProjectionDistance = d/2.0f;
 
     //================================= SUMARIZE ========================================
     // compute color according to the list of patch
@@ -157,6 +158,12 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         UT_Vector4 hitPos;
         mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
         if (distance3d(positionOnSurface,hitPos) > thresholdProjectionDistance)
+            continue;
+
+        // We want to check that the pixel is not outside of the uv patch radius transferred on the surface.
+        UT_Vector3 tracker = trackersPosition[patchId];
+        float d_P = distance3d(hitPos,tracker);
+        if (d_P > d)
             continue;
 
         //cout << "Hit pos "<<hitPos<<endl;
@@ -269,20 +276,21 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //Therefore, the Quality of the vertex has been computed before and stored in the alpha chanel
 
 
-        float d_P = distance3d(positionInPolygon,centerUV);
+        float d_Puv = distance3d(positionInPolygon,centerUV);
+
 
         float minDUV = 0.125*params.PatchScaling;
         float maxDUV = 0.25*params.PatchScaling; //edge region
 
         //d_V =0 if V ∈ grid boundary 1 otherwise
 
-        if (d_P > maxDUV)
+        if (d_Puv > maxDUV)
             d_V = 0.0f;
 
         float C_s = 0.0f;
-        if (d_P > minDUV && d_P <= maxDUV)
-            C_s = 1-((d_P-minDUV)/(maxDUV-minDUV));
-        if (d_P <= minDUV)
+        if (d_Puv > minDUV && d_Puv <= maxDUV)
+            C_s = 1-((d_Puv-minDUV)/(maxDUV-minDUV));
+        if (d_Puv <= minDUV)
             C_s = 1.0f;
 
         float K_s = C_s*d_V*Q_V;

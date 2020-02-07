@@ -300,7 +300,7 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
-
+    GA_RWHandleI    attNumberOfPrimitives(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives", 1));
 
 
     //---------- Tangeant Tracker -----------
@@ -328,6 +328,7 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
     attId.set(newPoint,id);
     attSpawn.set(newPoint,0);
     attLife.set(newPoint,0.001f);
+    attNumberOfPrimitives.set(newPoint,0);
     attIsMature.set(newPoint,0);
     attMaxDeltaOnD.set(newPoint,0);
 
