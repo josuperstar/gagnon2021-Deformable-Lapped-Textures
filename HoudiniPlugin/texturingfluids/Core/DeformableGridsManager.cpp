@@ -85,6 +85,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
     */
     GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleF    attNumberOfPrimitives(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives",1));
 
 
     GA_RWHandleV3   attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
@@ -467,6 +468,9 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
 
             primGroup->addOffset(prim_poly_ptr->getMapOffset());
         }
+
+        attNumberOfPrimitives.set(ppt,primList.size());
+
         this->gridMeshCreation += (std::clock() - startMeshCreation) / (double) CLOCKS_PER_SEC;
 
         if (close_particles_count == 0)
@@ -597,6 +601,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     GA_RWHandleF    attQt(deformableGridsgdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
 
 
+    GA_RWHandleF    attNumberOfPrimitives(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives",1));
 
     /*
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -705,10 +710,11 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                         //check if it is a lonely point
                         GA_OffsetArray primitivesList;
                         GA_Size numberOfPrimitives = deformableGridsgdp->getPrimitivesReferencingPoint(primitivesList,ppt);
-                        if (numberOfPrimitives == 0)
-                        {
-                            continue;
-                        }
+//                        if (numberOfPrimitives == 0)
+//                        {
+//                            attNumberOfPrimitives.set(ppt,0);
+//                            continue;
+//                        }
                         v = attVDeformable.get(ppt);
                         N = attNSurface.get(ppt);
                         p = deformableGridsgdp->getPos3(ppt);
@@ -865,12 +871,18 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
 
         //delete too distorted primitives
         GEO_Primitive *prim;
+        int numberOfPrimitives = 0;
         GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsgdp,primGroup,prim)
         {
             float qt = attQt.get(prim->getMapOffset());
             if (qt < 0.001)
                 primGrpToDestroy->add(prim);
+            else
+                numberOfPrimitives++;
         }
+//        attNumberOfPrimitives.set(trackerPpt,numberOfPrimitives);
+//        if (numberOfPrimitives == 0)
+//            attLife.set(trackerPpt,0);
     }
 
     cout << "Destroying groups"<<endl;

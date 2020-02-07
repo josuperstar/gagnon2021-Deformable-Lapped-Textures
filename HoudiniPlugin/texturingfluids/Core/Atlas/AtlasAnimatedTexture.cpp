@@ -251,6 +251,7 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
         temporalComponetKt[patchId] = blend;
         trackerUVPosition[patchId] = attCenterUV.get(ppt);
         trackerNormal[patchId] = attN.get(ppt);
+        trackersPosition[patchId] = trackers->getPos3(ppt);
     }
 
     if(renderColoredPatches)
@@ -486,6 +487,7 @@ void AtlasAnimatedTexture::RasterizePrimitive(GA_Offset primOffset, int w, int h
                                           surfaceUv,
                                           surfacePosition,
                                           trackerNormal,
+                                          trackersPosition,
                                           trackerUVPosition,
                                           rays,
                                           patchColors,

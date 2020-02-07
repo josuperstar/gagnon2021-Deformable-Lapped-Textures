@@ -63,6 +63,7 @@ protected :
     GA_RWHandleI    attFadeIn;
     GA_RWHandleF    temporalComponentKt;
     GA_RWHandleV3 AttCd;
+    GA_RWHandleI    attNumberOfPrimitives;
 
     GA_RWHandleV3 attVSurface;
     //GA_RWHandleV3 attNSurface;
