@@ -110,6 +110,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
 
     int id = 0;
     GA_Offset ppt;
+    int deletedTrackers = 0;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
         id = attId.get(ppt);
@@ -126,6 +127,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         //Dead patches are not updated
         if (currentLife <= 0 && active == 0)
         {
+            deletedTrackers++;
             continue;
         }
 
@@ -282,6 +284,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
 
         //numberOfPatches++;
     }
+    cout << "[ParticleTrackerManager] Deleted trackers: "<<deletedTrackers<<endl;
     cout <<" DONE"<<endl;
 }
 

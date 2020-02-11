@@ -707,14 +707,15 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
 
                     GA_FOR_ALL_GROUP_PTOFF(deformableGridsgdp,pointGrp,ppt)
                     {
+
                         //check if it is a lonely point
                         GA_OffsetArray primitivesList;
                         GA_Size numberOfPrimitives = deformableGridsgdp->getPrimitivesReferencingPoint(primitivesList,ppt);
-//                        if (numberOfPrimitives == 0)
-//                        {
-//                            attNumberOfPrimitives.set(ppt,0);
-//                            continue;
-//                        }
+                        if (numberOfPrimitives == 0)
+                        {
+
+                            continue;
+                        }
                         v = attVDeformable.get(ppt);
                         N = attNSurface.get(ppt);
                         p = deformableGridsgdp->getPos3(ppt);
@@ -855,7 +856,11 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         }
 
         if (nbOfPoint == 0)
+        {
+            //No point in the patch, we need to delete the tracker.
+            attLife.set(trackerPpt,0);
             continue;
+        }
         averageDeltaOnD = averageDeltaOnD/(float)nbOfPoint;
 
         if (averageDeltaOnD > params.fadingTau)

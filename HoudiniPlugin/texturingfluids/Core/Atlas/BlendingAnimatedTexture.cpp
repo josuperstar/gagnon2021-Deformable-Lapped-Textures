@@ -11,6 +11,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
                                 map<int,UT_Vector3> &trackersNormal,
                                 map<int,UT_Vector3> &trackersPosition,
                                 map<int,UT_Vector3> &trackersUVPosition,
+                                map<int, bool> usePatches,
                                 map<string,GU_RayIntersect*> &rays,
                                 map<int,Pixel> &patchColors,
                                 Pixel RM,           //Mean Value
@@ -92,6 +93,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
     float thresholdProjectionDistance = d/2.0f;
 
+
     //================================= SUMARIZE ========================================
     // compute color according to the list of patch
     //for each pixel patch loop
@@ -142,7 +144,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         const GEO_Primitive *prim = mininfo.prim;
 
-//        UT_Vector3 primN = prim->computeNormal();
+        UT_Vector3 primN = prim->computeNormal();
 //        if (dot(primN, trackersNormal[patchId]) < 0.7)
 //            continue;
 
@@ -157,8 +159,19 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //get pos of hit
         UT_Vector4 hitPos;
         mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
-        if (distance3d(positionOnSurface,hitPos) > thresholdProjectionDistance)
+        float dist = distance3d(positionOnSurface,hitPos);
+        if (dist > thresholdProjectionDistance)
             continue;
+
+        if (dist > d/10.0f)
+        {
+            UT_Vector3 AB = (positionOnSurface - hitPos);
+            AB = AB.normalize();
+
+            float angle = dot(AB,primN);
+            if (abs(angle) < 0.5)
+                continue;
+        }
 
         // We want to check that the pixel is not outside of the uv patch radius transferred on the surface.
         UT_Vector3 tracker = trackersPosition[patchId];
@@ -321,6 +334,10 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         if (computeDisplacement)
             displacementMapImage->GetColor(i2,j2,0,displacement);
+
+        // Flag that we use this patch during the synthesis.
+        // We could therefore delete unused patches in the future.
+        usePatches[patchId] = true;
 
         //clamping color values ...
         if (color.B > 1.0f)
