@@ -106,6 +106,7 @@ private:
    map<int,UT_Vector3> trackerNormal;
    map<int,UT_Vector3> trackersPosition;
    map<int,UT_Vector3> trackerUVPosition;
+   map<int, bool>      usePatches;
 
    bool useCopyGUDetail = false;
    bool useDeformableGrids = false;
