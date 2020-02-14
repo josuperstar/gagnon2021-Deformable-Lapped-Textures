@@ -108,6 +108,8 @@ void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp
         surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
     }
 
+    // Compute concealed patches
+
     //=======================================================================
 
     cout << surface.approachName<<" Done"<<endl;
