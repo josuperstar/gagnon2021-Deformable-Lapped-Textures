@@ -2,6 +2,7 @@
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
+#include <UT/UT_DSOVersion.h>
 #include <UT/UT_Interrupt.h>
 #include <UT/UT_Matrix3.h>
 #include <UT/UT_Matrix4.h>
@@ -21,7 +22,8 @@
 #include <ctime>
 #include <Core/HoudiniUtils.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
-#include "Yu2011Plugin.h"
+#include "DeformableLappedTexturePlugin.h"
+#include "Approaches/DeformableLappedTexture.h"
 
 
 #include <stdlib.h> /* getenv */
@@ -71,6 +73,13 @@ static PRM_Name        names[] = {
     PRM_Name("CellSize",	"Cell Size"),
     PRM_Name("UseDynamicFading",	"Use Dynamic Fading"),
     PRM_Name("FadingIn",	"Use Fading In"),
+    PRM_Name("TextureAtlasWidth",	"Texture Atlas Width"), //20
+    PRM_Name("TextureAtlasHeight",	"Texture Atlas Height"),
+    PRM_Name("TextureExemplarList",	"Texture Exemplar List"),
+    PRM_Name("TextureExemplarMaskList",	"Texture Exemplar Mask List"),
+    PRM_Name("OutputName","Output Name"),
+    PRM_Name("NumberOfFrame",	"Number of Frame"),
+    PRM_Name("PatchScaling",	"Patch Scaling"),
 };
 
 static PRM_Default StartFrameDefault(1);
@@ -86,9 +95,10 @@ static PRM_Default Yu2011BetaDefault(0.6f);
 static PRM_Default CellSizeDefault(0.1f);
 static PRM_Default UseDynamicFadingDefault(1);
 static PRM_Default FadingInDefault(1);
+static PRM_Default NumberOfFrameDefault(100);
 
 PRM_Template
-LagrangianTextureAdvectionPlugin::myTemplateList[] = {
+DeformableLappedTexturePlugin::myTemplateList[] = {
     PRM_Template(PRM_FLT, 1, &names[0], &StartFrameDefault),
     PRM_Template(PRM_TOGGLE, 1, &names[1]),
     PRM_Template(PRM_TOGGLE, 1, &names[2]),
@@ -109,32 +119,43 @@ LagrangianTextureAdvectionPlugin::myTemplateList[] = {
     PRM_Template(PRM_FLT, 1, &names[17], &CellSizeDefault),
     PRM_Template(PRM_INT, 1, &names[19], &FadingInDefault),
     PRM_Template(PRM_TOGGLE, 1, &names[18]),
+
+    PRM_Template(PRM_INT, 1, &names[20]),
+    PRM_Template(PRM_INT, 1, &names[21]),
+    PRM_Template(PRM_PICFILE_E, 1, &names[22]),
+    PRM_Template(PRM_PICFILE_E, 1, &names[23]),
+
+    PRM_Template(PRM_STRING, 1, &names[24]),
+    PRM_Template(PRM_FLT, 1, &names[25]),
+    PRM_Template(PRM_INT, 1, &names[26], &NumberOfFrameDefault),
+    PRM_Template(PRM_FLT, 1, &names[27]),
+
     PRM_Template(),
 
 };
 
 
 OP_Node *
-LagrangianTextureAdvectionPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
+DeformableLappedTexturePlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
 {
-    return new LagrangianTextureAdvectionPlugin(net, name, op);
+    return new DeformableLappedTexturePlugin(net, name, op);
 }
 
-LagrangianTextureAdvectionPlugin::LagrangianTextureAdvectionPlugin(OP_Network *net, const char *name, OP_Operator *op)
+DeformableLappedTexturePlugin::DeformableLappedTexturePlugin(OP_Network *net, const char *name, OP_Operator *op)
     : SOP_Node(net, name, op), myGroup(0)
 {
     // Make sure to flag that we can supply a guide geometry
     mySopFlags.setNeedGuide1(1);
 }
 
-LagrangianTextureAdvectionPlugin::~LagrangianTextureAdvectionPlugin()
+DeformableLappedTexturePlugin::~DeformableLappedTexturePlugin()
 {
     cout << "Destroying DeformablePatches"<<endl;
     //this->interface.~UnitTestInterface();
 }
 
 OP_ERROR
-LagrangianTextureAdvectionPlugin::cookInputGroups(OP_Context &context, int alone)
+DeformableLappedTexturePlugin::cookInputGroups(OP_Context &context, int alone)
 {
     // If we are called by the handle, then "alone" equals 1.  In that
     // case, we have to lock the inputs oursevles, and unlock them
@@ -194,7 +215,7 @@ LagrangianTextureAdvectionPlugin::cookInputGroups(OP_Context &context, int alone
 
 
 OP_ERROR
-LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
+DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
 {
     // Before we do anything, we must lock our inputs.  Before returning,
     //	we have to make sure that the inputs get unlocked.
@@ -246,15 +267,35 @@ LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
     DeformableGridsFilename(deformableGridsFilename,now);
     params.deformableGridsFilename = deformableGridsFilename;
 
-    params.useDynamicTau = UseDynamicFading();
-    if (params.useDynamicTau)
+    TextureExemplarList(textureExemplar1Name,now);
+    params.textureExemplar1Name = textureExemplar1Name;
+
+
+    OutputName(outputName,now);
+    params.outputName = outputName;
+
+
+    params.atlasHeight = 500;
+    params.atlasWidth = 500;
+
+    params.UVScaling = UVScaling();
+    params.NumberOfTextureSampleFrame = NumberOfTextureSample();
+    params.PatchScaling = PatchScaling(now);
+    if (params.PatchScaling <= 0)
     {
-        cout << "======================== GAGNON 2019, frame  "<<frame<< "============================="<<endl;
+        params.PatchScaling = 1;
     }
-    else
+    if (params.atlasHeight <= 0)
     {
-        cout << "======================== YU 2011 Lagrangian Texture, frame  "<<frame<< "============================="<<endl;
+        params.atlasHeight = 100;
     }
+    if (params.atlasWidth <= 0)
+    {
+        params.atlasWidth = 100;
+    }
+    cout << "======================== DeformableLappedTexturePlugin 2020, frame  "<<frame<< "============================="<<endl;
+
+
 
     const GU_Detail * surface = inputGeo(1);
     surface = inputGeo(1);
@@ -277,7 +318,7 @@ LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
     surfaceLowRes->clearAndDestroy();
     surfaceLowRes->copy(*surfaceLowResRef);
 
-    LagrangianTextureAdvection interface;
+
     //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
     interface.Synthesis(gdp,surfaceCopy,trackersCopy,levelSet,surfaceLowRes, params);
 
@@ -293,7 +334,7 @@ LagrangianTextureAdvectionPlugin::cookMySop(OP_Context &context)
 }
 
 const char *
-LagrangianTextureAdvectionPlugin::inputLabel(unsigned) const
+DeformableLappedTexturePlugin::inputLabel(unsigned) const
 {
     return "Surface Deformable Patches";
 }
