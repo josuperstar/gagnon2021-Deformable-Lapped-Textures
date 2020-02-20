@@ -1167,6 +1167,7 @@ void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
 
 void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
 {
+
     cout << "[DeformableGridsManager] add border attribute."<<endl;
     GA_RWHandleI    attBorder(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"border",1));
 

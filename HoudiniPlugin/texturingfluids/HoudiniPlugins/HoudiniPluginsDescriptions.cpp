@@ -37,6 +37,7 @@ void newSopOperator(OP_OperatorTable *table)
                                         0));
 
 
+
      table->addOperator(new OP_Operator("hdk_Gagnon2016",
                                         "DynamicLappedTexture",
                                         DynamicLappedTexturePlugin::myConstructor,

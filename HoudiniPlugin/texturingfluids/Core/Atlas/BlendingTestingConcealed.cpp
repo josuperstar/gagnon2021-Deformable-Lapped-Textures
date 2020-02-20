@@ -16,11 +16,14 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
                                 GA_RWHandleV3 &attPointUV,
                                 map<int,float> &fading,
                                 vector<ImageCV*> textureExemplars,
+
                                 ParametersDeformablePatches params)
 {
 
     //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
     bool useLocalRayIntersect = false;
+
+
 
 
     GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
@@ -38,6 +41,7 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
     Pixel color_wi_sum = Pixel(0,0,0);
     color_wi_sum.A = 1;
 
+
     Pixel color = Pixel(0,0,0);
     color.A = 1;
 
@@ -45,10 +49,12 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
     Cf.A = 1;
 
 
+
     //Equation 2, Quality of a triangle
     GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
+
     UT_Vector3 pixelPositionOnSurface;
 
     //We don't work with an image with no width of height
@@ -68,13 +74,16 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
     //for each pixel patch loop
 
     //give more weight to the first patch and decrease afterward
-    //cout << "compute color according to the list of patch "<<i<< " "<<j<<endl;
+
     int k = sortedPatches.size();
     int nbPatches = k;
     vector<int>::iterator itPatch;
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
     {
         int patchId = *itPatch;
+
+        if ( fading.find(patchId) == fading.end())
+            continue;
 
 
         //-------------------------------------------------------------
@@ -244,7 +253,6 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         //Qv is an interpolation of the alpha chanel of the polygon use in the grid, for this patch.
         //Therefore, the Quality of the vertex has been computed before and stored in the alpha chanel
 
-
         float minD = d/2*params.PatchScaling;
         float maxD = d*params.PatchScaling; //edge region
 
@@ -267,7 +275,6 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         else if (K_s > 1.0f)
             K_s = 1.0f;
 
-
         //--------------------------Equation 5--------------------
         // section 3.4.1 Vertex Weights
         //The weight for each vertex is defined as the product of a spatial component and a temporal component
@@ -278,6 +285,7 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
 
         //cout << "Using this one !!"<<endl;
         usePatches[patchId] = true;
+
         if (useLocalRayIntersect)
         {
             delete ray;

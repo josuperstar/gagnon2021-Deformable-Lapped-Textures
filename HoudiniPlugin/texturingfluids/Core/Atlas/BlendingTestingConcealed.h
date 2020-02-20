@@ -26,6 +26,7 @@ public:
                        GA_RWHandleV3 &attPointUV,
                        map<int,float> &patchBlend,
                        vector<ImageCV*> textureExemplars,
+
                        ParametersDeformablePatches params);
 
 

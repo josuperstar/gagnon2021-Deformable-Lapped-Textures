@@ -163,7 +163,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (dist > thresholdProjectionDistance)
             continue;
 
-        if (dist > d/20.0f)
+
+        if (dist > d/10.0f)
+
         {
             UT_Vector3 AB = (positionOnSurface - hitPos);
             AB = AB.normalize();
@@ -289,6 +291,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //Therefore, the Quality of the vertex has been computed before and stored in the alpha chanel
 
 
+
         // --------------------------- UV DISTANCE ---------------------
 //        float d_Puv = distance3d(positionInPolygon,centerUV);
 
@@ -324,6 +327,24 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         //----------------------------------------------------------------
 
+//        float d_Puv = distance3d(positionInPolygon,centerUV);
+
+
+//        float minDUV = 0.125*params.PatchScaling;
+//        float maxDUV = 0.25*params.PatchScaling; //edge region
+
+//        //d_V =0 if V ∈ grid boundary 1 otherwise
+
+//        if (d_Puv > maxDUV)
+//            d_V = 0.0f;
+
+//        float C_s = 0.0f;
+//        if (d_Puv > minDUV && d_Puv <= maxDUV)
+//            C_s = 1-((d_Puv-minDUV)/(maxDUV-minDUV));
+//        if (d_Puv <= minDUV)
+//            C_s = 1.0f;
+
+
         float K_s = C_s*d_V*Q_V;
 
         //K_s should be between 0 and 1
@@ -341,6 +362,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             continue;
 
         int seamCarvingIndex = ((1-K_s) * params.NumberOfTextureSampleFrame);
+
         if (renderColoredPatches)
             //set random colors per patch
             color = patchColors[patchId];
