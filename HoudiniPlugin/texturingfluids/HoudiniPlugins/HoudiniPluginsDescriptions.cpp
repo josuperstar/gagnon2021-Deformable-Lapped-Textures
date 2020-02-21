@@ -13,6 +13,7 @@
 #include "SinglePatchTest.h"
 #include "DynamicLappedTexturePlugin.h"
 #include "AtlasGagnon2016Plugin.h"
+#include "DeformableLappedTexturePlugin.h"
 
 // -----------------------------------------------------------------------------
 // Add our plugins to Houdini's plugins list
@@ -26,6 +27,16 @@ void newSopOperator(OP_OperatorTable *table)
                                         5,
                                         5,
                                         0));
+
+     table->addOperator(new OP_Operator("hdk_DeformableLappedTexture",
+                                        "DeformableLappedTexture",
+                                        DeformableLappedTexturePlugin::myConstructor,
+                                        DeformableLappedTexturePlugin::myTemplateList,
+                                        5,
+                                        5,
+                                        0));
+
+
 
      table->addOperator(new OP_Operator("hdk_Gagnon2016",
                                         "DynamicLappedTexture",

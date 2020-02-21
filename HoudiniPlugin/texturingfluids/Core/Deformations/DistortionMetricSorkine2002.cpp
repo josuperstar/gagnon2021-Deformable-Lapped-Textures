@@ -142,7 +142,9 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
                     if (nbQt > 0)
                     {
                         Qv = sumQt/nbQt;
-                        attQv.set(*itPoint, Qv);
+                        float currentQv = attQv.get(*itPoint);
+                        if (currentQv > Qv)
+                            attQv.set(*itPoint, Qv);
                     }
                     else
                     {

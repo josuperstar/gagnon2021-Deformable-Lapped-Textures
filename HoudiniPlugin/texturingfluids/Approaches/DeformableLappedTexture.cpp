@@ -1,4 +1,4 @@
-#include "LagrangianTextureAdvection.h"
+#include "DeformableLappedTexture.h"
 
 #include <fstream>
 #include <vector>
@@ -27,18 +27,21 @@
 #include <Core/PatchedSurface.h>
 #include <Core/Bridson2012PoissonDiskDistribution.h>
 
-LagrangianTextureAdvection::LagrangianTextureAdvection()
+#include <Core/Atlas/AtlasTestingConcealed.h>
+#include <Core/Atlas/TBBAtlasTestingConcealed.h>
+
+DeformableLappedTexture::DeformableLappedTexture()
 {
 }
 
-LagrangianTextureAdvection::~LagrangianTextureAdvection()
+DeformableLappedTexture::~DeformableLappedTexture()
 {
 }
 
-void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
+void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
     PatchedSurface surface(surfaceGdp, trackersGdp);
-    cout << "[LagrangianTextureAdvection::Synthesis] "<<params.frame<<endl;
+    cout << "[DeformableLappedTexture::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
     std::clock_t start;
@@ -89,16 +92,17 @@ void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp
     else
     {
         surface.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
-        if (!usingOnlyPoissonDisk)
-            surface.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
+
+        surface.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
         if (params.updateDistribution)
         {
             surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
             //surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         }
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-        if (!usingOnlyPoissonDisk)
-            surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+
+        surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+
         surface.DeleteUnusedPatches(gdp, trackersGdp,params);
 
     }
@@ -107,6 +111,86 @@ void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp
         //For the blending computation, we create uv array per vertex that we called patch
         surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
     }
+
+
+    //-------------------- texture synthesis to test concealed patches --------------------
+    AtlasTestingConcealed atlas;
+    if (params.outputName == "")
+        params.outputName = params.trackersFilename+".png";
+    atlas.SetFilename(params.outputName+".png");
+    atlas.SetSurface(surfaceGdp);
+    atlas.SetDeformableGrids(gdp);
+    atlas.SetTrackers(trackersGdp);
+    atlas.SetTextureExemplar1(params.textureExemplar1Name);
+    atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
+    atlas.SetNumberOfTextureSampleFrame(params.NumberOfTextureSampleFrame);
+
+
+    GA_RWHandleI attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI attActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
+    map<int,UT_Vector3> trackerPositions;
+    {
+        GA_Offset ppt;
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+        {
+            int id = attId.get(ppt);
+            trackerPositions[id] = trackersGdp->getPos3(ppt);
+        }
+    }
+    atlas.SetTrackersPosition(trackerPositions);
+
+    if(params.useDeformableGrids)
+    {
+        atlas.UseDeformableGrids();
+        cout << "[AtlasAnimatedTextureInterface::Synthesis] "<< "Compute pixel using deformable grids parametric coordinates."<<endl;
+    }
+    else
+    {
+        cout << "[AtlasAnimatedTextureInterface::Synthesis] "<< "Compute pixel using overlapping uv and alpha."<<endl;
+    }
+    bool atlasBuilded = atlas.BuildAtlas(params.atlasWidth,params.atlasHeight, params.fadingTau);
+    if(!atlasBuilded)
+    {
+        cout << "[AtlasAnimatedTextureInterface::Synthesis] "<< "Can't build the rasterizer"<<endl;
+        return;
+    }
+    GA_Primitive *prim;
+
+    long nbOfPrimitive = surfaceGdp->getNumPrimitives();
+    cout << "[AtlasAnimatedTextureInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
+    TestingConcealed_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
+    tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
+    map<int, bool> usedPatches = atlas.getUsedPatches();
+    map<int, bool>::iterator itUsedPatches;
+    int concealedPatches = 0;
+    for(itUsedPatches = usedPatches.begin(); itUsedPatches != usedPatches.end(); itUsedPatches++)
+    {
+        if (!itUsedPatches->second)
+        {
+            //cout << "Patch "<< itUsedPatches->first << " is not used"<<endl;
+            concealedPatches++;
+        }
+    }
+    cout << "We have "<< concealedPatches << " concealed patches."<<endl;
+    {
+        GA_Offset ppt;
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+        {
+            int id = attId.get(ppt);
+            if (!usedPatches[id])
+            {
+                attLife.set(ppt,0);
+                attActive.set(ppt,0);
+            }
+        }
+    }
+
+    //atlas.~AtlasTestingConcealed();
+    atlas.CleanRayMemory(gdp);
+    //-------------------------------------------------------------------------------------
+
+    // Compute concealed patches
 
     //=======================================================================
 
