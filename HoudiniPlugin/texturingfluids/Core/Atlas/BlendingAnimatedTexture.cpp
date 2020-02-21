@@ -74,7 +74,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     Pixel displacement = Pixel(0,0,0);
 
     //Equation 2, Quality of a triangle
-    GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
     if (attBorder.isInvalid())
@@ -326,24 +325,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             C_s = 1.0f;
 
         //----------------------------------------------------------------
-
-//        float d_Puv = distance3d(positionInPolygon,centerUV);
-
-
-//        float minDUV = 0.125*params.PatchScaling;
-//        float maxDUV = 0.25*params.PatchScaling; //edge region
-
-//        //d_V =0 if V ∈ grid boundary 1 otherwise
-
-//        if (d_Puv > maxDUV)
-//            d_V = 0.0f;
-
-//        float C_s = 0.0f;
-//        if (d_Puv > minDUV && d_Puv <= maxDUV)
-//            C_s = 1-((d_Puv-minDUV)/(maxDUV-minDUV));
-//        if (d_Puv <= minDUV)
-//            C_s = 1.0f;
-
 
         float K_s = C_s*d_V*Q_V;
 
