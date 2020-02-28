@@ -28,7 +28,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 {
 
     //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
-    bool useLocalRayIntersect = false;
     std::ofstream outfile;
     bool outputCSV = false;
     //if (outputCSV)
@@ -117,19 +116,12 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         groupName = "grid"+str;
 
         GU_RayIntersect *ray;
-        if (useLocalRayIntersect)
-        {
-            GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-            ray = new GU_RayIntersect(deformableGrids,primGroup);
-            ray->init();
-        }
-        else
-        {
-            map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
-            if (it==rays.end())
-                continue;
-            ray = rays[groupName];
-        }
+
+        map<string,GU_RayIntersect*>::const_iterator it = rays.find(groupName);
+        if (it==rays.end())
+            continue;
+        ray = rays[groupName];
+
         //--------------------------------------------------
         //Can we project the pixel on the current patch ?
         //We may want to put this test outside this function, especially if we want to create a shader.
@@ -176,8 +168,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         // We want to check that the pixel is not outside of the uv patch radius transferred on the surface.
         UT_Vector3 tracker = trackersPosition[patchId];
+        float gridwidth = (2+params.Yu2011Beta)*params.poissondiskradius;
         float d_P = distance3d(hitPos,tracker);
-        if (d_P > d)
+        if (d_P > gridwidth)
             continue;
 
         //cout << "Hit pos "<<hitPos<<endl;
@@ -310,8 +303,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 //            C_s = 1.0f;
 
         // ------------------------ EUCLEDIAN DISTANCE ------------------------
-        float minD = d/2*params.PatchScaling;
-        float maxD = d*params.PatchScaling; //edge region
+
+        float minD = d;
+        float maxD = gridwidth; //edge region
 
         //d_V =0 if V ∈ grid boundary 1 otherwise
 
@@ -339,7 +333,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //The weight for each vertex is defined as the product of a spatial component and a temporal component
 
         float w_v = K_s * K_t;
-        if (w_v < epsilon)
+        if (K_s < epsilon)
             continue;
 
         int seamCarvingIndex = ((1-K_s) * params.NumberOfTextureSampleFrame);
@@ -377,11 +371,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         colorsList.push_back(color);
 
         k--;
-
-        if (useLocalRayIntersect)
-        {
-            delete ray;
-        }
     }
     //========================= END SUM ==================================
 

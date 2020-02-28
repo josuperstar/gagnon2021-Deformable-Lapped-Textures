@@ -55,7 +55,7 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
 
 void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree)
 {
-    //cout << "Yu 2011 Create grids"<<endl;
+    cout << "[DeformableGridsManager] CreateGridBasedOnMesh with beta "<<params.Yu2011Beta<<endl;
 
     //Yu2011 Section 3.3.1
     //For each particle, we create a regular grid (see Fig. 2, left), centered on it, of width larger than 2d. Combined
@@ -220,7 +220,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                 float dotP              = dot(pNp, N);
                 float d              = distance3d( pos, p );
                 float dp                = abs(dotP);
-                float k        = (1-dp)*r*2;
+                float k        = (1-dp)*gridwidth;
                 if (k < cs)
                     k = cs;
                 bool insideBigEllipse    = d < k;

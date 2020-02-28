@@ -286,6 +286,9 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         //cout << "Using this one !!"<<endl;
         usePatches[patchId] = true;
 
+        if (K_s == 1)
+            break;
+
         if (useLocalRayIntersect)
         {
             delete ray;
