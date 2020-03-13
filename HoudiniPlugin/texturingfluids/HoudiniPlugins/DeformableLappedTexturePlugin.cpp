@@ -275,8 +275,8 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
     params.outputName = outputName;
 
 
-    params.atlasHeight = 500;
-    params.atlasWidth = 500;
+    params.atlasHeight = TextureAtlasHeight();
+    params.atlasWidth = TextureAtlasHeight();
 
     params.UVScaling = UVScaling();
     params.NumberOfTextureSampleFrame = NumberOfTextureSample();

@@ -180,6 +180,8 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
             int id = attId.get(ppt);
             if (!usedPatches[id])
             {
+                if (id == 1388)
+                    cout << "Patch is not used !!!"<<endl;
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
             }

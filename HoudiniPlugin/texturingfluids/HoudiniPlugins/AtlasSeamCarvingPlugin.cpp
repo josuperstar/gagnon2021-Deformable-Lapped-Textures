@@ -178,7 +178,7 @@
         int frame = context.getFrame();
         //int numberOfGaussianLevel = 2;
 
-        cout << "======================== Yu2011 AtlasSeamCarvingPlugin ============================="<<endl;
+        cout << "======================== Yu2011 Animated Lapped Texture ============================="<<endl;
 
         string baseVariable = "REZ_YU2011LAGRANGIANTEXTUREADVECTION_BASE";
         char* pPath;

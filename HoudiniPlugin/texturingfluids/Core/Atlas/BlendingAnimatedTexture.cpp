@@ -27,15 +27,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
                                 ParametersDeformablePatches params)
 {
 
-    //GA_RWHandleF attAlpha(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
-    std::ofstream outfile;
-    bool outputCSV = false;
-    //if (outputCSV)
-    //    cout << "----------------------"<<endl;
-
-    GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
-    const GA_GroupTable *gPrimTable = deformableGrids->getGroupTable(primGroupType);
-
     float d = params.poissondiskradius;
     Pixel displaceMean;
     if(computeDisplacement)
@@ -48,21 +39,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
     float epsilon = 0.0001f;
 
-    Pixel R_eq4 = Pixel(0,0,0);
-    R_eq4.A = 1;
-    Pixel color_wi_sum = Pixel(0,0,0);
-    color_wi_sum.A = 1;
-
     vector<Pixel> colorsList;
-
-    vector<float> w_i_list;
-
-
-    float sumW2 = 0;
-    float sumW = 0;
-
-    R_eq3 = Pixel(0,0,0);
-    R_eq3.A = 1;
 
     Pixel color = Pixel(0,0,0);
     color.A = 1;
@@ -72,11 +49,10 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
     Pixel displacement = Pixel(0,0,0);
 
-    //Equation 2, Quality of a triangle
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
     if (attBorder.isInvalid())
-        return R_eq4;
+        return Cf;
     UT_Vector3 pixelPositionOnSurface;
 
     //We don't work with an image with no width of height
@@ -90,16 +66,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     UT_Vector3 positionOnSurface = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],surfacePosition[0],surfacePosition[1],surfacePosition[2],pixelPositionOnSurface);
 
     float thresholdProjectionDistance = d/2.0f;
-
-
-    //================================= SUMARIZE ========================================
-    // compute color according to the list of patch
-    //for each pixel patch loop
-
-    //give more weight to the first patch and decrease afterward
-
     int k = sortedPatches.size();
-    int nbPatches = k;
+
     vector<int>::iterator itPatch;
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
     {
@@ -150,13 +118,13 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //get pos of hit
         UT_Vector4 hitPos;
         mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+
+        //------------------------------ Test Hit Distance --------------------------
         float dist = distance3d(positionOnSurface,hitPos);
         if (dist > thresholdProjectionDistance)
             continue;
 
-
         if (dist > d/10.0f)
-
         {
             UT_Vector3 AB = (positionOnSurface - hitPos);
             AB = AB.normalize();
@@ -173,15 +141,10 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (d_P > gridwidth)
             continue;
 
-        //cout << "Hit pos "<<hitPos<<endl;
-
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
         GA_Offset vertexOffset1 = prim->getVertexOffset(1);
         GA_Offset vertexOffset2 = prim->getVertexOffset(2);
 
-        //------------------- secion 3.3.3 Estimating Grid Distortion --------------
-
-        //------- position in polygon of the deformable grid --------
         if (attPointUV.isInvalid())
             continue;
 
@@ -193,37 +156,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         UT_Vector3 v1 = attPointUV.get(pointOffset1);
         UT_Vector3 v2 = attPointUV.get(pointOffset2);
 
-
-        //--------------------------Equation 6--------------------
-        //temporal componet
-
-        //from the Rapport de Chercher: https://hal.inria.fr/inria-00355827v4/document
-        //Also available in the doc directory of this project: doc/yu2009SPTA.pdf
-
-        //Temporal weights Finally we fade particles in and out at their creation and destruction,
-        //using two weights Fin(t) and Fout(t). The fading period τ can be long (in our
-        //implementation we used τ = 5 seconds). Fout is mainly used to force the fading out
-        //of grids whose distortion would stop increasing. And if τ is longer than the particles
-        //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
-
-        //The temporal component is simply a linear fade-in at the beginning of the life of a particle and a linear fade-out
-        //after the particle has been killed.
-        //Here, we take the fading from the particle stored in a map where the indexes are the patch number.
-        float K_t = fading[patchId];
-        if (K_t < 0.0f)
-            K_t = 0.0f;
-        else if (K_t > 1.0f)
-            K_t = 1.0f;
-
         UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
 
         float s = params.UVScaling;
-
-        if (params.NumberOfTextureSampleFrame > 1)
-        {
-            //We are probably using seam carving
-            //s /= (K_t)+0.001;
-        }
 
         v0 = UT_Vector3(v0.x()-centerUV.x(),v0.y()-centerUV.y(),v0.z()-centerUV.z());
         v1 = UT_Vector3(v1.x()-centerUV.x(),v1.y()-centerUV.y(),v1.z()-centerUV.z());
@@ -238,7 +173,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         v2 = UT_Vector3(v2.x()+centerUV.x(),v2.y()+centerUV.y(),v2.z()+centerUV.z());
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
-
 
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
@@ -258,57 +192,17 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (Q_t < 0.001)
             continue;
 
-        float   Q_V = Q_t*d_V;
+        float Q_V = Q_t*d_V;
 
         //-----------------------------------------------------------------
         //getting the color from the texture exemplar
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
 
-        //--------------------------Equation 7--------------------
-        //spatial component
-
-        /*
-        The spatial component merges three factors: the quality around each grid vertex (QV , defined in section 3.3.3),
-        a fall-off with the distance to the particle (in our implementation we take it linear), and a continuity factor
-        ensuring a weight 0 on the boundary of the grid (to avoid spatial discontinuities during blending):
-
-        K_s(V) = (1- (||v||-p)/d)*d_V*Q_V
-        where d_V =0 if V ∈ grid boundary
-        1 otherwise
-        */
-
-        //Here, we use a alpha chanel with linear fading from the center to compute the fall-off
-        //Qv is an interpolation of the alpha chanel of the polygon use in the grid, for this patch.
-        //Therefore, the Quality of the vertex has been computed before and stored in the alpha chanel
-
-
-
-        // --------------------------- UV DISTANCE ---------------------
-//        float d_Puv = distance3d(positionInPolygon,centerUV);
-
-
-//        float minDUV = 0.125*params.PatchScaling;
-//        float maxDUV = 0.25*params.PatchScaling; //edge region
-
-//        //d_V =0 if V ∈ grid boundary 1 otherwise
-
-//        if (d_Puv > maxDUV)
-//            d_V = 0.0f;
-
-//        float C_s = 0.0f;
-//        if (d_Puv > minDUV && d_Puv <= maxDUV)
-//            C_s = 1-((d_Puv-minDUV)/(maxDUV-minDUV));
-//        if (d_Puv <= minDUV)
-//            C_s = 1.0f;
-
-        // ------------------------ EUCLEDIAN DISTANCE ------------------------
-
         float minD = d;
         float maxD = gridwidth; //edge region
 
         //d_V =0 if V ∈ grid boundary 1 otherwise
-
         if (d_P > maxD)
             d_V = 0.0f;
 
@@ -318,8 +212,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (d_P <= minD)
             C_s = 1.0f;
 
-        //----------------------------------------------------------------
-
         float K_s = C_s*d_V*Q_V;
 
         //K_s should be between 0 and 1
@@ -328,11 +220,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         else if (K_s > 1.0f)
             K_s = 1.0f;
 
-        //--------------------------Equation 5--------------------
-        // section 3.4.1 Vertex Weights
-        //The weight for each vertex is defined as the product of a spatial component and a temporal component
-
-        float w_v = K_s * K_t;
         if (K_s < epsilon)
             continue;
 
