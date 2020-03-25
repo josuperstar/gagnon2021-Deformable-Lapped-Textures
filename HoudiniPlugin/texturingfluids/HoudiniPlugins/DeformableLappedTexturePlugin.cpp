@@ -53,7 +53,7 @@ using namespace TexturingFluids;
 
 static PRM_Name        names[] = {
 
-    PRM_Name("StartFrame",	"Start Frame"),
+    PRM_Name("StartFrame",	"Start Frame"),//0
     PRM_Name("UpdateDistribution",	"Update Distribution"),
     PRM_Name("ComputeDistortion",	"ComputeDistortion"),
     PRM_Name("UseDeformableGrids",	"Use Deformable Grids for Atlas"),
@@ -68,7 +68,7 @@ static PRM_Name        names[] = {
     PRM_Name("DeformableGridsFilename",	"Deformable Grids Filename"),
     PRM_Name("PatchAngleNormalThreshold",	"Patch Angle Normal Threshold"),
     PRM_Name("PoissonAngleNormalThreshold",	"Poisson Angle Normal Threshold"),
-    PRM_Name("UVScaling",	"UV Scaling"),
+    PRM_Name("UVScaling",	"UV Scaling"), //15
     PRM_Name("Yu2011Beta",	"Yu2011 Beta"),
     PRM_Name("CellSize",	"Cell Size"),
     PRM_Name("UseDynamicFading",	"Use Dynamic Fading"),
@@ -78,7 +78,7 @@ static PRM_Name        names[] = {
     PRM_Name("TextureExemplarList",	"Texture Exemplar List"),
     PRM_Name("TextureExemplarMaskList",	"Texture Exemplar Mask List"),
     PRM_Name("OutputName","Output Name"),
-    PRM_Name("NumberOfFrame",	"Number of Frame"),
+    PRM_Name("NumberOfFrame",	"Number of Frame"), //25
     PRM_Name("PatchScaling",	"Patch Scaling"),
 };
 
@@ -128,7 +128,7 @@ DeformableLappedTexturePlugin::myTemplateList[] = {
     PRM_Template(PRM_STRING, 1, &names[24]),
     PRM_Template(PRM_FLT, 1, &names[25]),
     PRM_Template(PRM_INT, 1, &names[26], &NumberOfFrameDefault),
-    PRM_Template(PRM_FLT, 1, &names[27]),
+    //PRM_Template(PRM_FLT, 1, &names[27]),
 
     PRM_Template(),
 
@@ -293,7 +293,7 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
     {
         params.atlasWidth = 100;
     }
-    cout << "======================== DeformableLappedTexturePlugin 2020, frame  "<<frame<< "============================="<<endl;
+    cout << "======================== DeformableLappedTexturePlugin 2020 version {put version here}, frame  "<<frame<< "============================="<<endl;
 
 
 

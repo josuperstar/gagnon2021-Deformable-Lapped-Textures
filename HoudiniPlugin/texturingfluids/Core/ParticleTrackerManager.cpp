@@ -86,6 +86,8 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
     if (surfaceGroup == 0x0)
         return;
 
+    GA_PrimitiveGroup *surfaceGrpPrims = (GA_PrimitiveGroup *)surface->primitiveGroups().find(this->surfaceGroupName.c_str());
+
     GA_PointGroup *markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
     if (markerGrp == 0x0)
         markerGrp = trackersGdp->newPointGroup(markerGroupName.c_str());
@@ -162,6 +164,20 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
             float v = mininfo.v1;
             GEO_Primitive *prim = surface->getGEOPrimitive(primOffset);
 
+            //Check if the prim is part of the group 'Surface':
+            //
+            //cout << "Check if "<<primOffset<< " not in group "<<surfaceGrpPrims->getName()<<endl;
+            if (!surfaceGrpPrims->containsOffset(primOffset))
+            {
+                //cout << "Prim not in surface group and current spawn is "<<currentSpawn<<endl;
+                if (currentSpawn <= 1) // we just had it
+                {
+                    attLife.set(ppt,0);
+                    attActive.set(ppt,0);
+                    //cout << "no dealing with "<< ppt<< endl;
+
+                }
+            }
             GA_Offset vertexOffset0 = prim->getVertexOffset(0);
 
             GA_Offset pointOffset0  = surface->vertexPoint(vertexOffset0);

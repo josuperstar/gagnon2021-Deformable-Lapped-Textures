@@ -41,7 +41,7 @@ DeformableLappedTexture::~DeformableLappedTexture()
 void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
     PatchedSurface surface(surfaceGdp, trackersGdp);
-    cout << "[DeformableLappedTexture::Synthesis] "<<params.frame<<endl;
+    cout << "[DeformableLappedTexture::Synthesis] Version: (put version here) frame: "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
     std::clock_t start;

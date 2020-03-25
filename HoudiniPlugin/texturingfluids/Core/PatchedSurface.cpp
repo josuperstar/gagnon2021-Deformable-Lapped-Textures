@@ -166,7 +166,7 @@ void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *tracker
     std::clock_t addPoissonDisk;
     addPoissonDisk = std::clock();
 
-    cout << "[Yu2011:PoissonDiskSampling]"<<endl;
+    cout << "[PatchedSurface:PoissonDiskSampling]"<<endl;
 
     GEO_PointTreeGAOffset trackerTree;
     trackerTree.build(trackersGdp, NULL);
@@ -175,7 +175,7 @@ void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *tracker
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
 
-    cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
+    cout << "[PatchedSurface] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 }
 
