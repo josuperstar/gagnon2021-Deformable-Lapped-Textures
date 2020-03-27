@@ -81,7 +81,6 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
 
     bool usingOnlyPoissonDisk = false;
 
-
     if(params.startFrame == params.frame)
     {
         surface.PoissonDiskSampling(levelSet,trackersGdp,params);
@@ -91,27 +90,29 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     }
     else
     {
+        cout << "------------------- Advection ---------------------"<<endl;
         surface.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
-
         surface.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
+        cout << "number of patch flaged to delete "<<surface.NumberOfPatchesToDelete(trackersGdp)<<endl;
+        cout << "number of distorted patches "<<surface.numberOfDistortedPatches<<endl;
         if (params.updateDistribution)
         {
+            cout << "------------------- Sampling ---------------------"<<endl;
             surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
-            //surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         }
+        cout << "------------------- Updating Trackers ---------------------"<<endl;
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-
+        cout << "------------------- Grid Creation ---------------------"<<endl;
         surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
-
+        cout << "------------------- Delete Dead Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches(gdp, trackersGdp,params);
-
     }
     if (!usingOnlyPoissonDisk)
     {
         //For the blending computation, we create uv array per vertex that we called patch
+        cout << "------------------- Patch Creation ---------------------"<<endl;
         surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
     }
-
 
     //-------------------- texture synthesis to test concealed patches --------------------
     AtlasTestingConcealed atlas;
@@ -149,6 +150,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     {
         cout << "[AtlasAnimatedTextureInterface::Synthesis] "<< "Compute pixel using overlapping uv and alpha."<<endl;
     }
+    //atlas.SetPatchedSurface(SetPatchedSurface);
     bool atlasBuilded = atlas.BuildAtlas(params.atlasWidth,params.atlasHeight, params.fadingTau);
     if(!atlasBuilded)
     {
@@ -159,35 +161,38 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
 
     long nbOfPrimitive = surfaceGdp->getNumPrimitives();
     cout << "[AtlasAnimatedTextureInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
-    TestingConcealed_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
+    TestingConcealed_executor exec(atlas,surface,params.atlasWidth,params.atlasHeight,params);
     tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
     map<int, bool> usedPatches = atlas.getUsedPatches();
     map<int, bool>::iterator itUsedPatches;
     int concealedPatches = 0;
-    for(itUsedPatches = usedPatches.begin(); itUsedPatches != usedPatches.end(); itUsedPatches++)
-    {
-        if (!itUsedPatches->second)
-        {
-            //cout << "Patch "<< itUsedPatches->first << " is not used"<<endl;
-            concealedPatches++;
-        }
-    }
-    cout << "We have "<< concealedPatches << " concealed patches."<<endl;
+//    for(itUsedPatches = usedPatches.begin(); itUsedPatches != usedPatches.end(); itUsedPatches++)
+//    {
+//        if (!itUsedPatches->second)
+//        {
+//            int activePatch = attActive.get(itUsedPatches->first);
+//            if (activePatch == 1)
+//                concealedPatches++;
+//        }
+//    }
+
     {
         GA_Offset ppt;
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
             int id = attId.get(ppt);
-            if (!usedPatches[id])
+            int active = attActive.get(ppt);
+            if (!usedPatches[id] && active == 1)
             {
-                if (id == 1388)
-                    cout << "Patch is not used !!!"<<endl;
+                //if (id == 1388)
+                //    cout << "Patch is not used !!!"<<endl;
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
+                concealedPatches++;
             }
         }
     }
-
+    cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
     //atlas.~AtlasTestingConcealed();
     atlas.CleanRayMemory(gdp);
     //-------------------------------------------------------------------------------------
@@ -197,7 +202,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     //=======================================================================
 
     cout << surface.approachName<<" Done"<<endl;
-    cout << "Clear surface tree"<<endl;
+    //cout << "Clear surface tree"<<endl;
     surfaceTree.clear();
     ray.clear();
 
@@ -212,14 +217,38 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     //================================================================
     std::clock_t cleaningStart;
     cleaningStart = std::clock();
-    cout<< "Clear, Destroy and merge"<<endl;
+    //cout<< "Clear, Destroy and merge"<<endl;
     gdp->clearAndDestroy();
     gdp->copy(*surfaceGdp);
 
     int nbPatches = surface.GetNumberOfPatches();
 
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
-    cout << "--------------------------------------------------------------------------------"<<endl;
+
+    surface.numberOfPatches -= concealedPatches;
+
+    int sumOfPatches = surface.numberOfInitialPatches;
+    sumOfPatches -= surface.numberOfInitialPatchFlagToDelete;
+    sumOfPatches += surface.numberOfNewPatches;
+    sumOfPatches -= surface.numberOfDetachedPatches;
+    sumOfPatches -= surface.numberOfNewAndLonelyTracker;
+    sumOfPatches -= surface.numberOfLonelyTracker;
+    sumOfPatches -= concealedPatches;
+
+    cout << "---------------------------------- Patches  ----------------------------------------------"<<endl;
+    cout << surface.approachName<<" Initial number of patches   \t"<<surface.numberOfInitialPatches<<endl;
+    cout << surface.approachName<<" Initial flaged to delete    \t"<<surface.numberOfInitialPatchFlagToDelete<<endl;
+    cout << surface.approachName<<" New And Lonely              \t"<<surface.numberOfNewAndLonelyTracker<<endl;
+    cout << surface.approachName<<" New patches                 \t"<<surface.numberOfNewPatches<<endl;
+    cout << surface.approachName<<" Detached patches            \t"<<surface.numberOfDetachedPatches<<endl;
+    cout << surface.approachName<<" Patch with no primitives    \t"<<surface.numberOfLonelyTracker<<endl;
+    cout << surface.approachName<<" Concealed patches           \t"<<concealedPatches<<endl;
+
+    cout << surface.approachName<<" Total Number of patches     \t"<<surface.numberOfPatches<<endl;
+    cout << " equals to "<<sumOfPatches<<endl;
+
+    cout << "---------------------------------- Computation Time ----------------------------------------------"<<endl;
+
     cout << surface.approachName<<" Poisson Disk Sampling "<<surface.poissondisk<<endl;
     cout << surface.approachName<<" Grid mesh on time "<<surface.gridMeshCreation<<endl;
     cout << surface.approachName<<" Uv flattening time "<<surface.uvFlatteningTime<<" for "<<surface.nbOfFlattenedPatch<<" patches"<<endl;

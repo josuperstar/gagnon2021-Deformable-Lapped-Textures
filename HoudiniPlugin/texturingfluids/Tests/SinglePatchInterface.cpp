@@ -80,7 +80,9 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     if(params.startFrame == params.frame)
     {
         cout << "Creating a single poisson disk"<<endl;
-        strategy.CreateAPatch(trackersGdp, params);
+        UT_Vector3 position(0,0,0);
+        UT_Vector3 normal(0,1,0);
+        strategy.CreateAPatch(trackersGdp,position, normal, params);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)

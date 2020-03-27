@@ -8,7 +8,7 @@
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 #include "Core/Deformations/ParametersDeformablePatches.h"
-
+#include <Core/PatchedSurface.h>
 
 namespace TexturingFluids {
 
@@ -33,7 +33,7 @@ public:
    void SetDisplacementMap1(string data){displacementMapImageName = data;}
    void RenderColoredPatches(bool data) {renderColoredPatches = data;}
 
-   void RasterizePrimitive(GA_Offset primOffset, int w,int h, ParametersDeformablePatches params);
+   void RasterizePrimitive(GA_Offset primOffset, int w,int h, PatchedSurface &patchedSurface, ParametersDeformablePatches params);
    void RasterizePrimitiveYu2011BlendingFunction(GA_Offset primOffset, int w,int h,ParametersDeformablePatches params);
 
    void SaveAtlas();
@@ -97,6 +97,8 @@ private:
    GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
    const GA_GroupTable *pointGroupTable;
    const GA_GroupTable *primGroupTable;
+   const string surfaceGroupName = "surface";
+   GA_PointGroup *surfaceGroup;
 
    map<string,GU_RayIntersect*> rays;
    map<string,GU_Detail*> details;

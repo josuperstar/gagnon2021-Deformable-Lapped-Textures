@@ -72,6 +72,7 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
     //give more weight to the first patch and decrease afterward
 
     int k = sortedPatches.size();
+    int numberOfHit = 0;
     int nbPatches = k;
     vector<int>::iterator itPatch;
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
@@ -251,12 +252,15 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
 
         //cout << "Using this one !!"<<endl;
         usePatches[patchId] = true;
-
+        numberOfHit++;
         if (K_s == 1)
             break;
 
     }
     //========================= END SUM ==================================
+
+    if (numberOfHit == 0)
+        Cf.A == 0;
 
     return Cf;
 }

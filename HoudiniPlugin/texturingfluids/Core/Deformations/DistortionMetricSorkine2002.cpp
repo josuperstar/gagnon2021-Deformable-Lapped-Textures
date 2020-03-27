@@ -1,7 +1,7 @@
 #include "DistortionMetricSorkine2002.h"
 #include <algorithm>    // std::max
 
-void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, GA_Offset trackerPpt,GA_PointGroup* pointGrp,GA_PrimitiveGroup *primGroup, ParametersDistortion params)
+bool DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, GA_Offset trackerPpt,GA_PointGroup* pointGrp,GA_PrimitiveGroup *primGroup, ParametersDistortion params)
 {
     //cout << "DISTORTION : Yu2011 Distortion using homogeneous removal blending"<<endl;
     //Sorkine 2002 distortion metric: https://igl.ethz.ch/projects/parameterization/BDPMP/sorkine02.pdf
@@ -179,6 +179,8 @@ void DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
         if (attActive.get(trackerPpt) == 1)
         {
             attActive.set(trackerPpt,0);
+            return true;
         }
     }
+    return false;
 }

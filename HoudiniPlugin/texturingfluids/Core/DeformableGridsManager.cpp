@@ -30,7 +30,7 @@
 
 DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)  : ParticleTrackerManager(surfaceGdp, trackersGdp)
 {
-    this->numberOfPatches = 0;
+
     this->maxId = 0;
     this->gridCenterPosition.clear();
 
@@ -41,9 +41,6 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
 
     this->nbOfFlattenedPatch = 0;
 
-    this->numberOfConcealedPatches = 0;
-    this->numberOfNewPatches = 0;
-    this->numberOfDetachedPatches = 0;
 
 }
 
@@ -565,6 +562,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     }
 
     this->FlagBoundaries(deformableGridsGdp);
+
 }
 
 //================================================================================================
@@ -675,7 +673,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         active = attActive.get(trackerPpt);
         float randT = attRandT.get(trackerPpt);
         distortionParams.randT = randT;
-
+        int spawn = attSpawn.get(trackerPpt);
         life = attLife.get(trackerPpt);
         float gridAlpha = (float)life/(float)params.fadingTau;
         UT_Vector3 trackerPosition = trackersGdp->getPos3(trackerPpt);
@@ -711,9 +709,9 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                         //check if it is a lonely point
                         GA_OffsetArray primitivesList;
                         GA_Size numberOfPrimitives = deformableGridsgdp->getPrimitivesReferencingPoint(primitivesList,ppt);
-                        if (numberOfPrimitives == 0)
+                        if (numberOfPrimitives == 0 && life > 1)
                         {
-
+                            //cout << "Tracker with no primivites"<<endl;
                             continue;
                         }
                         v = attVDeformable.get(ppt);
@@ -811,7 +809,9 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                                 attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
                                 grpToDestroy->addOffset(ppt);
-                                attActive.set(trackerPpt,0);
+                                //attActive.set(trackerPpt,0);
+                                //attLife.set(trackerPpt,0);
+                                //this->numberOfDetachedPatches++;
                             }
                         }
                         //---------------------- Dynamic Tau -----------------------------------
@@ -850,7 +850,9 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                 {
                     //cout << "Point "<<id<< " is active"<<endl;
                     DistortionMetricSorkine2002 distortionComputer;
-                    distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
+                    bool distorted = distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
+                    if (distorted)
+                        this->numberOfDistortedPatches++;
                 }
             }
         }
@@ -858,7 +860,15 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         if (nbOfPoint == 0)
         {
             //No point in the patch, we need to delete the tracker.
+            //this->numberOfLonelyTracker++;
+            if (spawn <= 1)
+                this->numberOfNewAndLonelyTracker++;
+            else
+                this->numberOfLonelyTracker++;
             attLife.set(trackerPpt,0);
+
+            attActive.set(trackerPpt,0);
+
             continue;
         }
         averageDeltaOnD = averageDeltaOnD/(float)nbOfPoint;
@@ -897,7 +907,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     }
     deformableGridsgdp->deletePoints(*grpToDestroy,mode);
     this->FlagBoundaries(deformableGridsgdp);
-
+    cout << "Number of lonely patches: "<<this->numberOfLonelyTracker<<endl;
     cout << "Ok"<<endl;
 
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;

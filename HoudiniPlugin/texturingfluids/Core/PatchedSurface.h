@@ -23,12 +23,12 @@ public:
     void DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
 
     //for test purpose
-    void CreateAPatch(GU_Detail *trackers, ParametersDeformablePatches params);
+    void CreateAPatch(GU_Detail *trackers, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params);
 
     double poissondisk;
     double  patchCreationTime;
     double  updatePatchesTime;
-    const string approachName   = "[Yu 2011 extention]";
+    const string approachName   = "[Patched Surface]";
 
 private :
 

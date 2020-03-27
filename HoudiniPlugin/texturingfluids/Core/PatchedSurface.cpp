@@ -31,7 +31,8 @@
 
 PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsManager(surface, trackersGdp)
 {
-    this->numberOfPatches = 0;
+    //this->numberOfPatches = 0;
+
     this->maxId = 0;
     this->gridCenterPosition.clear();
 
@@ -138,9 +139,7 @@ PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : Def
     this->patchCreationTime = 0;
     this->nbOfFlattenedPatch = 0;
     this->updatePatchesTime = 0;
-    this->numberOfConcealedPatches = 0;
-    this->numberOfNewPatches = 0;
-    this->numberOfDetachedPatches = 0;
+
 }
 
 PatchedSurface::~PatchedSurface()
@@ -163,23 +162,26 @@ void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *tracker
     //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
     //It basically take the points from Houdini and fill it to the approach.
 
+
     std::clock_t addPoissonDisk;
     addPoissonDisk = std::clock();
 
-    cout << "[PatchedSurface:PoissonDiskSampling]"<<endl;
 
     GEO_PointTreeGAOffset trackerTree;
     trackerTree.build(trackersGdp, NULL);
-
+    int numberOfInitialTrackers = this->numberOfPatches;
+    cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
-
-    cout << "[PatchedSurface] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
+    this->numberOfNewPatches = poissonDiskDistribution.numberOfNewPoints;
+    cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
+    cout << this->approachName<<" Total :"<<trackersGdp->getNumPoints()<<endl;
+
 }
 
-void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformablePatches params)
+void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params)
 {
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
     //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
@@ -195,9 +197,10 @@ void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp,  ParametersDeformableP
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     int numberOfClosePoint = 0;
-    poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, UT_Vector3(0,0,0),UT_Vector3(0,1,0),1,numberOfClosePoint,params);
+    poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, position,normal,1,numberOfClosePoint,params);
 
-    cout << "[Yu2011] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
+    cout << this->approachName<<" poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
+    //this->numberOfPatches = trackersGdp->getNumPoints();
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
 
@@ -215,7 +218,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
-    cout << "[AddPatchesUsingBarycentricCoordinates]" << endl;
+    cout << this->approachName<<"[AddPatchesUsingBarycentricCoordinates]" << endl;
 
     std::clock_t addPatchesStart;
     addPatchesStart = std::clock();
@@ -243,7 +246,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
 
     if (attLife.isInvalid())
     {
-        cout << "particles have no life"<<endl;
+        cout << this->approachName<<"particles have no life"<<endl;
         return;
     }
 
@@ -366,7 +369,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
             patchNumber = attId.get(ppt);
             if (patchTreated.count(patchNumber) > 0)
             {
-                cout << "We already treated patch "<< patchNumber << endl;
+                cout << this->approachName<<"We already treated patch "<< patchNumber << endl;
                 return;
             }
             patchTreated.insert(patchNumber);
@@ -412,7 +415,7 @@ void PatchedSurface::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *
 
 void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
-    cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
+//    cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
     std::clock_t startUpdatePatches;
     startUpdatePatches = std::clock();
 
@@ -429,7 +432,9 @@ void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp,
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
 
     GA_Offset ppt;
-    int beforeAddingNumber = numberOfPatches;
+    int beforeAddingNumber = this->numberOfPatches;
+    this->numberOfPatches = 0;
+    int deletedPatches = 0;
 
     GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");
     GA_GroupType groupType = GA_GROUP_POINT;
@@ -448,8 +453,8 @@ void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp,
             {
                 //cout << "Deleting deformable grid "<<id<<" mature "<<attIsMature.get(ppt)<<endl;
                 toDelete.insert(id);
-                numberOfPatches--;
-                numberOfConcealedPatches++;
+                //numberOfPatches--;
+                //numberOfConcealedPatches++;
 
                 string str = std::to_string(id);
                 string groupName = "grid"+str;
@@ -468,6 +473,11 @@ void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp,
                     //cout << "delete point group "<<groupName<<endl;
                     gdp->destroyPrimitiveGroup(primGroup);
                 }
+                deletedPatches++;
+            }
+            else
+            {
+                this->numberOfPatches++;
             }
         }
     }
@@ -486,8 +496,8 @@ void PatchedSurface::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp,
     trackersGdp->deletePoints(*grpToDestroy,mode);
     trackersGdp->destroyPointGroup(grpToDestroy);
 
-    cout <<this->approachName<< " Added "<<(numberOfPatches-beforeAddingNumber) <<" new patches"<<endl;
-    cout <<this->approachName<< " Removed "<<(numberOfConcealedPatches)<<" patches "<<endl;
+    //cout <<this->approachName<< " Added "<<(numberOfPatches-beforeAddingNumber) <<" new patches"<<endl;
+    cout <<this->approachName<< " Removed "<<(deletedPatches)<<" dead patches "<<endl;
     this->updatePatchesTime += (std::clock() - startUpdatePatches) / (double) CLOCKS_PER_SEC;
     cout << this->approachName<<" TOTAL "<<numberOfPatches<< " patches"<<endl;
 }

@@ -45,6 +45,7 @@ public:
     void CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N);
     bool CreateAParticle(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
     void SetMaxId(long data){maxId = data;}
+    int numberOfNewPoints;
 
 private:
 

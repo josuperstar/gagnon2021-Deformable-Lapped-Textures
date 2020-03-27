@@ -38,6 +38,7 @@ ParticleAndTrackerManagerGagnon2016::ParticleAndTrackerManagerGagnon2016(GU_Deta
     this->numberOfConcealedPatches = 0;
     this->numberOfNewPatches = 0;
     this->numberOfDetachedPatches = 0;
+    this->numberOfLonelyTracker = 0;
 
     this->attN =  GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     this->attCenterUV =  GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));

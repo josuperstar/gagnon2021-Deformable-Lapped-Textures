@@ -68,6 +68,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
     GA_RWHandleI    isTangeantTracker(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
 
+    this->numberOfNewPoints = 0;
 
     // Find first vdb primitive of input 0
     GEO_Primitive* prim;
@@ -84,9 +85,9 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         return;
     }
 
-    cout << "Grid name: " << phi->getGridName() << std::endl;
-    cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
-    cout << "JSON: " << phi->getJSON() << std::endl;
+//    cout << "Grid name: " << phi->getGridName() << std::endl;
+//    cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
+//    cout << "JSON: " << phi->getJSON() << std::endl;
 
     float a = 0.25; //promote this variable to the user interface
     this->poissonDiskRadius = diskRadius;
@@ -127,9 +128,9 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
     t = 30;
 
-    cout << "Grid name: " << phi->getGridName() << std::endl;
-    cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
-    cout << "JSON: " << phi->getJSON() << std::endl;
+//    cout << "Grid name: " << phi->getGridName() << std::endl;
+//    cout << "Storage type: " << phi->getStorageType() << ", " << phi->getTupleSize() << std::endl;
+//    cout << "JSON: " << phi->getJSON() << std::endl;
 
     openvdb::GridBase::Ptr ptr = phi->getGridPtr();
     openvdb::FloatGrid::Ptr gridSurface = openvdb::gridPtrCast<openvdb::FloatGrid>(ptr);
@@ -165,7 +166,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     //=================================================================
     int nbOfCell = 0;
 
-    cout << "[Bridson2012PoissonDiskDistribution] Step 1: for all grid cells C where φ changes sign do"<<endl;
+    //cout << "[Bridson2012PoissonDiskDistribution] Step 1: for all grid cells C where φ changes sign do"<<endl;
     for (openvdb::FloatGrid::ValueOnCIter gridCellIt = gridSurface->cbeginValueOn(); gridCellIt; ++gridCellIt)
     {
         float x = gridCellIt.getCoord().x();
@@ -250,7 +251,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         }
         nbOfCell++;
     }
-    cout << nbOfCell << " cells have been treated."<<endl;
+    //cout << nbOfCell << " cells have been treated."<<endl;
     return;
 }
 
@@ -357,6 +358,8 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
         attExistingLife.set(newPoint,params.fadingTau);
     }
     tree.build(trackersGdp);
+
+    this->numberOfNewPoints++;
 
     return true;
 }

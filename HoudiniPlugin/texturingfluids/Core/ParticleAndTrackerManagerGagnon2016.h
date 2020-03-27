@@ -41,6 +41,7 @@ protected :
     int numberOfConcealedPatches;
     int numberOfNewPatches;
     int numberOfDetachedPatches;
+    int numberOfLonelyTracker;
     int maxId = 0;
     const char*    randomThresholdDistortion = "t_rand";
     float epsilon = 0.0001;

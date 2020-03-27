@@ -20,7 +20,7 @@ class DistortionMetricSorkine2002
 
 public:
 
-   void ComputeDistortion(GU_Detail *trackers, GU_Detail *gridGdp, GA_Offset trackerPpt, GA_PointGroup* pointGrp, GA_PrimitiveGroup *primGroup, ParametersDistortion params);
+   bool ComputeDistortion(GU_Detail *trackers, GU_Detail *gridGdp, GA_Offset trackerPpt, GA_PointGroup* pointGrp, GA_PrimitiveGroup *primGroup, ParametersDistortion params);
 
 };
 }

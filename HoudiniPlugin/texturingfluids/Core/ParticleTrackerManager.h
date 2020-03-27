@@ -26,20 +26,29 @@ public:
 
     int GetNumberOfPatches(){return numberOfPatches;}
 
+    int NumberOfPatchesToDelete(GU_Detail *trackersGdp);
+
     const string markerGroupName = "markers";
     const string surfaceGroupName = "surface";
     const string approachName   = "[Particle Tracker]";
 
     double  markerAdvectionTime;
 
+    int numberOfPatches;
+    int numberOfInitialPatchFlagToDelete;
+    int numberOfConcealedPatches;
+    int numberOfNewPatches;
+    int numberOfDetachedPatches;
+    int numberOfLonelyTracker;
+    int numberOfNewAndLonelyTracker;
+    int numberOfInitialPatches;
+    int numberOfDistortedPatches;
+
 
 protected :
 
     bool tackerPolygon = false;
-    int numberOfPatches;
-    int numberOfConcealedPatches;
-    int numberOfNewPatches;
-    int numberOfDetachedPatches;
+
     int maxId = 0;
     const char*    randomThresholdDistortion = "t_rand";
     float epsilon = 0.0001;

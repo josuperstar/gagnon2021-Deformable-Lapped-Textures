@@ -32,12 +32,17 @@
 
 ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)
 {
-    this->numberOfPatches = 0;
+    //this->numberOfPatches = 0;
     this->maxId = 0;
     this->markerAdvectionTime = 0;
     this->numberOfConcealedPatches = 0;
     this->numberOfNewPatches = 0;
     this->numberOfDetachedPatches = 0;
+    this->numberOfLonelyTracker = 0;
+    this->numberOfNewAndLonelyTracker = 0;
+    this->numberOfDistortedPatches = 0;
+
+    this->numberOfInitialPatchFlagToDelete = 0;
 
     this->attN =  GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     this->attCenterUV =  GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
@@ -68,6 +73,48 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
     this->attDivergence = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"divergence",1));
 
 
+    this->numberOfInitialPatches = 0;
+
+    GA_Offset ppt;
+    GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+    {
+        int active = attActive.get(ppt);
+        float currentLife = attLife.get(ppt);
+
+        //Dead patches are not updated
+        if (currentLife <= 0 && active == 0)
+        {
+            this->numberOfInitialPatchFlagToDelete++;
+            continue;
+        }
+        this->numberOfInitialPatches++;
+    }
+    cout <<this->approachName<< " Initialization with "<<this->numberOfInitialPatches<<" and "<<this->numberOfInitialPatchFlagToDelete << " flaged to delete"<<endl;
+    this->numberOfPatches = this->numberOfInitialPatches;
+}
+
+
+int ParticleTrackerManager::NumberOfPatchesToDelete(GU_Detail *trackersGdp)
+{
+    int toDelete = 0;
+    {
+
+        GA_Offset ppt;
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+        {
+            int active = attActive.get(ppt);
+            float currentLife = attLife.get(ppt);
+
+            //Dead patches are not updated
+            if (currentLife <= 0 && active == 0)
+            {
+                toDelete++;
+                continue;
+            }
+        }
+        //cout << "Number Of Patch to delete:"<<toDelete<<endl;
+    }
+    return toDelete;
 }
 
 //================================================================================================
@@ -81,7 +128,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
 {
 
     bool useDynamicTau = params.useDynamicTau;
-    cout << "[ParticleTracker] CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau;
+    cout <<this->approachName<< " CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau <<endl;
 
     if (surfaceGroup == 0x0)
         return;
@@ -129,6 +176,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         //Dead patches are not updated
         if (currentLife <= 0 && active == 0)
         {
+
             deletedTrackers++;
             continue;
         }
@@ -141,6 +189,9 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         if (!mininfo.prim)
         {
             //cout << "No primitive to project on"<<endl;
+            attLife.set(ppt,0);
+            attActive.set(ppt,0);
+            this->numberOfDetachedPatches++;
             continue;
         }
 
@@ -149,6 +200,9 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         if (vertexCount != 3)
         {
             //cout << "vertex count "<<vertexCount<<" for primitive "<<geoPrim->getMapOffset()<<endl;
+            attLife.set(ppt,0);
+            attActive.set(ppt,0);
+            this->numberOfDetachedPatches++;
             continue;
         }
         //get pos of hit
@@ -175,7 +229,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
                     attLife.set(ppt,0);
                     attActive.set(ppt,0);
                     //cout << "no dealing with "<< ppt<< endl;
-
+                    //this->numberOfNewAndLonelyTracker++;
                 }
             }
             GA_Offset vertexOffset0 = prim->getVertexOffset(0);
@@ -202,6 +256,8 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
             //can't project, we delete
             attLife.set(ppt,0);
             attActive.set(ppt,0);
+            this->numberOfDetachedPatches++;
+
         }
 
 
@@ -300,8 +356,11 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
 
         //numberOfPatches++;
     }
-    cout << "[ParticleTrackerManager] Deleted trackers: "<<deletedTrackers<<endl;
-    cout <<" DONE"<<endl;
+
+    cout <<this->approachName<< " Deleted trackers: "<<deletedTrackers<<endl;
+    cout <<this->approachName<< " New And Lonely Tracker "<<numberOfNewAndLonelyTracker<<endl;
+    cout <<this->approachName<< " Total trackers: "<<trackersGdp->getNumPoints() - deletedTrackers - numberOfNewAndLonelyTracker<<endl;
+    //cout <<" DONE"<<endl;
 }
 
 //================================================================================================
@@ -315,7 +374,7 @@ void ParticleTrackerManager::UpdateTrackersAndTangeant(GU_Detail *surface, GU_De
 {
 
     bool useDynamicTau = params.useDynamicTau;
-    cout << "[ParticleTracker] CreateAndUpdateTrackersAndTangeantsBasedOnPoissonDisk";
+    cout <<this->approachName<< " CreateAndUpdateTrackersAndTangeantsBasedOnPoissonDisk";
 
     if (surfaceGroup == 0x0)
         return;
@@ -418,6 +477,7 @@ void ParticleTrackerManager::UpdateTrackersAndTangeant(GU_Detail *surface, GU_De
             //can't project, we delete
             attLife.set(ppt,0);
             attActive.set(ppt,0);
+            this->numberOfDetachedPatches++;
         }
 
 
@@ -527,7 +587,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 
     GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
-    numberOfPatches = 0;
+    //numberOfPatches = 0;
     maxId = 0;
 
     if (attV.isInvalid())
@@ -547,6 +607,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
     UT_Vector3 p1;
     float dt = 1.0f/24.0f;
     float thresholdDistance = params.maximumProjectionDistance;
+    int numberOfPatchBefore = this->numberOfPatches;
     //--------------------------------------------------
     {
         GU_MinInfo mininfo;
@@ -648,7 +709,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 
                 attN.set(ppt,N);
                 //------------------------------------------------------------------------------------
-                numberOfPatches++;
+                //numberOfPatches++;
             }
             else
             {
@@ -660,7 +721,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
 
-                numberOfPatches--;
+                //numberOfPatches--;
                 numberOfDetachedPatches++;
 
                 trackersGdp->setPos3(ppt,p1);
@@ -669,8 +730,9 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
         }
     }
 
+
     //----------------------------------
-    cout << this->approachName<< " There are "<<trackersGdp->getNumPoints() << " trackers after advection"<<endl;
+    cout << this->approachName<< " There are "<<numberOfPatchBefore << " trackers after advection"<<endl;
     cout << this->approachName<< " There are "<<numberOfDetachedPatches<< " detached trackers"<<endl;
     cout << this->approachName<< " There are "<<numberOfPatches << " number of patches"<<endl;
 
@@ -694,7 +756,7 @@ void ParticleTrackerManager::AdvectTrackersAndTangeants(GU_Detail *surfaceGdp, G
 
     GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
-    numberOfPatches = 0;
+    //numberOfPatches = 0;
     maxId = 0;
 
     if (attV.isInvalid())
@@ -808,7 +870,7 @@ void ParticleTrackerManager::AdvectTrackersAndTangeants(GU_Detail *surfaceGdp, G
 
                 attN.set(ppt,N);
                 //------------------------------------------------------------------------------------
-                numberOfPatches++;
+                //numberOfPatches++;
             }
             else
             {
@@ -820,7 +882,7 @@ void ParticleTrackerManager::AdvectTrackersAndTangeants(GU_Detail *surfaceGdp, G
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
 
-                numberOfPatches--;
+                //numberOfPatches--;
                 numberOfDetachedPatches++;
 
                 trackersGdp->setPos3(ppt,p1);

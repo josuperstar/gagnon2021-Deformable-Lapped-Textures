@@ -5,6 +5,8 @@
 #include "BlendingTestingConcealed.h"
 #include "../HoudiniUtils.h"
 
+#include <Core/PatchedSurface.h>
+
 #include <iostream>
 #include <iomanip>
 
@@ -54,9 +56,12 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
     if (surface == 0x0 || (deformableGrids == 0x0 && useDeformableGrids) || trackers == 0x0)
         return false;
 
+
+    surfaceGroup = (GA_PointGroup *)surface->pointGroups().find(surfaceGroupName.c_str());
+
     cout << "[AtlasTestingConcealed::BuildAtlas]("<<w<<","<< h <<")"<<endl;
 
-    cout << "[AtlasTestingConcealed::BuildAtlas] setting varialbes"<<endl;
+    //cout << "[AtlasTestingConcealed::BuildAtlas] setting varialbes"<<endl;
     //-------------------------------------------------------
     UT_String patchname("patchIds");
     patchIds = surface->findIntArray(GA_ATTRIB_POINT,patchname,-1, -1);
@@ -80,7 +85,7 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
     attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
     pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
     primGroupTable = deformableGrids->getGroupTable(primGroupType);
-    cout << "[AtlasTestingConcealed::BuildAtlas] Atlas uses deformable grids"<<endl;
+    //cout << "[AtlasTestingConcealed::BuildAtlas] Atlas uses deformable grids"<<endl;
 
     attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
     if (attUV.isInvalid())
@@ -108,7 +113,7 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
     std::size_t found = textureExemplar1Name.find("$F");
     if (found !=std::string::npos)
     {
-        cout << "texture example is a list"<<endl;
+        //cout << "texture example is a list"<<endl;
         // Here we need to replace $F with the sequence of texture exemplar between 1 and NumberOfTextureSampleFrame
         for (int i = 0; i < this->numberOfTextureSampleFrame; i++)
         {
@@ -123,7 +128,7 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
             string noPaddedNumber = std::to_string(i+1);
 
             currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
-            cout << "[AtlasTestingConcealed::BuildAtlas] Opening "<<currentName<<endl;
+            //cout << "[AtlasTestingConcealed::BuildAtlas] Opening "<<currentName<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
             {
@@ -135,7 +140,7 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
     }
     else
     {
-        cout << "[AtlasTestingConcealed::BuildAtlas] Opening single texture examplar "<<textureExemplar1Name<<endl;
+        //cout << "[AtlasTestingConcealed::BuildAtlas] Opening single texture examplar "<<textureExemplar1Name<<endl;
         ImageCV *image = new ImageCV();
         textureExemplars.push_back(image);
         bool opened = textureExemplars[0]->OpenImage(textureExemplar1Name,-1);
@@ -147,9 +152,9 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
     }
 
     RM = textureExemplars[0]->MeanValue();
-    cout << "RM = ";
-    RM.Print();
-    cout<<endl;
+    //cout << "RM = ";
+    //RM.Print();
+   // cout<<endl;
 
     if(useCopyGUDetail)
     {
@@ -160,7 +165,7 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
         GA_PrimitiveGroup *primGroup;
         vector<string> groupNames;
 
-        cout << "[AtlasTestingConcealed::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
+        //cout << "[AtlasTestingConcealed::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
         GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
         {
             //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
@@ -187,7 +192,7 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleV3   attN(trackers->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_Offset ppt;
-    cout << "[AtlasTestingConcealed::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
+    //cout << "[AtlasTestingConcealed::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
     GA_FOR_ALL_PTOFF(trackers,ppt)
     {
         float blend = attBlend.get(ppt);
@@ -280,11 +285,14 @@ void AtlasTestingConcealed::CreateListGUDetails()
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int h,ParametersDeformablePatches params)
+void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int h, PatchedSurface &patchedSurface, ParametersDeformablePatches params)
 {
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
         return;
+
+    GEO_Primitive *geoPrim = surface->getGEOPrimitive(primOffset);
+    UT_Vector3 N = geoPrim->computeNormal();
 
     //get triangle vertex position in UV space
     GA_Size vertexCount = prim->getVertexCount();
@@ -445,7 +453,27 @@ void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int 
                                           temporalComponetKt,
                                           textureExemplars,
                                           params);
+                if (R_eq4.A == 0)
+                {
+                    //Need another patch
+                    UT_Vector3 pixelPositionOnSurface;
+                    UT_Vector3 positionOnSurface = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],surfacePosition[0],surfacePosition[1],surfacePosition[2],pixelPositionOnSurface);
 
+                    //1- Add particle
+                    //Here, we should have a patch id as the result
+                    cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
+                    //patchedSurface.CreateAPatch(trackers, positionOnSurface, N, params);
+                    //patchedSurface.CreateAndUpdateTrackersBasedOnPoissonDisk(surface, trackers, surfaceGroup, params);
+
+                    //2 - Add Deformable Grid
+                    // we should create the grid based on the patch id
+                    //patchedSurface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+
+                    //3 - Add patch on surface
+                    // we should create the patch based on the patch id and the associated grid
+                    //patchedSurface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
+
+                }
                 if (inTriangle)
                     this->pixelUsed[pixelPositionX][pixelPositionY] = true;
             }
