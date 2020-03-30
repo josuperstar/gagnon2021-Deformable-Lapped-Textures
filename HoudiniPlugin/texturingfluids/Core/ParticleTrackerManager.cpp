@@ -230,6 +230,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
                     attActive.set(ppt,0);
                     //cout << "no dealing with "<< ppt<< endl;
                     //this->numberOfNewAndLonelyTracker++;
+                    continue;
                 }
             }
             GA_Offset vertexOffset0 = prim->getVertexOffset(0);
@@ -257,7 +258,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
             attLife.set(ppt,0);
             attActive.set(ppt,0);
             this->numberOfDetachedPatches++;
-
+            continue;
         }
 
 
@@ -271,16 +272,21 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         int density = attDensity.get(ppt);
         //-------------- deleting faster logic ------------------
         //Can we move this to the ParticleTracker update ?
-        int deleteFaster = attDeleteFaster.get(ppt);
-        int numberOfNeighbourThreshold = 1; // TODO: promote this variable
-        if (density > numberOfNeighbourThreshold && deleteFaster == 0)
+        int deleteFaster = 0;
+        if (params.fadingIn == 0)
         {
-            attDeleteFaster.set(ppt, 1);
+            int deleteFaster = attDeleteFaster.get(ppt);
+            int numberOfNeighbourThreshold = 1; // TODO: promote this variable
+            if (density > numberOfNeighbourThreshold && deleteFaster == 0)
+            {
+                attDeleteFaster.set(ppt, 1);
+            }
+            else if(deleteFaster == 1 && density <= numberOfNeighbourThreshold)
+            {
+                attDeleteFaster.set(ppt, 0);
+            }
         }
-        else if(deleteFaster == 1 && density <= numberOfNeighbourThreshold)
-        {
-            attDeleteFaster.set(ppt, 0);
-        }
+
         //-------------------------------------------------------
 
         int increment = density;
@@ -580,7 +586,7 @@ void ParticleTrackerManager::UpdateTrackersAndTangeant(GU_Detail *surface, GU_De
 
 void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
-    cout <<this->approachName<< " Advect Markers"<<endl;
+    cout <<this->approachName<< " Advect Single Trackers"<<endl;
 
     std::clock_t startAdvection;
     startAdvection = std::clock();
@@ -592,7 +598,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 
     if (attV.isInvalid())
     {
-        cout << "Markers have no velocity";
+        cout << "Trackers have no velocity";
         return;
     }
 

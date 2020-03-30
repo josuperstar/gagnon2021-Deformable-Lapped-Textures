@@ -285,7 +285,7 @@ void AtlasTestingConcealed::CreateListGUDetails()
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int h, PatchedSurface &patchedSurface, ParametersDeformablePatches params)
+void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int h,  ParametersDeformablePatches params)
 {
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)

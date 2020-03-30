@@ -40,6 +40,7 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
     this->markerAdvectionTime = 0;
 
     this->nbOfFlattenedPatch = 0;
+    this->numberOfDegeneratedGrid = 0;
 
 
 }
@@ -82,6 +83,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
     */
     GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI    attTrackerActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
     GA_RWHandleF    attNumberOfPrimitives(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives",1));
 
 
@@ -144,6 +146,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     //GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
+        bool toDelete = false;
         id = attId.get(ppt);
         int spawn = attSpawn.get(ppt);
 
@@ -466,7 +469,10 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
             primGroup->addOffset(prim_poly_ptr->getMapOffset());
         }
 
-        attNumberOfPrimitives.set(ppt,primList.size());
+        int numberOfPrimitives = primList.size();
+        attNumberOfPrimitives.set(ppt,numberOfPrimitives);
+        if (numberOfPrimitives == 0)
+            toDelete = true;
 
         this->gridMeshCreation += (std::clock() - startMeshCreation) / (double) CLOCKS_PER_SEC;
 
@@ -476,6 +482,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
             {
                 cout << " not ok"<<endl;
             }
+            toDelete = true;
             continue;
         }
         GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
@@ -486,7 +493,11 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
         if (flattening)
         {
             //cout << "UV Flattening"<<endl;
-            this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling, params );
+            bool flattened = this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling, params );
+            if (!flattened)
+            {
+                toDelete = true;
+            }
         }
 
         //--------------------------------------------------
@@ -551,18 +562,21 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
             deformableGridsGdp->deletePoints(*pointGroup,mode);
             deformableGridsGdp->destroyPointGroup(pointGroup);
             deformableGridsGdp->destroyPrimitiveGroup(primGroup);
-            attTrackerLife.set(ppt,0);
-            attActive.set(ppt,0);
+            toDelete = true;
             //DeleteTracker(trackersGdp,id);
         }
         if (params.testPatch == 1 && params.patchNumber == id)
         {
             cout << " ok"<<endl;
         }
+        if (toDelete)
+        {
+            attTrackerLife.set(ppt,0);
+            attActive.set(ppt,0);
+            this->numberOfDegeneratedGrid++;
+        }
     }
-
     this->FlagBoundaries(deformableGridsGdp);
-
 }
 
 //================================================================================================
@@ -598,17 +612,6 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     GA_RWHandleF    attDeltaOnD(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
     GA_RWHandleF    attQt(deformableGridsgdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
 
-
-    GA_RWHandleF    attNumberOfPrimitives(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives",1));
-
-    /*
-    GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
-    GA_RWHandleF    attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleF    attRandT(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
-    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
-    GA_RWHandleV3   attNTracker(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    */
     GA_RWHandleV3   refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
     GA_RWHandleV3   refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
@@ -709,7 +712,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                         //check if it is a lonely point
                         GA_OffsetArray primitivesList;
                         GA_Size numberOfPrimitives = deformableGridsgdp->getPrimitivesReferencingPoint(primitivesList,ppt);
-                        if (numberOfPrimitives == 0 && life > 1)
+                        if (numberOfPrimitives == 0)
                         {
                             //cout << "Tracker with no primivites"<<endl;
                             continue;
@@ -900,9 +903,10 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
 //            attLife.set(trackerPpt,0);
     }
 
-    cout << "Destroying groups"<<endl;
+
     if (primGrpToDestroy != 0x0)
     {
+        cout << "Destroying groups"<<endl;
         deformableGridsgdp->destroyPrimitiveGroup(primGrpToDestroy);
     }
     deformableGridsgdp->deletePoints(*grpToDestroy,mode);
@@ -960,7 +964,7 @@ void DeformableGridsManager::ConnectivityTest(const GU_Detail *gdp, GA_Offset po
 //                                      UV FLATTENING
 
 //================================================================================================
-void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
+bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
                                    GA_Offset tracker, GA_Offset closestPoint,
                                    GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
                                    set<GA_Offset> &pointsAround,
@@ -991,7 +995,7 @@ void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
     if (numberOfIslands == 0)
     {
         cout << "There is no possible island in the flattening."<<endl;
-        return;
+        return false;
     }
 
     if (numberOfIslands > 1)
@@ -1005,8 +1009,8 @@ void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
 
         if (closestPoint == -1)
         {
-            cout << "can't find closest point"<<endl;
-            return;
+            cout << this->approachName << "UV Flattening - can't find closest point"<<endl;
+            return false;
         }
     }
     UT_Vector3 uvCenter(0.5,0.5,0);
@@ -1173,6 +1177,7 @@ void DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
     //cout << " in "<< time<<endl;
     this->uvFlatteningTime += time;
     this->nbOfFlattenedPatch++;
+    return true;
 }
 
 void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)

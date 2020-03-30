@@ -24,7 +24,7 @@ public:
 
     void ConnectivityTest(const GU_Detail *gdp,GA_Offset point, GA_PointGroup *grp, set<GA_Offset> &pointsAround,set<GA_Offset> &group);
 
-    void UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
+    bool UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
                       GA_Offset tracker, GA_Offset closestPoint,
                       GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
                       set<GA_Offset> &pointsAround,
@@ -39,6 +39,8 @@ public:
     double  gridMeshCreation;
     double  gridAdvectionTime;
     const string approachName   = "[Deformable Grids]";
+
+    int numberOfDegeneratedGrid;
 
 
 protected :

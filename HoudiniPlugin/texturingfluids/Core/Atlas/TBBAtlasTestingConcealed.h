@@ -5,10 +5,12 @@
 
 using namespace TexturingFluids;
 
+
+// PatchedSurface &surface,
 struct TestingConcealed_executor
 {
-  TestingConcealed_executor(AtlasTestingConcealed &rasterizer, PatchedSurface &surface, int w, int h,
-           ParametersDeformablePatches params) : _rasterizer(rasterizer), _surface(surface),
+  TestingConcealed_executor(AtlasTestingConcealed &rasterizer, int w, int h,
+           ParametersDeformablePatches params) : _rasterizer(rasterizer),
             _w(w), _h(h), _params(params)
   {
   }
@@ -18,12 +20,12 @@ struct TestingConcealed_executor
     //cout << "TBB Atlas"<<endl;
     for (size_t i=r.begin();i!=r.end();++i)
     {
-      _rasterizer.RasterizePrimitive(GA_Offset(i), _w, _h,_surface, _params);
+      _rasterizer.RasterizePrimitive(GA_Offset(i), _w, _h, _params);
     }
   }
 
   AtlasTestingConcealed& _rasterizer;
-  PatchedSurface& _surface;
+  //PatchedSurface& _surface;
   int _w;
   int _h;
   ParametersDeformablePatches _params;

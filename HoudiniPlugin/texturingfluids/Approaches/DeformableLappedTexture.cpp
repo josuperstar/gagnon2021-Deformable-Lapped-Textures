@@ -161,7 +161,9 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
 
     long nbOfPrimitive = surfaceGdp->getNumPrimitives();
     cout << "[AtlasAnimatedTextureInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
-    TestingConcealed_executor exec(atlas,surface,params.atlasWidth,params.atlasHeight,params);
+
+    int *nullSurface;
+    TestingConcealed_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
     tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
     map<int, bool> usedPatches = atlas.getUsedPatches();
     map<int, bool>::iterator itUsedPatches;
@@ -221,6 +223,8 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     gdp->clearAndDestroy();
     gdp->copy(*surfaceGdp);
 
+    // ======================================== REPORT ========================================
+
     int nbPatches = surface.GetNumberOfPatches();
 
     float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
@@ -228,8 +232,9 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     surface.numberOfPatches -= concealedPatches;
 
     int sumOfPatches = surface.numberOfInitialPatches;
-    sumOfPatches -= surface.numberOfInitialPatchFlagToDelete;
+
     sumOfPatches += surface.numberOfNewPatches;
+    sumOfPatches -= surface.numberOfInitialPatchFlagToDelete;
     sumOfPatches -= surface.numberOfDetachedPatches;
     sumOfPatches -= surface.numberOfNewAndLonelyTracker;
     sumOfPatches -= surface.numberOfLonelyTracker;
@@ -242,6 +247,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     cout << surface.approachName<<" New patches                 \t"<<surface.numberOfNewPatches<<endl;
     cout << surface.approachName<<" Detached patches            \t"<<surface.numberOfDetachedPatches<<endl;
     cout << surface.approachName<<" Patch with no primitives    \t"<<surface.numberOfLonelyTracker<<endl;
+    cout << surface.approachName<<" Number of degenerated grid  \t"<<surface.numberOfDegeneratedGrid<<endl;
     cout << surface.approachName<<" Concealed patches           \t"<<concealedPatches<<endl;
 
     cout << surface.approachName<<" Total Number of patches     \t"<<surface.numberOfPatches<<endl;
@@ -249,14 +255,14 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
 
     cout << "---------------------------------- Computation Time ----------------------------------------------"<<endl;
 
-    cout << surface.approachName<<" Poisson Disk Sampling "<<surface.poissondisk<<endl;
-    cout << surface.approachName<<" Grid mesh on time "<<surface.gridMeshCreation<<endl;
-    cout << surface.approachName<<" Uv flattening time "<<surface.uvFlatteningTime<<" for "<<surface.nbOfFlattenedPatch<<" patches"<<endl;
-    cout << surface.approachName<<" Tracker advection time "<<surface.markerAdvectionTime<<endl;
-    cout << surface.approachName<<" Grid advection time "<<surface.gridAdvectionTime<<endl;
-    cout << surface.approachName<<" Patch creation time "<<surface.patchCreationTime<<endl;
-    cout << surface.approachName<<" Clear and Destroy "<<cleaningSurface<<endl;
-    cout << surface.approachName<<" Update distribution "<<surface.updatePatchesTime<<endl;
+    cout << surface.approachName<<" Poisson Disk Sampling       "<<surface.poissondisk<<endl;
+    cout << surface.approachName<<" Grid mesh on time           "<<surface.gridMeshCreation<<endl;
+    cout << surface.approachName<<" Uv flattening time          "<<surface.uvFlatteningTime<<" for "<<surface.nbOfFlattenedPatch<<" patches"<<endl;
+    cout << surface.approachName<<" Tracker advection time      "<<surface.markerAdvectionTime<<endl;
+    cout << surface.approachName<<" Grid advection time         "<<surface.gridAdvectionTime<<endl;
+    cout << surface.approachName<<" Patch creation time         "<<surface.patchCreationTime<<endl;
+    cout << surface.approachName<<" Clear and Destroy           "<<cleaningSurface<<endl;
+    cout << surface.approachName<<" Update distribution         "<<surface.updatePatchesTime<<endl;
 
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout << surface.approachName<< " TOTAL: "<<total<<endl;

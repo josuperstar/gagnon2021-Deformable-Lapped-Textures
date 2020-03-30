@@ -33,7 +33,7 @@ public:
    void SetDisplacementMap1(string data){displacementMapImageName = data;}
    void RenderColoredPatches(bool data) {renderColoredPatches = data;}
 
-   void RasterizePrimitive(GA_Offset primOffset, int w,int h, PatchedSurface &patchedSurface, ParametersDeformablePatches params);
+   void RasterizePrimitive(GA_Offset primOffset, int w,int h,  ParametersDeformablePatches params);
    void RasterizePrimitiveYu2011BlendingFunction(GA_Offset primOffset, int w,int h,ParametersDeformablePatches params);
 
    void SaveAtlas();
