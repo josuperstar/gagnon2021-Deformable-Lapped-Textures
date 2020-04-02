@@ -300,8 +300,14 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
         bool isMature = (currentSpawn >= params.fadingTau);
         if (params.fadingIn == 0)
             isMature = true;
+        if (params.fadingIn == 0 and currentSpawn != 0)
+        {
+            currentSpawn++;
+        }
+
         if (isMature)
             attIsMature.set(ppt,1);
+
         if (active == 0 && deleteFaster == 1 && isMature)
         {
             currentLife -= 1.0f+((float)increment);

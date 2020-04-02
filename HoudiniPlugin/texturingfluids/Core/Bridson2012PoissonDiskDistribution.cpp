@@ -97,6 +97,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
     GA_RWHandleI    attDeleteFaster(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
     GA_Offset ppt;
+    // Only if we want to delete too close patches, which is not the case when we don't use fading in
+
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
         int numberOfClosePoint;
@@ -113,18 +115,23 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         if (attId.get(ppt) > this->maxId)
             this->maxId = attId.get(ppt);
 
+
         bool meetPoissonDiskCriterion = this->RespectCriterion(trackersGdp,tree, pointPosition, pointNormal, killDistance,  numberOfClosePoint, ppt, params);
         attDensity.set(ppt,numberOfClosePoint);
 
         if (attActive.get(ppt) == 0)
             continue;
 
-        attActive.set(ppt,meetPoissonDiskCriterion);
+        if (params.fadingIn == 1)
+        {
+            attActive.set(ppt,meetPoissonDiskCriterion);
+        }
         if (!meetPoissonDiskCriterion)
         {
             //cout << "We should delete point "<<attId.get(ppt)<<", is in kill distance" <<killDistance<<endl;
         }
     }
+
 
     t = 30;
 

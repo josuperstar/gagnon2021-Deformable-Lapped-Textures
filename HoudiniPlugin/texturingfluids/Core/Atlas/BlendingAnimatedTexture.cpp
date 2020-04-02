@@ -128,9 +128,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         {
             UT_Vector3 AB = (positionOnSurface - hitPos);
             AB = AB.normalize();
-
+            // This can flicker
             float angle = dot(AB,primN);
-            if (abs(angle) < 0.8)
+            if (abs(angle) < 0.2)
                 continue;
         }
 
