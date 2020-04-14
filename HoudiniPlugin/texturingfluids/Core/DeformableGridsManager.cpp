@@ -51,9 +51,9 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
 
 //================================================================================================
 
-void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree)
+void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GA_Offset ppt,  GEO_PointTreeGAOffset &tree)
 {
-    cout << "[DeformableGridsManager] CreateGridBasedOnMesh with beta "<<params.Yu2011Beta<<endl;
+    //cout << "[DeformableGridsManager] CreateGridBasedOnMesh with beta "<<params.Yu2011Beta<<endl;
 
     //Yu2011 Section 3.3.1
     //For each particle, we create a regular grid (see Fig. 2, left), centered on it, of width larger than 2d. Combined
@@ -125,7 +125,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     GA_RWHandleV3 attNSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleV3 attVSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
 
-    GA_Offset ppt;
+
     UT_Vector3 TrackerN;
     UT_Vector3 N;
     UT_Vector3 v;
@@ -144,437 +144,454 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     int id =0;
     //for(it = trackers.begin(); it != trackers.end(); it++)
     //GA_Offset ppt;
+
+    bool toDelete = false;
+    id = attId.get(ppt);
+    int spawn = attSpawn.get(ppt);
+
+    //cout << "tracker "<<id<<" spawn "<<spawn << endl;
+    if (params.testPatch == 1 && params.patchNumber != id)
+        return;
+
+    life = attTrackerLife.get(ppt);
+    //int spawn = attSpawn.get(ppt);
+    if (spawn != 1 || attActive.get(ppt) == 0)
+        return;
+
+    //cout << "Create Grid "<<id;
+
+    GU_Detail tempGdp;
+    set<GA_Offset> tempGdpListOffset;
+    GA_Offset tempNewPoint;
+    GA_RWHandleI attInitVertexId(tempGdp.addIntTuple(GA_ATTRIB_VERTEX,"initVerterxId",1));
+
+    TrackerN = attN.get(ppt);
+    UT_Vector3 p = trackersGdp->getPos3(ppt);
+
+    std::clock_t startMeshCreation;
+    startMeshCreation = std::clock();
+
+    string str = std::to_string(id);
+    groupName = "grid"+str;
+    GA_PointGroup *pointGroup = deformableGridsGdp->newPointGroup(groupName.c_str());
+    GA_PointGroup *tempPointGroup = tempGdp.newPointGroup(groupName.c_str());
+    GA_PrimitiveGroup *primGroup = deformableGridsGdp->newPrimitiveGroup(groupName.c_str());
+
+    trackerPositition = trackersGdp->getPos3(ppt);
+    set<GA_Offset> primList;
+    vector<GA_Offset> pointList;
+    vector<GA_Offset> tempPointList;
+
+    GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
+    tree.findAllCloseIdx(trackerPositition,
+                         gridwidth*2,
+                         close_particles_indices);
+
+    GA_Offset surfaceClosestPoint = tree.findNearestIdx(trackerPositition);
+    GA_Offset closestPoint = -1;
+    set<GA_Offset> pointsAround;
+
+    map<GA_Offset,GA_Offset> pointsLink;
+    map<GA_Offset,GA_Offset> tempPointsLink;
+    unsigned close_particles_count = close_particles_indices.entries();
+    int nbDistorted = 0;
+    if (close_particles_count > 0)
+    {
+        GA_Offset neighbor;
+        for(unsigned int j=0; j<close_particles_count;j++ )
+        {
+            neighbor = close_particles_indices.array()[j];
+            N = attNSurface.get(neighbor);
+            v = attVSurface.get(neighbor);
+            N.normalize();
+            if (dot(N,TrackerN) < params.angleNormalThreshold)
+            {
+                nbDistorted++;
+                continue;
+            }
+            //respect poisson disk criterion
+            //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+            UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
+            //=====================================================
+            UT_Vector3 pNp          = p - pos;
+            pNp.normalize();
+            float dotP              = dot(pNp, N);
+            float d              = distance3d( pos, p );
+            float dp                = abs(dotP);
+            float k        = (1-dp)*gridwidth;
+            if (k < cs)
+                k = cs;
+            bool insideBigEllipse    = d < k;
+            if (!insideBigEllipse)
+                continue;
+            //=====================================================
+            //--------create new points ------------
+            newPoint = deformableGridsGdp->appendPointOffset();
+            tempNewPoint = tempGdp.appendPointOffset();
+            tempGdpListOffset.insert(tempNewPoint);
+
+            if (surfaceClosestPoint == neighbor)
+            {
+                closestPoint = tempNewPoint;
+            }
+
+            deformableGridsGdp->setPos3(newPoint,surfaceGdp->getPos3(neighbor));
+            tempGdp.setPos3(tempNewPoint,surfaceGdp->getPos3(neighbor));
+            pointGroup->addOffset(newPoint);
+            tempPointGroup->addOffset(tempNewPoint);
+            pointsAround.insert(tempNewPoint);
+
+            grpGrid->addOffset(newPoint);
+
+            attIsGrid.set(newPoint,1);
+            attAlpha.set(newPoint,(float)life/(float)params.fadingTau);
+            attVW.set(newPoint,0);
+            attAlpha0.set(newPoint,(float)life/(float)params.fadingTau);
+            attLife.set(newPoint,params.fadingTau);
+            attV.set(newPoint,v);
+            attIsTreated.set(newPoint,0);
+            attCd.set(newPoint,UT_Vector3(1,1,1));
+            attGridId.set(newPoint,id);
+            attQv.set(newPoint,1.0f);
+            pointList.push_back(newPoint);
+            tempPointList.push_back(tempNewPoint);
+            pointsLink[neighbor] = newPoint;
+            tempPointsLink[neighbor] = tempNewPoint;
+
+            //----------------- Dynamic Tau ------------------------
+            float dP0 = distance3d(p,pos);
+            attDP0.set(newPoint,dP0);
+            //------------------------------------------------------
+        }
+
+        set<GA_Offset> neighborPrims;
+        for(int j=0; j<close_particles_count;j++ )
+        {
+            neighbor = close_particles_indices.array()[j];
+
+            //neighborPrims = HoudiniUtils::GetPrimitivesNeighbors(surfaceGdp,neighbor);
+            GA_OffsetArray primitives;
+            GA_Offset prim_off;
+            surfaceGdp->getPrimitivesReferencingPoint(primitives,neighbor);
+            for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); prims_it != primitives.end(); ++prims_it)
+            {
+                bool add = true;
+                //we need to be sure that the primitives have all its points in the point list selected before
+                GEO_Primitive* prim = surfaceGdp->getGEOPrimitive(*prims_it);
+                int nbVertex = prim->getVertexCount();
+                for(int i = 0; i<nbVertex; i++)
+                {
+                    GA_Offset vertex = prim->getVertexOffset(i);
+                    GA_Offset point = surfaceGdp->vertexPoint(vertex);
+                    if (!pointsLink.count(point))
+                    {
+                        add = false;
+                        break;
+                    }
+                }
+                if(add)
+                {
+                    prim_off = *prims_it;
+                    neighborPrims.insert(prim_off);
+                }
+            }
+            set<GA_Offset>::iterator itPrim;
+            for (itPrim = neighborPrims.begin(); itPrim != neighborPrims.end(); ++itPrim)
+                primList.insert(*itPrim);
+        }
+    }
+
+    //cout << "Create primitives"<<endl;
+    //cout << "There is "<<primList.size() <<" primitives"<<endl;
+    set<GA_Offset>::iterator itPrim;
+    for(itPrim = primList.begin(); itPrim != primList.end(); ++itPrim)
+    {
+        //primGroup->addOffset(*itPrim);
+        vector<UT_Vector3> trianglePoints;
+        GEO_PrimPoly *prim_poly_ptr = (GEO_PrimPoly *)deformableGridsGdp->appendPrimitive(GA_PRIMPOLY);
+        prim_poly_ptr->setSize(0);
+
+        GEO_PrimPoly *temp_prim_poly_ptr = (GEO_PrimPoly *)tempGdp.appendPrimitive(GA_PRIMPOLY);
+        temp_prim_poly_ptr->setSize(0);
+
+        GEO_Primitive* prim = surfaceGdp->getGEOPrimitive(*itPrim);
+        //cout << "Creating prim "<<*itPrim<<endl;
+        int nbVertex = prim->getVertexCount();
+        map<GA_Offset,GA_Offset>::iterator m;
+        for(int i = 0; i < nbVertex; i++)
+        {
+            GA_Offset vertex = prim->getVertexOffset(i);
+            GA_Offset point = surfaceGdp->vertexPoint(vertex);
+
+            trianglePoints.push_back(surfaceGdp->getPos3(point));
+
+            //------------- VERTEX ANGLE ----------------
+            int b = i-1;
+            if (b < 0)
+                b = nbVertex-1;
+            int c = i+1;
+            if (c >= nbVertex)
+                c = 0;
+
+            GA_Offset vB = prim->getVertexOffset(b);
+            GA_Offset pB = surfaceGdp->vertexPoint(vB);
+            GA_Offset vC = prim->getVertexOffset(c);
+            GA_Offset pC = surfaceGdp->vertexPoint(vC);
+
+            UT_Vector3 AB = surfaceGdp->getPos3(pB)-surfaceGdp->getPos3(point);
+            UT_Vector3 AC = surfaceGdp->getPos3(pC)-surfaceGdp->getPos3(point);
+            AB.normalize();
+            AC.normalize();
+            float angle = dot(AB,AC);
+            //-------------------------------------------
+
+            //cout <<"append vertex "<<point<<endl;
+            m = pointsLink.find(point);
+            if (m != pointsLink.end())
+            {
+                GA_Size idx = prim_poly_ptr->appendVertex(pointsLink[point]);
+                GA_Size idx2 = temp_prim_poly_ptr->appendVertex(tempPointsLink[point]);
+                GA_Offset newVertex = prim_poly_ptr->getVertexOffset(idx);
+                attVA.set(newVertex,angle);
+
+                GA_Offset newVertex2 = temp_prim_poly_ptr->getVertexOffset(idx2);
+                attInitVertexId.set(newVertex2,newVertex);
+            }
+            else
+            {
+                cout << "there is no point "<<point<<endl;
+            }
+        }
+        attW.set(prim_poly_ptr->getMapOffset(),0);
+        attW0.set(prim_poly_ptr->getMapOffset(),0);
+        attPrimLife.set(prim_poly_ptr->getMapOffset(),(float)life/params.fadingTau);
+        attInitId.set(prim_poly_ptr->getMapOffset(),prim_poly_ptr->getMapOffset());
+
+        //================================= REF POSITION ========================================
+        //compute triangle reference for section 3.3.3
+        UT_Vector3 A = trianglePoints[0];
+        UT_Vector3 B = trianglePoints[1];
+        UT_Vector3 C = trianglePoints[2];
+        UT_Vector3 p = (A+B+C)/3;
+
+        UT_Vector3 i = B-A;
+        i.normalize();
+        UT_Vector3 j = C-A;
+        j.normalize();
+        UT_Vector3 k = cross(i,j);
+        k.normalize();
+        j = cross(i,k);
+        j.normalize();
+
+        // Transform into local patch space (where ijk is aligned with XYZ at the origin)
+        UT_Vector3 relativePosistion = A-p;
+        UT_Vector3 triangleSpacePosA;
+        triangleSpacePosA.x() = relativePosistion.dot(i);
+        triangleSpacePosA.y() = relativePosistion.dot(j);
+        triangleSpacePosA.z() = relativePosistion.dot(k);
+
+        relativePosistion = B-p;
+        UT_Vector3 triangleSpacePosB;
+        triangleSpacePosB.x() = relativePosistion.dot(i);
+        triangleSpacePosB.y() = relativePosistion.dot(j);
+        triangleSpacePosB.z() = relativePosistion.dot(k);
+
+        relativePosistion = C-p;
+        UT_Vector3 triangleSpacePosC;
+        triangleSpacePosC.x() = relativePosistion.dot(i);
+        triangleSpacePosC.y() = relativePosistion.dot(j);
+        triangleSpacePosC.z() = relativePosistion.dot(k);
+
+        GA_Offset vertexA = prim_poly_ptr->getVertexOffset(0);
+        GA_Offset vertexB = prim_poly_ptr->getVertexOffset(1);
+        GA_Offset vertexC = prim_poly_ptr->getVertexOffset(2);
+
+        prim_poly_ptr->close();
+        temp_prim_poly_ptr->close();
+
+        attRP.set(vertexA,triangleSpacePosA);
+        attRP.set(vertexB,triangleSpacePosB);
+        attRP.set(vertexC,triangleSpacePosC);
+
+        //======================== SORKINE 2002 SECTION 3.2 =========================
+        //this part of the code is also in Yu2011Distortion.cpp
+        UT_Vector3 p1 = triangleSpacePosA;
+        UT_Vector3 p2 = triangleSpacePosB;
+        UT_Vector3 p3 = triangleSpacePosC;
+
+
+        float s1 = p1.x();
+        float s2 = p2.x();
+        float s3 = p3.x();
+
+        float t1 = p1.y();
+        float t2 = p2.y();
+        float t3 = p3.y();
+
+        UT_Vector3 q1 = trianglePoints[0];
+        UT_Vector3 q2 = trianglePoints[1];
+        UT_Vector3 q3 = trianglePoints[2];
+
+        float area = abs(((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f);
+        attArea.set(prim_poly_ptr->getMapOffset(),area);
+
+        if (area != 0.0f)
+        {
+            UT_Vector3 Ss = ( (t2-t3)*q1 + (t3-t1) *q2+ (t1-t2)*q3)/(2.0f*area);
+            UT_Vector3 St = ( (s3-s2)*q1 + (s1-s3) *q2+ (s2-s1)*q3)/(2.0f*area);
+
+            float a = dot(Ss,Ss);
+            float b = dot(Ss,St);
+            float c = dot(St,St);
+
+            float gmax = sqrt(0.5f*((a+c)+sqrt((a-c)*(a-c) + 4*(b*b))));
+            float gmin = sqrt(0.5f*((a+c)-sqrt((a-c)*(a-c) + 4*(b*b))));
+            float dt = std::max(gmax,1/gmin);
+
+            attA.set(prim_poly_ptr->getMapOffset(),a);
+            attB.set(prim_poly_ptr->getMapOffset(),b);
+            attC.set(prim_poly_ptr->getMapOffset(),c);
+
+            attSs.set(prim_poly_ptr->getMapOffset(),Ss);
+            attSt.set(prim_poly_ptr->getMapOffset(),St);
+            attDMax.set(prim_poly_ptr->getMapOffset(),gmax);
+            attDMin.set(prim_poly_ptr->getMapOffset(),gmin);
+            attDistortion.set(prim_poly_ptr->getMapOffset(),dt);
+            //cout << "set Qt "<<1.0<<endl;
+            attQt.set(prim_poly_ptr->getMapOffset(),1.0f);
+
+        }
+        //====================================================================
+        //=====================================================================================
+
+        primGroup->addOffset(prim_poly_ptr->getMapOffset());
+    }
+
+    int numberOfPrimitives = primList.size();
+    attNumberOfPrimitives.set(ppt,numberOfPrimitives);
+    if (numberOfPrimitives == 0)
+        toDelete = true;
+
+    this->gridMeshCreation += (std::clock() - startMeshCreation) / (double) CLOCKS_PER_SEC;
+
+    if (close_particles_count == 0)
+    {
+        if (params.testPatch == 1 && params.patchNumber == id)
+        {
+            cout << " not ok"<<endl;
+        }
+        toDelete = true;
+        return;
+    }
+    GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
+
+    //=====================================================================================
+    //--------------------- UV FLATENING-------------------
+    bool flattening = true;
+    if (flattening)
+    {
+        //cout << "UV Flattening"<<endl;
+        bool flattened = this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling, params );
+        if (!flattened)
+        {
+            toDelete = true;
+        }
+    }
+    //cout << "UV Flattening done"<<endl;
+    //--------------------------------------------------
+    //Take a random part of the input texture uv space
+    //- compute a random translation
+    //- scale up
+    float scaleup = params.UVScaling;
+    if (scaleup == 0)
+        scaleup = 1;
+    int seed = id;
+    float randomScale = scaleup/2.0f;
+    srand(seed);
+    float tx = (((double) rand()/(RAND_MAX)))*randomScale;
+    srand(seed+1);
+    float ty = (((double) rand()/(RAND_MAX)))*randomScale;
+    srand(seed+2);
+    float tz = (((double) rand()/(RAND_MAX)))*randomScale;
+    {
+        GA_Offset gppt;
+        GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
+        {
+            UT_Vector3 uv = attUV.get(gppt);
+            if (uv.x() != uv.x())
+            {
+                //where have nan value
+                uv = UT_Vector3(0,0,0);
+            }
+            uv += UT_Vector3(tx,ty,tz);
+            uv /= scaleup;
+            attUV.set(gppt,uv);
+        }
+    }
+    UT_Vector3 centerUV = UT_Vector3(0,0,0);
+    int i = 0;
+    {
+        GA_Offset gppt;
+        GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
+        {
+            UT_Vector3 uv = attUV.get(gppt);
+            centerUV += uv;
+            i++;
+        }
+    }
+    if (i > 0)
+    {
+        centerUV /= i;
+        attCenterUV.set(ppt,centerUV);
+    }
+    //-----------------------------------------------------
+    GEO_Primitive *prim;
+    float area;
+    GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
+    {
+        area = prim->calcArea();
+        attInitArea.set(prim->getMapOffset(),area);
+    }
+
+    if(pointGroup->entries() == 0)
+    {
+        //delete prim point and prim group
+        cout <<"[DeformableGrids]CreateGridBasedOnMesh: delete patch because there is no point"<< pointGroup->getName()<<endl;
+        deformableGridsGdp->deletePoints(*pointGroup,mode);
+        deformableGridsGdp->destroyPointGroup(pointGroup);
+        deformableGridsGdp->destroyPrimitiveGroup(primGroup);
+        toDelete = true;
+        //DeleteTracker(trackersGdp,id);
+    }
+    if (params.testPatch == 1 && params.patchNumber == id)
+    {
+        cout << " ok"<<endl;
+    }
+    if (toDelete)
+    {
+        attTrackerLife.set(ppt,0);
+        attActive.set(ppt,0);
+        this->numberOfDegeneratedGrid++;
+    }
+    //cout << "Grid Creation done"<<endl;
+    //this->FlagBoundaries(deformableGridsGdp);
+}
+
+
+//================================================================================================
+
+//                                       ADD DEFORMABLE GRID
+
+//================================================================================================
+
+void DeformableGridsManager::CreateGridsBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree)
+{
+    cout << "[DeformableGridsManager] CreateGridBasedOnMesh with beta "<<params.Yu2011Beta<<endl;
+
+    GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        bool toDelete = false;
-        id = attId.get(ppt);
-        int spawn = attSpawn.get(ppt);
-
-        //cout << "tracker "<<id<<" spawn "<<spawn << endl;
-        if (params.testPatch == 1 && params.patchNumber != id)
-            continue;
-
-        life = attTrackerLife.get(ppt);
-        //int spawn = attSpawn.get(ppt);
-        if (spawn != 1 || attActive.get(ppt) == 0)
-            continue;
-
-        if (params.testPatch == 1 && params.patchNumber == id)
-            cout << "Create Grid "<<id;
-
-        GU_Detail tempGdp;
-        set<GA_Offset> tempGdpListOffset;
-        GA_Offset tempNewPoint;
-        GA_RWHandleI attInitVertexId(tempGdp.addIntTuple(GA_ATTRIB_VERTEX,"initVerterxId",1));
-
-        TrackerN = attN.get(ppt);
-        UT_Vector3 p = trackersGdp->getPos3(ppt);
-
-        std::clock_t startMeshCreation;
-        startMeshCreation = std::clock();
-
-        string str = std::to_string(id);
-        string groupName = "grid"+str;
-        GA_PointGroup *pointGroup = deformableGridsGdp->newPointGroup(groupName.c_str());
-        GA_PointGroup *tempPointGroup = tempGdp.newPointGroup(groupName.c_str());
-        GA_PrimitiveGroup *primGroup = deformableGridsGdp->newPrimitiveGroup(groupName.c_str());
-
-        trackerPositition = trackersGdp->getPos3(ppt);
-        set<GA_Offset> primList;
-        vector<GA_Offset> pointList;
-        vector<GA_Offset> tempPointList;
-
-        GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
-        tree.findAllCloseIdx(trackerPositition,
-                             gridwidth*2,
-                             close_particles_indices);
-
-        GA_Offset surfaceClosestPoint = tree.findNearestIdx(trackerPositition);
-        GA_Offset closestPoint = -1;
-        set<GA_Offset> pointsAround;
-
-        map<GA_Offset,GA_Offset> pointsLink;
-        map<GA_Offset,GA_Offset> tempPointsLink;
-        unsigned close_particles_count = close_particles_indices.entries();
-        int nbDistorted = 0;
-        if (close_particles_count > 0)
-        {
-            GA_Offset neighbor;
-            for(unsigned int j=0; j<close_particles_count;j++ )
-            {
-                neighbor = close_particles_indices.array()[j];
-                N = attNSurface.get(neighbor);
-                v = attVSurface.get(neighbor);
-                N.normalize();
-                if (dot(N,TrackerN) < params.angleNormalThreshold)
-                {
-                    nbDistorted++;
-                    continue;
-                }
-                //respect poisson disk criterion
-                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-                UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
-                //=====================================================
-                UT_Vector3 pNp          = p - pos;
-                pNp.normalize();
-                float dotP              = dot(pNp, N);
-                float d              = distance3d( pos, p );
-                float dp                = abs(dotP);
-                float k        = (1-dp)*gridwidth;
-                if (k < cs)
-                    k = cs;
-                bool insideBigEllipse    = d < k;
-                if (!insideBigEllipse)
-                    continue;
-                //=====================================================
-                //--------create new points ------------
-                newPoint = deformableGridsGdp->appendPointOffset();
-                tempNewPoint = tempGdp.appendPointOffset();
-                tempGdpListOffset.insert(tempNewPoint);
-
-                if (surfaceClosestPoint == neighbor)
-                {
-                    closestPoint = tempNewPoint;
-                }
-
-                deformableGridsGdp->setPos3(newPoint,surfaceGdp->getPos3(neighbor));
-                tempGdp.setPos3(tempNewPoint,surfaceGdp->getPos3(neighbor));
-                pointGroup->addOffset(newPoint);
-                tempPointGroup->addOffset(tempNewPoint);
-                pointsAround.insert(tempNewPoint);
-
-                grpGrid->addOffset(newPoint);
-
-                attIsGrid.set(newPoint,1);
-                attAlpha.set(newPoint,(float)life/(float)params.fadingTau);
-                attVW.set(newPoint,0);
-                attAlpha0.set(newPoint,(float)life/(float)params.fadingTau);
-                attLife.set(newPoint,params.fadingTau);
-                attV.set(newPoint,v);
-                attIsTreated.set(newPoint,0);
-                attCd.set(newPoint,UT_Vector3(1,1,1));
-                attGridId.set(newPoint,id);
-                attQv.set(newPoint,1.0f);
-                pointList.push_back(newPoint);
-                tempPointList.push_back(tempNewPoint);
-                pointsLink[neighbor] = newPoint;
-                tempPointsLink[neighbor] = tempNewPoint;
-
-                //----------------- Dynamic Tau ------------------------
-                float dP0 = distance3d(p,pos);
-                attDP0.set(newPoint,dP0);
-                //------------------------------------------------------
-            }
-
-            set<GA_Offset> neighborPrims;
-            for(int j=0; j<close_particles_count;j++ )
-            {
-                neighbor = close_particles_indices.array()[j];
-
-                //neighborPrims = HoudiniUtils::GetPrimitivesNeighbors(surfaceGdp,neighbor);
-                GA_OffsetArray primitives;
-                GA_Offset prim_off;
-                surfaceGdp->getPrimitivesReferencingPoint(primitives,neighbor);
-                for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); prims_it != primitives.end(); ++prims_it)
-                {
-                    bool add = true;
-                    //we need to be sure that the primitives have all its points in the point list selected before
-                    GEO_Primitive* prim = surfaceGdp->getGEOPrimitive(*prims_it);
-                    int nbVertex = prim->getVertexCount();
-                    for(int i = 0; i<nbVertex; i++)
-                    {
-                        GA_Offset vertex = prim->getVertexOffset(i);
-                        GA_Offset point = surfaceGdp->vertexPoint(vertex);
-                        if (!pointsLink.count(point))
-                        {
-                            add = false;
-                            break;
-                        }
-                    }
-                    if(add)
-                    {
-                        prim_off = *prims_it;
-                        neighborPrims.insert(prim_off);
-                    }
-                }
-                set<GA_Offset>::iterator itPrim;
-                for (itPrim = neighborPrims.begin(); itPrim != neighborPrims.end(); ++itPrim)
-                    primList.insert(*itPrim);
-            }
-        }
-
-        //cout << "Create primitives"<<endl;
-        //cout << "There is "<<primList.size() <<" primitives"<<endl;
-        set<GA_Offset>::iterator itPrim;
-        for(itPrim = primList.begin(); itPrim != primList.end(); ++itPrim)
-        {
-            //primGroup->addOffset(*itPrim);
-            vector<UT_Vector3> trianglePoints;
-            GEO_PrimPoly *prim_poly_ptr = (GEO_PrimPoly *)deformableGridsGdp->appendPrimitive(GA_PRIMPOLY);
-            prim_poly_ptr->setSize(0);
-
-            GEO_PrimPoly *temp_prim_poly_ptr = (GEO_PrimPoly *)tempGdp.appendPrimitive(GA_PRIMPOLY);
-            temp_prim_poly_ptr->setSize(0);
-
-            GEO_Primitive* prim = surfaceGdp->getGEOPrimitive(*itPrim);
-            //cout << "Creating prim "<<*itPrim<<endl;
-            int nbVertex = prim->getVertexCount();
-            map<GA_Offset,GA_Offset>::iterator m;
-            for(int i = 0; i < nbVertex; i++)
-            {
-                GA_Offset vertex = prim->getVertexOffset(i);
-                GA_Offset point = surfaceGdp->vertexPoint(vertex);
-
-                trianglePoints.push_back(surfaceGdp->getPos3(point));
-
-                //------------- VERTEX ANGLE ----------------
-                int b = i-1;
-                if (b < 0)
-                    b = nbVertex-1;
-                int c = i+1;
-                if (c >= nbVertex)
-                    c = 0;
-
-                GA_Offset vB = prim->getVertexOffset(b);
-                GA_Offset pB = surfaceGdp->vertexPoint(vB);
-                GA_Offset vC = prim->getVertexOffset(c);
-                GA_Offset pC = surfaceGdp->vertexPoint(vC);
-
-                UT_Vector3 AB = surfaceGdp->getPos3(pB)-surfaceGdp->getPos3(point);
-                UT_Vector3 AC = surfaceGdp->getPos3(pC)-surfaceGdp->getPos3(point);
-                AB.normalize();
-                AC.normalize();
-                float angle = dot(AB,AC);
-                //-------------------------------------------
-
-                //cout <<"append vertex "<<point<<endl;
-                m = pointsLink.find(point);
-                if (m != pointsLink.end())
-                {
-                    GA_Size idx = prim_poly_ptr->appendVertex(pointsLink[point]);
-                    GA_Size idx2 = temp_prim_poly_ptr->appendVertex(tempPointsLink[point]);
-                    GA_Offset newVertex = prim_poly_ptr->getVertexOffset(idx);
-                    attVA.set(newVertex,angle);
-
-                    GA_Offset newVertex2 = temp_prim_poly_ptr->getVertexOffset(idx2);
-                    attInitVertexId.set(newVertex2,newVertex);
-                }
-                else
-                {
-                    cout << "there is no point "<<point<<endl;
-                }
-            }
-            attW.set(prim_poly_ptr->getMapOffset(),0);
-            attW0.set(prim_poly_ptr->getMapOffset(),0);
-            attPrimLife.set(prim_poly_ptr->getMapOffset(),(float)life/params.fadingTau);
-            attInitId.set(prim_poly_ptr->getMapOffset(),prim_poly_ptr->getMapOffset());
-
-            //================================= REF POSITION ========================================
-            //compute triangle reference for section 3.3.3
-            UT_Vector3 A = trianglePoints[0];
-            UT_Vector3 B = trianglePoints[1];
-            UT_Vector3 C = trianglePoints[2];
-            UT_Vector3 p = (A+B+C)/3;
-
-            UT_Vector3 i = B-A;
-            i.normalize();
-            UT_Vector3 j = C-A;
-            j.normalize();
-            UT_Vector3 k = cross(i,j);
-            k.normalize();
-            j = cross(i,k);
-            j.normalize();
-
-            // Transform into local patch space (where ijk is aligned with XYZ at the origin)
-            UT_Vector3 relativePosistion = A-p;
-            UT_Vector3 triangleSpacePosA;
-            triangleSpacePosA.x() = relativePosistion.dot(i);
-            triangleSpacePosA.y() = relativePosistion.dot(j);
-            triangleSpacePosA.z() = relativePosistion.dot(k);
-
-            relativePosistion = B-p;
-            UT_Vector3 triangleSpacePosB;
-            triangleSpacePosB.x() = relativePosistion.dot(i);
-            triangleSpacePosB.y() = relativePosistion.dot(j);
-            triangleSpacePosB.z() = relativePosistion.dot(k);
-
-            relativePosistion = C-p;
-            UT_Vector3 triangleSpacePosC;
-            triangleSpacePosC.x() = relativePosistion.dot(i);
-            triangleSpacePosC.y() = relativePosistion.dot(j);
-            triangleSpacePosC.z() = relativePosistion.dot(k);
-
-            GA_Offset vertexA = prim_poly_ptr->getVertexOffset(0);
-            GA_Offset vertexB = prim_poly_ptr->getVertexOffset(1);
-            GA_Offset vertexC = prim_poly_ptr->getVertexOffset(2);
-
-            prim_poly_ptr->close();
-            temp_prim_poly_ptr->close();
-
-            attRP.set(vertexA,triangleSpacePosA);
-            attRP.set(vertexB,triangleSpacePosB);
-            attRP.set(vertexC,triangleSpacePosC);
-
-            //======================== SORKINE 2002 SECTION 3.2 =========================
-            //this part of the code is also in Yu2011Distortion.cpp
-            UT_Vector3 p1 = triangleSpacePosA;
-            UT_Vector3 p2 = triangleSpacePosB;
-            UT_Vector3 p3 = triangleSpacePosC;
-
-
-            float s1 = p1.x();
-            float s2 = p2.x();
-            float s3 = p3.x();
-
-            float t1 = p1.y();
-            float t2 = p2.y();
-            float t3 = p3.y();
-
-            UT_Vector3 q1 = trianglePoints[0];
-            UT_Vector3 q2 = trianglePoints[1];
-            UT_Vector3 q3 = trianglePoints[2];
-
-            float area = abs(((s2 - s1)*(t3-t1) - (s3-s1)*(t2-t1))/2.0f);
-            attArea.set(prim_poly_ptr->getMapOffset(),area);
-
-            if (area != 0.0f)
-            {
-                UT_Vector3 Ss = ( (t2-t3)*q1 + (t3-t1) *q2+ (t1-t2)*q3)/(2.0f*area);
-                UT_Vector3 St = ( (s3-s2)*q1 + (s1-s3) *q2+ (s2-s1)*q3)/(2.0f*area);
-
-                float a = dot(Ss,Ss);
-                float b = dot(Ss,St);
-                float c = dot(St,St);
-
-                float gmax = sqrt(0.5f*((a+c)+sqrt((a-c)*(a-c) + 4*(b*b))));
-                float gmin = sqrt(0.5f*((a+c)-sqrt((a-c)*(a-c) + 4*(b*b))));
-                float dt = std::max(gmax,1/gmin);
-
-                attA.set(prim_poly_ptr->getMapOffset(),a);
-                attB.set(prim_poly_ptr->getMapOffset(),b);
-                attC.set(prim_poly_ptr->getMapOffset(),c);
-
-                attSs.set(prim_poly_ptr->getMapOffset(),Ss);
-                attSt.set(prim_poly_ptr->getMapOffset(),St);
-                attDMax.set(prim_poly_ptr->getMapOffset(),gmax);
-                attDMin.set(prim_poly_ptr->getMapOffset(),gmin);
-                attDistortion.set(prim_poly_ptr->getMapOffset(),dt);
-                //cout << "set Qt "<<1.0<<endl;
-                attQt.set(prim_poly_ptr->getMapOffset(),1.0f);
-
-            }
-            //====================================================================
-            //=====================================================================================
-
-            primGroup->addOffset(prim_poly_ptr->getMapOffset());
-        }
-
-        int numberOfPrimitives = primList.size();
-        attNumberOfPrimitives.set(ppt,numberOfPrimitives);
-        if (numberOfPrimitives == 0)
-            toDelete = true;
-
-        this->gridMeshCreation += (std::clock() - startMeshCreation) / (double) CLOCKS_PER_SEC;
-
-        if (close_particles_count == 0)
-        {
-            if (params.testPatch == 1 && params.patchNumber == id)
-            {
-                cout << " not ok"<<endl;
-            }
-            toDelete = true;
-            continue;
-        }
-        GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
-
-        //=====================================================================================
-        //--------------------- UV FLATENING-------------------
-        bool flattening = true;
-        if (flattening)
-        {
-            //cout << "UV Flattening"<<endl;
-            bool flattened = this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling, params );
-            if (!flattened)
-            {
-                toDelete = true;
-            }
-        }
-
-        //--------------------------------------------------
-        //Take a random part of the input texture uv space
-        //- compute a random translation
-        //- scale up
-        float scaleup = params.UVScaling;
-        if (scaleup == 0)
-            scaleup = 1;
-        int seed = id;
-        float randomScale = scaleup/2.0f;
-        srand(seed);
-        float tx = (((double) rand()/(RAND_MAX)))*randomScale;
-        srand(seed+1);
-        float ty = (((double) rand()/(RAND_MAX)))*randomScale;
-        srand(seed+2);
-        float tz = (((double) rand()/(RAND_MAX)))*randomScale;
-        {
-            GA_Offset gppt;
-            GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
-            {
-                UT_Vector3 uv = attUV.get(gppt);
-                if (uv.x() != uv.x())
-                {
-                    //where have nan value
-                    uv = UT_Vector3(0,0,0);
-                }
-                uv += UT_Vector3(tx,ty,tz);
-                uv /= scaleup;
-                attUV.set(gppt,uv);
-            }
-        }
-        UT_Vector3 centerUV = UT_Vector3(0,0,0);
-        int i = 0;
-        {
-            GA_Offset gppt;
-            GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
-            {
-                UT_Vector3 uv = attUV.get(gppt);
-                centerUV += uv;
-                i++;
-            }
-        }
-        if (i > 0)
-        {
-            centerUV /= i;
-            attCenterUV.set(ppt,centerUV);
-        }
-        //-----------------------------------------------------
-        GEO_Primitive *prim;
-        float area;
-        GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
-        {
-            area = prim->calcArea();
-            attInitArea.set(prim->getMapOffset(),area);
-        }
-
-        if(pointGroup->entries() == 0)
-        {
-            //delete prim point and prim group
-            cout <<"[DeformableGrids]CreateGridBasedOnMesh: delete patch because there is no point"<< pointGroup->getName()<<endl;
-            deformableGridsGdp->deletePoints(*pointGroup,mode);
-            deformableGridsGdp->destroyPointGroup(pointGroup);
-            deformableGridsGdp->destroyPrimitiveGroup(primGroup);
-            toDelete = true;
-            //DeleteTracker(trackersGdp,id);
-        }
-        if (params.testPatch == 1 && params.patchNumber == id)
-        {
-            cout << " ok"<<endl;
-        }
-        if (toDelete)
-        {
-            attTrackerLife.set(ppt,0);
-            attActive.set(ppt,0);
-            this->numberOfDegeneratedGrid++;
-        }
+       this->CreateGridBasedOnMesh(deformableGridsGdp,surfaceGdp,trackersGdp,params,ppt, tree);
     }
     this->FlagBoundaries(deformableGridsGdp);
 }
@@ -640,6 +657,9 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     distortionParams.initialVertexAngle = initialVertexAngle;
     distortionParams.distortionWeightName = distortionWeightName;
     distortionParams.primLifeName = "life";
+
+    if (!params.fadingIn)
+        distortionParams.flagDistortedParticles = false;
 
     float cs = params.CellSize;
     float r = params.poissondiskradius;

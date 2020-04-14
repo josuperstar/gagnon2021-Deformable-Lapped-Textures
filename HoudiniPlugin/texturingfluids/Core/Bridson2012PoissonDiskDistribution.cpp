@@ -121,8 +121,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
         if (attActive.get(ppt) == 0)
             continue;
-
-        if (params.fadingIn == 1)
+        //If we have fading in, we are using 2019's approach
+        //if (params.fadingIn == 1)
         {
             attActive.set(ppt,meetPoissonDiskCriterion);
         }
@@ -296,7 +296,7 @@ openvdb::Vec3f Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvd
 //================================================================================================
 
 
-bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
+GA_Offset Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
 {
 
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -322,12 +322,12 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
         divider = 2;
     if (trackersGdp->getNumPoints()/divider > this->maxId) //existing points
     {
-        cout << "New Max Id = "<<trackersGdp->getNumPoints()/divider<<endl;
+        //cout << "New Max Id = "<<trackersGdp->getNumPoints()/divider<<endl;
         this->maxId = trackersGdp->getNumPoints()/divider;
     }
     int id = this->maxId+1;
     this->maxId = id;
-
+    //cout << "New Max Id = "<<this->maxId<<endl;
     GA_Offset newPoint = trackersGdp->appendPoint();
     trackersGdp->setPos3(newPoint, p);
     attN.set(newPoint,N);
@@ -368,7 +368,7 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
 
     this->numberOfNewPoints++;
 
-    return true;
+    return newPoint;
 }
 
 void Bridson2012PoissonDiskDistribution::CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N)

@@ -86,7 +86,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
         surface.PoissonDiskSampling(levelSet,trackersGdp,params);
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
-            surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+            surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
     }
     else
     {
@@ -103,7 +103,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
         cout << "------------------- Updating Trackers ---------------------"<<endl;
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         cout << "------------------- Grid Creation ---------------------"<<endl;
-        surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+        surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches(gdp, trackersGdp,params);
     }
@@ -120,6 +120,8 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
         params.outputName = params.trackersFilename+".png";
     atlas.SetFilename(params.outputName+".png");
     atlas.SetSurface(surfaceGdp);
+    atlas.SetLowResDeformableGrids(surfaceLowResGdp);
+    atlas.SetLowResSurface(surfaceLowResGdp);
     atlas.SetDeformableGrids(gdp);
     atlas.SetTrackers(trackersGdp);
     atlas.SetTextureExemplar1(params.textureExemplar1Name);
@@ -163,21 +165,33 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     cout << "[AtlasAnimatedTextureInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
 
     int *nullSurface;
-    TestingConcealed_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
-    tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
+    //TestingConcealed_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
+    //tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
+
+    //--------------------------------
+    long i = 0;
+    int lastModulo = 0;
+
+    GA_FOR_ALL_PRIMITIVES(surfaceGdp,prim)
+    {
+        GA_Offset primOffset = prim->getMapOffset();
+        atlas.RasterizePrimitive(surface, primOffset, params.atlasWidth,params.atlasHeight,params);
+        i++;
+
+//        float pourcentage = ((float)i/(float)nbOfPrimitive)*100.0f;
+//        int p = pourcentage;
+//        int modulo = (p % 100);
+//        if (modulo != lastModulo)
+//        {
+//            lastModulo = modulo;
+//            cout << "done "<<modulo<<"%"<<endl;
+//        }
+    }
+    //--------------------------------
+
     map<int, bool> usedPatches = atlas.getUsedPatches();
     map<int, bool>::iterator itUsedPatches;
     int concealedPatches = 0;
-//    for(itUsedPatches = usedPatches.begin(); itUsedPatches != usedPatches.end(); itUsedPatches++)
-//    {
-//        if (!itUsedPatches->second)
-//        {
-//            int activePatch = attActive.get(itUsedPatches->first);
-//            if (activePatch == 1)
-//                concealedPatches++;
-//        }
-//    }
-
     {
         GA_Offset ppt;
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
@@ -197,6 +211,11 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
     //atlas.~AtlasTestingConcealed();
     atlas.CleanRayMemory(gdp);
+
+    //After ading particle and grids where rasterization didn't work, we need to add patches
+    //surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
+    //surface.DeleteUnusedPatches(gdp, trackersGdp,params);
+
     //-------------------------------------------------------------------------------------
 
     // Compute concealed patches

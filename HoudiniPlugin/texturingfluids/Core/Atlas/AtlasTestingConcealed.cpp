@@ -51,55 +51,8 @@ AtlasTestingConcealed::~AtlasTestingConcealed()
 
 }
 
-bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
+bool AtlasTestingConcealed::initImages(int w, int h)
 {
-    if (surface == 0x0 || (deformableGrids == 0x0 && useDeformableGrids) || trackers == 0x0)
-        return false;
-
-
-    surfaceGroup = (GA_PointGroup *)surface->pointGroups().find(surfaceGroupName.c_str());
-
-    cout << "[AtlasTestingConcealed::BuildAtlas]("<<w<<","<< h <<")"<<endl;
-
-    //cout << "[AtlasTestingConcealed::BuildAtlas] setting varialbes"<<endl;
-    //-------------------------------------------------------
-    UT_String patchname("patchIds");
-    patchIds = surface->findIntArray(GA_ATTRIB_POINT,patchname,-1, -1);
-    if (!patchIds)
-    {
-        cout << "[AtlasTestingConcealed::BuildAtlas] There is no patch id attribute"<<endl;
-        return false;
-    }
-    patchArray = patchIds->getAIFNumericArray();
-    //-------------------------------------------------------
-
-    surfaceTree.build(surface, NULL);
-    attLife = life;
-
-    attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
-    attCenterUV = GA_RWHandleV3(trackers->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
-
-
-    gridTree.build(deformableGrids,NULL);
-    attPointUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
-    attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
-    pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
-    primGroupTable = deformableGrids->getGroupTable(primGroupType);
-    //cout << "[AtlasTestingConcealed::BuildAtlas] Atlas uses deformable grids"<<endl;
-
-    attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
-    if (attUV.isInvalid())
-    {
-        cout << "[AtlasTestingConcealed::BuildAtlas] There is no uv on the surface"<<endl;
-        return false;
-    }
-
-    if (textureExemplar1Name.size() == 0)
-    {
-        cout << "[AtlasTestingConcealed::BuildAtlas] There is no texture exemplar name assigned"<<endl;
-        return false;
-    }
-
     diffuseImageBlendingGagnon = new ImageCV();
     diffuseImageBlendingGagnon->CreateImage(w,h,-1);
 
@@ -150,49 +103,99 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
             return false;
         }
     }
+    imageInitied = true;
+}
 
-    RM = textureExemplars[0]->MeanValue();
-    //cout << "RM = ";
-    //RM.Print();
-   // cout<<endl;
+bool AtlasTestingConcealed::initVariables(int life)
+{
+    if (surface == 0x0 || (deformableGrids == 0x0 && useDeformableGrids) || trackers == 0x0)
+        return false;
 
-    if(useCopyGUDetail)
+
+    surfaceGroup = (GA_PointGroup *)surface->pointGroups().find(surfaceGroupName.c_str());
+
+
+
+    //cout << "[AtlasTestingConcealed::BuildAtlas] setting varialbes"<<endl;
+    //-------------------------------------------------------
+    UT_String patchname("patchIds");
+    patchIds = surface->findIntArray(GA_ATTRIB_POINT,patchname,-1, -1);
+    if (!patchIds)
     {
-        CreateListGUDetails();
+        cout << "[AtlasTestingConcealed::BuildAtlas] There is no patch id attribute"<<endl;
+        return false;
     }
-    else
+    patchArray = patchIds->getAIFNumericArray();
+    //-------------------------------------------------------
+
+    gridTree.build(deformableGrids,NULL);
+    //surfaceTree.build(surface, NULL);
+    attLife = life;
+
+    attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
+    attCenterUV = GA_RWHandleV3(trackers->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
+    attPointUV = GA_RWHandleV3(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"uvw", 3));
+    attAlpha = GA_ROHandleF(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Alpha", 1));
+    pointGroupTable = deformableGrids->getGroupTable(pointGroupType);
+    primGroupTable = deformableGrids->getGroupTable(primGroupType);
+    //cout << "[AtlasTestingConcealed::BuildAtlas] Atlas uses deformable grids"<<endl;
+
+    attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
+    if (attUV.isInvalid())
     {
-        GA_PrimitiveGroup *primGroup;
-        vector<string> groupNames;
-
-        //cout << "[AtlasTestingConcealed::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
-        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-        {
-            //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
-            string name = primGroup->getName().toStdString();
-
-            // This version of the constructor is like the one that takes a group
-            // except the group is from a different gdp that has the same topology
-            // (ie. prim counts are the sames). Note that if usevisibility is true,
-            // then the visibility from the gdp is used (NOT limit_gdp).
-            //GU_RayIntersect(const GU_Detail *gdp,
-            //        const GU_Detail *limit_gdp,
-            //        const GA_PrimitiveGroup *vis_group,
-             //       bool picking = false, bool polyline = false, bool harden = false,
-            //       bool usevisibility = false);
-
-            GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
-
-            ray->init(deformableGrids,primGroup);
-            rays[name] = ray;
-            //deformableGrids->destroyPrimitiveGroup(name.c_str());
-        }
+        cout << "[AtlasTestingConcealed::BuildAtlas] There is no uv on the surface"<<endl;
+        return false;
     }
 
+    if (textureExemplar1Name.size() == 0)
+    {
+        cout << "[AtlasTestingConcealed::BuildAtlas] There is no texture exemplar name assigned"<<endl;
+        return false;
+    }
+    return true;
+}
+
+void AtlasTestingConcealed::buildRayList()
+{
+    GA_PrimitiveGroup *primGroup;
+    vector<string> groupNames;
+    rays.clear();
+    //cout << "[AtlasTestingConcealed::BuildAtlas] Create map of RayIntersect using deformable grids."<<endl;
+    GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
+    {
+        //GA_PrimitiveGroup *primGroup = (GA_PrimitiveGroup*)gPrimTable->find(groupName.c_str());
+        string name = primGroup->getName().toStdString();
+
+        // This version of the constructor is like the one that takes a group
+        // except the group is from a different gdp that has the same topology
+        // (ie. prim counts are the sames). Note that if usevisibility is true,
+        // then the visibility from the gdp is used (NOT limit_gdp).
+        //GU_RayIntersect(const GU_Detail *gdp,
+        //        const GU_Detail *limit_gdp,
+        //        const GA_PrimitiveGroup *vis_group,
+         //       bool picking = false, bool polyline = false, bool harden = false,
+        //       bool usevisibility = false);
+
+        GU_RayIntersect *ray = new GU_RayIntersect(deformableGrids,primGroup);
+
+        ray->init(deformableGrids,primGroup);
+        rays[name] = ray;
+        //deformableGrids->destroyPrimitiveGroup(name.c_str());
+    }
+}
+
+void AtlasTestingConcealed::buildArrayList()
+{
     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleV3   attN(trackers->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_Offset ppt;
     //cout << "[AtlasTestingConcealed::BuildAtlas] There is " << trackers->getNumPoints() << " trackers" << endl;
+
+    temporalComponetKt.clear();
+    trackerUVPosition.clear();
+    trackerNormal.clear();
+    trackersPosition.clear();
+    usePatches.clear();
     GA_FOR_ALL_PTOFF(trackers,ppt)
     {
         float blend = attBlend.get(ppt);
@@ -206,10 +209,28 @@ bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
         trackersPosition[patchId] = trackers->getPos3(ppt);
         usePatches[patchId] = false;
     }
+}
+
+bool AtlasTestingConcealed::BuildAtlas(int w, int h, int life)
+{
+    cout << "[AtlasTestingConcealed::BuildAtlas]("<<w<<","<< h <<")"<<endl;
+    if (!initVariables(life))
+        return false;
+
+    if (!imageInitied)
+    {
+        if (!initImages(w,h))
+            return false;
+    }
+
+
+    buildRayList();
+    buildArrayList();
 
     if(renderColoredPatches)
         initPatchColors(trackers);
 
+    this->pixelUsed.clear();
     for(int i =0; i < w; i++)
     {
         vector<bool> line;
@@ -285,7 +306,7 @@ void AtlasTestingConcealed::CreateListGUDetails()
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int h,  ParametersDeformablePatches params)
+void AtlasTestingConcealed::RasterizePrimitive(PatchedSurface &patchedSurface, GA_Offset primOffset, int w, int h,  ParametersDeformablePatches params)
 {
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
@@ -301,6 +322,9 @@ void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int 
         cout << "Primitive "<<prim->getMapOffset()<< " has "<<vertexCount<< " vertices"<<endl;
         return;
     }
+
+    GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
+    const GA_GroupTable *primitiveGTable = deformableGrids->getGroupTable(primitiveGroupType);
 
     //--------------------- SORTED DATA PER PATCH ------------------------
     vector<UT_Vector3> surfaceTexturePosition;
@@ -376,7 +400,8 @@ void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int 
     Pixel displacement;
     Pixel alphaColor;
     UT_Vector3 point;
-
+    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleV3   attN(trackers->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     //-----------------------------------------------------------------
     for(int i =min.x()-pixelCellSize; i < max.x()+pixelCellSize; i++)
     {
@@ -453,26 +478,61 @@ void AtlasTestingConcealed::RasterizePrimitive(GA_Offset primOffset, int w, int 
                                           temporalComponetKt,
                                           textureExemplars,
                                           params);
-                if (R_eq4.A == 0)
+                //cout << "Resulting color: "<<R_eq4.R << " "<<R_eq4.G << " "<<R_eq4.B << " "<<R_eq4.A <<endl;
+                bool addPatchOnRasterization = false;
+                if (R_eq4.A == 0 && addPatchOnRasterization)
                 {
+                    //========================== ADD A NEW PATCH ========================
+                    GU_RayIntersect ray(this->deformableGrids);
+                    ray.init();
+
+                    surfaceTree.build(surface, NULL);
+                    surfaceLowResTree.build(this->lowResSurface, NULL);
                     //Need another patch
                     UT_Vector3 pixelPositionOnSurface;
+
+                    pixelPositionOnSurface.x() = ((float)pixelPositionX/(w-1));
+                    pixelPositionOnSurface.y() = ((float)pixelPositionY/(h-1));
+                    pixelPositionOnSurface.z() = 0;
+
                     UT_Vector3 positionOnSurface = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],surfacePosition[0],surfacePosition[1],surfacePosition[2],pixelPositionOnSurface);
 
                     //1- Add particle
                     //Here, we should have a patch id as the result
                     cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
-                    //patchedSurface.CreateAPatch(trackers, positionOnSurface, N, params);
-                    //patchedSurface.CreateAndUpdateTrackersBasedOnPoissonDisk(surface, trackers, surfaceGroup, params);
+                    GA_Offset newPoint = patchedSurface.CreateAPatch(trackers, positionOnSurface, N, params);
+                    patchedSurface.CreateAndUpdateTrackerBasedOnPoissonDisk(surface, trackers,newPoint, surfaceGroup, params);
 
                     //2 - Add Deformable Grid
                     // we should create the grid based on the patch id
-                    //patchedSurface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+                    patchedSurface.CreateGridBasedOnMesh(this->deformableGrids,lowResSurface,this->trackers, params, newPoint,surfaceLowResTree);
 
-                    //3 - Add patch on surface
-                    // we should create the patch based on the patch id and the associated grid
-                    //patchedSurface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
 
+                    //----------------------- Rebuild data structure------------------------
+                    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
+
+
+
+                    int newPointId = attId.get(newPoint);
+                    string str = std::to_string(newPointId);
+                    string groupName = "grid"+str;
+                    GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(groupName);
+                    GU_RayIntersect *new_ray = new GU_RayIntersect(deformableGrids,gridPrimitiveGroup);
+                    new_ray->init(deformableGrids,gridPrimitiveGroup);
+                    rays[groupName] = new_ray;
+
+                    buildArrayList();
+
+                    sortedPatches.push_back(newPointId);
+                    float blend = attBlend.get(newPoint);
+                    if (isinf(blend))
+                        blend = 1.0f;
+                    temporalComponetKt[newPointId] = blend;
+                    trackerUVPosition[newPointId] = attCenterUV.get(newPoint);
+                    trackerNormal[newPointId] = attN.get(newPoint);
+                    trackersPosition[newPointId] = trackers->getPos3(newPoint);
+                    usePatches[newPointId] = true;
+                    cout << "sorted patch "<<newPointId<<endl;
                 }
                 if (inTriangle)
                     this->pixelUsed[pixelPositionX][pixelPositionY] = true;

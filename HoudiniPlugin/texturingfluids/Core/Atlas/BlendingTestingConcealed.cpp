@@ -44,6 +44,7 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
     Pixel Cf = Pixel(0,0,0);
     Cf.A = 1;
 
+    float sumAlpha = 0.0f;
 
 
     //Equation 2, Quality of a triangle
@@ -81,7 +82,6 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
 
         if ( fading.find(patchId) == fading.end())
             continue;
-
 
         //-------------------------------------------------------------
         //get deformable grids according to patchId in deformableGrids
@@ -197,6 +197,8 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         v1 = UT_Vector3(v1.x()+centerUV.x(),v1.y()+centerUV.y(),v1.z()+centerUV.z());
         v2 = UT_Vector3(v2.x()+centerUV.x(),v2.y()+centerUV.y(),v2.z()+centerUV.z());
 
+        UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
+
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
         //The weights are computed for each vertex. During reconstruction, weights at arbitrary locations are interpolated
@@ -250,6 +252,17 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         if (K_s < epsilon)
             continue;
 
+        //-----------------------------------------------------------------
+        //getting the color from the texture exemplar
+        int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
+        int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
+        int seamCarvingIndex = ((1-K_s) * params.NumberOfTextureSampleFrame);
+
+        textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+        sumAlpha += color.A;
+        if (color.A == 0)
+            continue;
+
         //cout << "Using this one !!"<<endl;
         usePatches[patchId] = true;
         numberOfHit++;
@@ -261,6 +274,7 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
 
     if (numberOfHit == 0)
         Cf.A == 0;
+    Cf.A = sumAlpha;
 
     return Cf;
 }

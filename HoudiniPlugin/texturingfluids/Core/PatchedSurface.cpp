@@ -181,7 +181,7 @@ void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *tracker
 
 }
 
-void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params)
+GA_Offset PatchedSurface::CreateAPatch(GU_Detail *trackersGdp, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params)
 {
     //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
     //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
@@ -197,14 +197,216 @@ void PatchedSurface::CreateAPatch(GU_Detail *trackersGdp, UT_Vector3 position, U
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
     int numberOfClosePoint = 0;
-    poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, position,normal,1,numberOfClosePoint,params);
+    GA_Offset newPoint = poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, position,normal,1,numberOfClosePoint,params);
 
     cout << this->approachName<<" poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
     //this->numberOfPatches = trackersGdp->getNumPoints();
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
-
+    return newPoint;
 }
+
+
+//================================================================================================
+
+//                                       ADD PATCHES USING BARYCENTRIC COORDONATE
+
+//================================================================================================
+
+
+void PatchedSurface::AddDeformablePatcheUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GA_Offset ppt, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+{
+
+    //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
+
+    std::clock_t addPatchesStart;
+    addPatchesStart = std::clock();
+
+
+    float beta = params.Yu2011Beta;
+    float d = params.poissondiskradius;
+    float gridwidth = (2+beta)*d; //same formula used in DeformableGrids.cpp
+    fpreal patchRadius = (fpreal)gridwidth;
+
+    //================================ CREATE PATCH GROUPS ==============================
+    //GA_PointGroup *grpMarker = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
+
+    GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
+    const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
+
+    /*
+    GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
+    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+    */
+    GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI attNumberOfPatch(surfaceGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
+
+    if (attLife.isInvalid())
+    {
+        cout << this->approachName<<"particles have no life"<<endl;
+        return;
+    }
+
+
+    set<int> patchTreated;
+    float thresholdDistance = params.maximumProjectionDistance;
+    float cs = params.CellSize;
+    float r = params.poissondiskradius;
+
+    UT_Vector3 N;
+    UT_Vector3 NN;
+    UT_Vector3 position;
+    UT_Vector3 patchP;
+
+    GA_Offset surfacePointOffset;
+    int patchNumber = 0;
+    {
+
+        patchNumber = attId.get(ppt);
+        int active = attActive.get(ppt);
+        float life = attLife.get(ppt);
+        if (active == 0 && life <= 0 )
+            return;
+        if (params.testPatch == 1 && params.patchNumber != patchNumber)
+            return;
+        N = attN.get(ppt);
+        position = trackersGdp->getPos3(ppt);
+
+        UT_IntArray         patchArrayData;
+        //getting neigborhood
+        // Close particles indices
+        GEO_PointTreeGAOffset::IdxArrayType surfaceNeighborhoodVertices;
+        surfaceTree.findAllCloseIdx(position,
+                             patchRadius*2,
+                             surfaceNeighborhoodVertices);
+
+        unsigned close_particles_count = surfaceNeighborhoodVertices.entries();
+
+        string str = std::to_string(patchNumber);
+        UT_String patchGroupName("patch"+str);
+        //cout << "Create patch "<<patchGroupName<<endl;
+        GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
+        UT_String gridGroupName("grid"+str);
+        GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
+        if (gridPrimitiveGroup == 0x0)
+            return;
+
+        ray.init(deformableGridsGdp,gridPrimitiveGroup);
+
+        set<GA_Offset> neighborhood;
+        for(int j=0; j<close_particles_count;j++ )
+        {
+            surfacePointOffset = surfaceNeighborhoodVertices.array()[j];
+            neighborhood.insert(surfacePointOffset);
+        }
+
+        set<GA_Offset>::iterator itG;
+        for(itG = neighborhood.begin(); itG != neighborhood.end(); ++itG)
+        {
+            surfacePointOffset = *itG;
+            NN = attNSurface.get(surfacePointOffset);
+            float dotP = dot(N,NN); //exlude points that are not in the same plane.
+            //if (dotP < params.angleNormalThreshold*2)
+            //    continue;
+
+            patchP = surfaceGdp->getPos3(surfacePointOffset);
+            //respect poisson disk criterion
+            //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
+            UT_Vector3 pos          = patchP;
+            //=====================================================
+
+            UT_Vector3 pNp          = position - pos;
+            pNp.normalize();
+            dotP              = dot(pNp, N);
+
+            //float d              = distance3d( pos, position );
+            float dp                = abs(dotP);
+
+            float k        = (1-dp)*r*3;
+            if (k < cs*2)
+                k = cs*2;
+            //bool insideBigEllipse    = d < k;
+            //if (!insideBigEllipse)
+            //    continue;
+
+            //=====================================================
+
+
+            //------------------------------------ RAY -----------------------------------------
+            //project patchP on trackers set
+            GU_MinInfo mininfo;
+            mininfo.init(thresholdDistance,0.0001);
+            ray.minimumPoint(patchP,mininfo);
+            if (mininfo.prim == 0x0)
+            {
+                //we can't project the point on the surface
+                continue;
+            }
+            patchGroup->addOffset(surfacePointOffset);
+            patchIdsAtt->get(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
+            int exist = patchArrayData.find(patchNumber);
+            if (exist == -1)
+            {
+                patchArrayData.append(patchNumber);
+                //cout << "Add "<<patchNumber<<" to patch array"<<endl;
+
+                int numberOfPatch = attNumberOfPatch.get(surfacePointOffset);
+                numberOfPatch++;
+                attNumberOfPatch.set(surfacePointOffset,numberOfPatch);
+            }
+            patchIdsAtt->set(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
+        }
+        neighborhood.clear();
+
+    }
+
+    {
+
+        patchNumber = attId.get(ppt);
+        if (patchTreated.count(patchNumber) > 0)
+        {
+            cout << this->approachName<<"We already treated patch "<< patchNumber << endl;
+            return;
+        }
+        patchTreated.insert(patchNumber);
+
+        int active = attActive.get(ppt);
+        float life = attLife.get(ppt);
+
+        if (active == 0 && life <= 0 )
+            return;
+
+        //for test purposes
+        if (params.testPatch == 1 && params.patchNumber != patchNumber)
+            return;
+
+        string str = std::to_string(patchNumber);
+        UT_String pointGroupName("patch"+str);
+        //cout << "Create primitive group" << str <<endl;
+        GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(pointGroupName);
+        GA_GroupType groupType = GA_GROUP_POINT;
+        const GA_GroupTable *gtable = surfaceGdp->getGroupTable(groupType);
+        GA_OffsetArray primitives;
+        GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(primGrp->getName());
+        if (pointGrp == 0x0)
+            return;
+
+        GA_FOR_ALL_GROUP_PTOFF(surfaceGdp,pointGrp,ppt)
+        {
+            surfaceGdp->getPrimitivesReferencingPoint(primitives,ppt);
+            for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); !prims_it.atEnd(); ++prims_it)
+            {
+                primGrp->addOffset(*prims_it);
+            }
+        }
+
+     }
+    //cout << "Patch "<<patchNumber<<" has been created"<<endl;
+    this->patchCreationTime += (std::clock() - addPatchesStart) / (double) CLOCKS_PER_SEC;
+}
+
 
 
 //================================================================================================

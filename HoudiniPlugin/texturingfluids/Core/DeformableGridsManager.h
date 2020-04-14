@@ -19,7 +19,9 @@ public:
     DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
 
 
-    void CreateGridBasedOnMesh(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree);
+    void CreateGridsBasedOnMesh(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree);
+    void CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GA_Offset ppt,  GEO_PointTreeGAOffset &tree);
+
     void AdvectGrids(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree, GU_Detail *surfaceGdp);
 
     void ConnectivityTest(const GU_Detail *gdp,GA_Offset point, GA_PointGroup *grp, set<GA_Offset> &pointsAround,set<GA_Offset> &group);

@@ -32,6 +32,7 @@ struct ParametersDistortion
     bool computeShearing = false;
     float Yu2011DMax;
     float QvMin;
+    int flagDistortedParticles = true;
 };
 
 }

@@ -144,7 +144,7 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
             string noPaddedNumber = std::to_string(i+1);
 
             currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
-            cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<noPaddedNumber<<endl;
+            //cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<noPaddedNumber<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
             {
@@ -167,10 +167,6 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
         }
     }
 
-    RM = textureExemplars[0]->MeanValue();
-    cout << "RM = ";
-    RM.Print();
-    cout<<endl;
 
     textureExemplar1ImageMask = new ImageCV();
     cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
@@ -184,7 +180,7 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
     if (displacementMapImageName.size() != 0)
     {
         displacementMapImage = new ImageCV();
-        cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<displacementMapImageName<<endl;
+        //cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<displacementMapImageName<<endl;
         computeDisplacement = displacementMapImage->OpenImage(displacementMapImageName,-1);
         cout << "[AtlasAnimatedTexture::BuildAtlas] Done"<<endl;
         if (computeDisplacement)

@@ -84,7 +84,7 @@ void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp
         surface.PoissonDiskSampling(levelSet,trackersGdp,params);
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
-            surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+            surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
     }
     else
     {
@@ -98,7 +98,7 @@ void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp
         }
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
-            surface.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+            surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
         surface.DeleteUnusedPatches(gdp, trackersGdp,params);
 
     }

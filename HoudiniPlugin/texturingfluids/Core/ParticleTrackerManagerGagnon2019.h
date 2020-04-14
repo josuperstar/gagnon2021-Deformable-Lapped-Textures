@@ -1,5 +1,5 @@
-#ifndef __ParticleTracker_h__
-#define __ParticleTracker_h__
+#ifndef __ParticleTrackerGagnon2019_h__
+#define __ParticleTrackerGagnon2019_h__
 
 #include <Math/Vec3.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
@@ -11,14 +11,18 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class ParticleTrackerManager
+class ParticleTrackerManagerGagnon2019
 {
 public:
 
-    ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
+    ParticleTrackerManagerGagnon2019(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
     void CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params);
     void CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_Offset ppt, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params);
+    void UpdateTrackersAndTangeant(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params);
     void AdvectSingleTrackers(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
+    void AdvectTrackersAndTangeants(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
+    void ComputeDivergence(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree);
+    void ComputeDensity(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree);
     void DeleteTracker(GU_Detail* trackers,int trackerId);
 
     int GetNumberOfPatches(){return numberOfPatches;}
@@ -27,7 +31,7 @@ public:
 
     const string markerGroupName = "markers";
     const string surfaceGroupName = "surface";
-    const string approachName   = "[Particle Tracker Gagnon 2020]";
+    const string approachName   = "[Particle Tracker Gagnon 2019]";
 
     double  markerAdvectionTime;
 
@@ -68,7 +72,7 @@ protected :
     GA_RWHandleV3   tangeant;
     GA_RWHandleI    attFadeIn;
     GA_RWHandleF    temporalComponentKt;
-    GA_RWHandleV3 AttCd;
+    GA_RWHandleV3   AttCd;
     GA_RWHandleI    attNumberOfPrimitives;
 
     GA_RWHandleV3 attVSurface;
