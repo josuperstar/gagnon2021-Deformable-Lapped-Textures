@@ -62,12 +62,13 @@ private:
    map<int,Pixel> patchColors;
    void initPatchColors(GU_Detail *trackersGdp);
 
+   //-------------------------
    GU_Detail* surface;
    GU_Detail* lowResSurface;
    GU_Detail* deformableGrids;
    GU_Detail* lowResDeformableGrids;
    GU_Detail* trackers;
-
+   //------------------------
    ImageCV *diffuseImageBlendingGagnon;
    ImageCV *diffuseImageBlendingYu2011Equation3;
    ImageCV *diffuseImageBlendingYu2011Equation4;
@@ -83,10 +84,6 @@ private:
 
    ImageCV *displacementMapImage;
    string displacementMapImageName;
-
-   GEO_PointTreeGAOffset surfaceTree;
-   GEO_PointTreeGAOffset surfaceLowResTree;
-   GEO_PointTreeGAOffset gridTree;
 
 
    const GA_AIFNumericArray *patchArray;

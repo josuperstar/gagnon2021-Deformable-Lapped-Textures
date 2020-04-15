@@ -27,7 +27,7 @@ public:
     ~PoissonDiskInterface();
 
     //==========================================================================
-    void Synthesis(GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet,ParametersDeformablePatches params);
+    void Synthesis(GU_Detail* surface, GU_Detail* surfaceLowResGdp, GU_Detail* trackersGdp, GU_Detail* deformableGridGdp, GU_Detail* levelSet,ParametersDeformablePatches params);
 
 private :
 

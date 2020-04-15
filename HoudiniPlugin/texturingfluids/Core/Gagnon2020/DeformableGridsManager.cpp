@@ -28,8 +28,10 @@
 #include <Core/HoudiniUtils.h>
 
 
-DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)  : ParticleTrackerManager(surfaceGdp, trackersGdp, params)
+DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *surfaceLowResGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, ParametersDeformablePatches params)  : ParticleTrackerManager(surfaceGdp, trackersGdp, params)
 {
+    this->deformableGridsGdp = deformableGridsGdp;
+    this->surfaceLowResGdp = surfaceLowResGdp;
 
     this->maxId = 0;
     this->gridCenterPosition.clear();
@@ -56,7 +58,16 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
     //should move this in the global approach
     distortionParams.flagDistortedParticles = true;
 
+    //GEO_PointTreeGAOffset surfaceTree;
+    surfaceTree.build(surfaceGdp, NULL);
+    surfaceLowResTree.build(surfaceLowResGdp, NULL);
 
+
+}
+
+DeformableGridsManager::~DeformableGridsManager()
+{
+    this->surfaceTree.clear();
 }
 
 //================================================================================================
@@ -65,7 +76,7 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
 
 //================================================================================================
 
-void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GA_Offset ppt,  GEO_PointTreeGAOffset &tree)
+void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
 {
     //cout << "[DeformableGridsManager] CreateGridBasedOnMesh with beta "<<params.Yu2011Beta<<endl;
 
@@ -82,62 +93,48 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     float d = params.poissondiskradius;
     float gridwidth = (2+beta)*d;
 
-    //cout << this->approachName<<" creating grids based on mesh"<<endl;
-    //cout << "beta "<<beta<<endl;
-    //cout << "d "<<d<<endl;
-    //cout << "gridwidth "<<gridwidth<<endl;
-
-    /*
-    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleV3   attCenterUV(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"centerUV", 3));
-    GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
-
-
-    GA_RWHandleI    attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
-    */
     GA_RWHandleF    attTrackerLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleI    attTrackerActive(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"active",1));
+
     GA_RWHandleF    attNumberOfPrimitives(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives",1));
 
 
-    GA_RWHandleV3   attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
-    GA_RWHandleF    attAlpha(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
-    GA_RWHandleI    attIsGrid(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isGrid",1));
-    GA_RWHandleF    attInitArea(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"initArea",1));
-    GA_RWHandleI    attInitId(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"initId",1));
-    GA_RWHandleI    attIsTreated(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isTreated",1));
-    GA_RWHandleV3   attV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   attCd(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
-    GA_RWHandleI    attGridId(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleV3   attUV(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
+    GA_RWHandleF    attAlpha(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
+    GA_RWHandleI    attIsGrid(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isGrid",1));
+    GA_RWHandleF    attInitArea(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"initArea",1));
+    GA_RWHandleI    attInitId(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"initId",1));
+    GA_RWHandleI    attIsTreated(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isTreated",1));
+    GA_RWHandleV3   attV(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3   attCd(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
+    GA_RWHandleI    attGridId(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
 
-    GA_RWHandleF    attAlpha0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,alpha0Name,1));
-    GA_RWHandleF    attVW(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,vertexWeightName,1));
-    GA_RWHandleF    attW(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeightName,1));
-    GA_RWHandleF    attW0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeight0Name,1));
+    GA_RWHandleF    attAlpha0(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,alpha0Name,1));
+    GA_RWHandleF    attVW(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,vertexWeightName,1));
+    GA_RWHandleF    attW(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeightName,1));
+    GA_RWHandleF    attW0(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,distortionWeight0Name,1));
 
-    GA_RWHandleV3   attSs(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Ss",3));
-    GA_RWHandleV3   attSt(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"St",3));
-    GA_RWHandleF    attDMax(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dmax",1));
-    GA_RWHandleF    attDMin(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dmin",1));
-    GA_RWHandleF    attDistortion(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"distortion",1));
-    GA_RWHandleF    attQt(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
-    GA_RWHandleF    attQv(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Qv",1));
+    GA_RWHandleV3   attSs(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Ss",3));
+    GA_RWHandleV3   attSt(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"St",3));
+    GA_RWHandleF    attDMax(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dmax",1));
+    GA_RWHandleF    attDMin(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"dmin",1));
+    GA_RWHandleF    attDistortion(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"distortion",1));
+    GA_RWHandleF    attQt(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
+    GA_RWHandleF    attQv(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Qv",1));
 
-    GA_RWHandleF    attA(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"a",1));
-    GA_RWHandleF    attB(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"b",1));
-    GA_RWHandleF    attC(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"c",1));
-    GA_RWHandleF    attArea(deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"area",1));
+    GA_RWHandleF    attA(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"a",1));
+    GA_RWHandleF    attB(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"b",1));
+    GA_RWHandleF    attC(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"c",1));
+    GA_RWHandleF    attArea(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_PRIMITIVE,"area",1));
 
-    GA_RWHandleF    attDP0(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
+    GA_RWHandleF    attDP0(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
 
-    GA_RWHandleV3 attRP(deformableGridsGdp->addFloatTuple(GA_ATTRIB_VERTEX,"refPosition",3));
-    GA_RWHandleF attVA(deformableGridsGdp->addFloatTuple(GA_ATTRIB_VERTEX,initialVertexAngle,1));
-    GA_RWHandleF attLife(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleI attPrimLife(deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"life",1));
+    GA_RWHandleV3 attRP(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_VERTEX,"refPosition",3));
+    GA_RWHandleF attVA(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_VERTEX,initialVertexAngle,1));
+    GA_RWHandleF attLife(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
+    GA_RWHandleI attPrimLife(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_PRIMITIVE,"life",1));
 
-    GA_RWHandleV3 attNSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleV3 attVSurface(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3 attNSurface(this->surfaceLowResGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3 attVSurface(this->surfaceLowResGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
 
 
     UT_Vector3 TrackerN;
@@ -149,7 +146,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     float cs = params.CellSize;
     float r = params.poissondiskradius;
     string groupName = "grids";
-    GA_PointGroup *grpGrid = deformableGridsGdp->newPointGroup(groupName.c_str());
+    GA_PointGroup *grpGrid = this->deformableGridsGdp->newPointGroup(groupName.c_str());
 
     float scaling = gridwidth;
 
@@ -187,9 +184,9 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
 
     string str = std::to_string(id);
     groupName = "grid"+str;
-    GA_PointGroup *pointGroup = deformableGridsGdp->newPointGroup(groupName.c_str());
+    GA_PointGroup *pointGroup = this->deformableGridsGdp->newPointGroup(groupName.c_str());
     GA_PointGroup *tempPointGroup = tempGdp.newPointGroup(groupName.c_str());
-    GA_PrimitiveGroup *primGroup = deformableGridsGdp->newPrimitiveGroup(groupName.c_str());
+    GA_PrimitiveGroup *primGroup = this->deformableGridsGdp->newPrimitiveGroup(groupName.c_str());
 
     trackerPositition = trackersGdp->getPos3(ppt);
     set<GA_Offset> primList;
@@ -197,11 +194,11 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     vector<GA_Offset> tempPointList;
 
     GEO_PointTreeGAOffset::IdxArrayType close_particles_indices;
-    tree.findAllCloseIdx(trackerPositition,
+    this->surfaceLowResTree.findAllCloseIdx(trackerPositition,
                          gridwidth*2,
                          close_particles_indices);
 
-    GA_Offset surfaceClosestPoint = tree.findNearestIdx(trackerPositition);
+    GA_Offset surfaceClosestPoint = this->surfaceLowResTree.findNearestIdx(trackerPositition);
     GA_Offset closestPoint = -1;
     set<GA_Offset> pointsAround;
 
@@ -225,7 +222,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
             }
             //respect poisson disk criterion
             //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-            UT_Vector3 pos          = surfaceGdp->getPos3(neighbor);
+            UT_Vector3 pos          = this->surfaceLowResGdp->getPos3(neighbor);
             //=====================================================
             UT_Vector3 pNp          = p - pos;
             pNp.normalize();
@@ -240,7 +237,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                 continue;
             //=====================================================
             //--------create new points ------------
-            newPoint = deformableGridsGdp->appendPointOffset();
+            newPoint = this->deformableGridsGdp->appendPointOffset();
             tempNewPoint = tempGdp.appendPointOffset();
             tempGdpListOffset.insert(tempNewPoint);
 
@@ -249,8 +246,8 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                 closestPoint = tempNewPoint;
             }
 
-            deformableGridsGdp->setPos3(newPoint,surfaceGdp->getPos3(neighbor));
-            tempGdp.setPos3(tempNewPoint,surfaceGdp->getPos3(neighbor));
+            this->deformableGridsGdp->setPos3(newPoint,this->surfaceLowResGdp->getPos3(neighbor));
+            tempGdp.setPos3(tempNewPoint,this->surfaceLowResGdp->getPos3(neighbor));
             pointGroup->addOffset(newPoint);
             tempPointGroup->addOffset(tempNewPoint);
             pointsAround.insert(tempNewPoint);
@@ -286,17 +283,17 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
             //neighborPrims = HoudiniUtils::GetPrimitivesNeighbors(surfaceGdp,neighbor);
             GA_OffsetArray primitives;
             GA_Offset prim_off;
-            surfaceGdp->getPrimitivesReferencingPoint(primitives,neighbor);
+            this->surfaceLowResGdp->getPrimitivesReferencingPoint(primitives,neighbor);
             for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); prims_it != primitives.end(); ++prims_it)
             {
                 bool add = true;
                 //we need to be sure that the primitives have all its points in the point list selected before
-                GEO_Primitive* prim = surfaceGdp->getGEOPrimitive(*prims_it);
+                GEO_Primitive* prim = this->surfaceLowResGdp->getGEOPrimitive(*prims_it);
                 int nbVertex = prim->getVertexCount();
                 for(int i = 0; i<nbVertex; i++)
                 {
                     GA_Offset vertex = prim->getVertexOffset(i);
-                    GA_Offset point = surfaceGdp->vertexPoint(vertex);
+                    GA_Offset point = this->surfaceLowResGdp->vertexPoint(vertex);
                     if (!pointsLink.count(point))
                     {
                         add = false;
@@ -322,22 +319,22 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     {
         //primGroup->addOffset(*itPrim);
         vector<UT_Vector3> trianglePoints;
-        GEO_PrimPoly *prim_poly_ptr = (GEO_PrimPoly *)deformableGridsGdp->appendPrimitive(GA_PRIMPOLY);
+        GEO_PrimPoly *prim_poly_ptr = (GEO_PrimPoly *)this->deformableGridsGdp->appendPrimitive(GA_PRIMPOLY);
         prim_poly_ptr->setSize(0);
 
         GEO_PrimPoly *temp_prim_poly_ptr = (GEO_PrimPoly *)tempGdp.appendPrimitive(GA_PRIMPOLY);
         temp_prim_poly_ptr->setSize(0);
 
-        GEO_Primitive* prim = surfaceGdp->getGEOPrimitive(*itPrim);
+        GEO_Primitive* prim = this->surfaceLowResGdp->getGEOPrimitive(*itPrim);
         //cout << "Creating prim "<<*itPrim<<endl;
         int nbVertex = prim->getVertexCount();
         map<GA_Offset,GA_Offset>::iterator m;
         for(int i = 0; i < nbVertex; i++)
         {
             GA_Offset vertex = prim->getVertexOffset(i);
-            GA_Offset point = surfaceGdp->vertexPoint(vertex);
+            GA_Offset point = this->surfaceLowResGdp->vertexPoint(vertex);
 
-            trianglePoints.push_back(surfaceGdp->getPos3(point));
+            trianglePoints.push_back(this->surfaceLowResGdp->getPos3(point));
 
             //------------- VERTEX ANGLE ----------------
             int b = i-1;
@@ -348,12 +345,12 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
                 c = 0;
 
             GA_Offset vB = prim->getVertexOffset(b);
-            GA_Offset pB = surfaceGdp->vertexPoint(vB);
+            GA_Offset pB = this->surfaceLowResGdp->vertexPoint(vB);
             GA_Offset vC = prim->getVertexOffset(c);
-            GA_Offset pC = surfaceGdp->vertexPoint(vC);
+            GA_Offset pC = this->surfaceLowResGdp->vertexPoint(vC);
 
-            UT_Vector3 AB = surfaceGdp->getPos3(pB)-surfaceGdp->getPos3(point);
-            UT_Vector3 AC = surfaceGdp->getPos3(pC)-surfaceGdp->getPos3(point);
+            UT_Vector3 AB = this->surfaceLowResGdp->getPos3(pB)-this->surfaceLowResGdp->getPos3(point);
+            UT_Vector3 AC = this->surfaceLowResGdp->getPos3(pC)-this->surfaceLowResGdp->getPos3(point);
             AB.normalize();
             AC.normalize();
             float angle = dot(AB,AC);
@@ -505,7 +502,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     if (flattening)
     {
         //cout << "UV Flattening"<<endl;
-        bool flattened = this->UVFlattening(tempGdp, trackersGdp, deformableGridsGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling, params );
+        bool flattened = this->UVFlattening(tempGdp, ppt, closestPoint, pointGroup, tempPointGroup, pointsAround, scaling );
         if (!flattened)
         {
             toDelete = true;
@@ -529,7 +526,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     float tz = (((double) rand()/(RAND_MAX)))*randomScale;
     {
         GA_Offset gppt;
-        GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
+        GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,gppt)
         {
             UT_Vector3 uv = attUV.get(gppt);
             if (uv.x() != uv.x())
@@ -546,7 +543,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     int i = 0;
     {
         GA_Offset gppt;
-        GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,gppt)
+        GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,gppt)
         {
             UT_Vector3 uv = attUV.get(gppt);
             centerUV += uv;
@@ -561,7 +558,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     //-----------------------------------------------------
     GEO_Primitive *prim;
     float area;
-    GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsGdp,primGroup,prim)
+    GA_FOR_ALL_GROUP_PRIMITIVES(this->deformableGridsGdp,primGroup,prim)
     {
         area = prim->calcArea();
         attInitArea.set(prim->getMapOffset(),area);
@@ -571,9 +568,9 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
     {
         //delete prim point and prim group
         cout <<"[DeformableGrids]CreateGridBasedOnMesh: delete patch because there is no point"<< pointGroup->getName()<<endl;
-        deformableGridsGdp->deletePoints(*pointGroup,mode);
-        deformableGridsGdp->destroyPointGroup(pointGroup);
-        deformableGridsGdp->destroyPrimitiveGroup(primGroup);
+        this->deformableGridsGdp->deletePoints(*pointGroup,mode);
+        this->deformableGridsGdp->destroyPointGroup(pointGroup);
+        this->deformableGridsGdp->destroyPrimitiveGroup(primGroup);
         toDelete = true;
         //DeleteTracker(trackersGdp,id);
     }
@@ -588,7 +585,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
         this->numberOfDegeneratedGrid++;
     }
     //cout << "Grid Creation done"<<endl;
-    //this->FlagBoundaries(deformableGridsGdp);
+    //this->FlagBoundaries(this->deformableGridsGdp);
 }
 
 
@@ -598,16 +595,16 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp
 
 //================================================================================================
 
-void DeformableGridsManager::CreateGridsBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree)
+void DeformableGridsManager::CreateGridsBasedOnMesh( vector<GA_Offset> trackers)
 {
     cout << "[DeformableGridsManager] CreateGridBasedOnMesh with beta "<<params.Yu2011Beta<<endl;
 
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-       this->CreateGridBasedOnMesh(deformableGridsGdp,surfaceGdp,trackersGdp,params,ppt, tree);
+       this->CreateGridBasedOnMesh(ppt);
     }
-    this->FlagBoundaries(deformableGridsGdp);
+    this->FlagBoundaries();
 }
 
 //================================================================================================
@@ -617,7 +614,7 @@ void DeformableGridsManager::CreateGridsBasedOnMesh(GU_Detail *deformableGridsGd
 //================================================================================================
 
 
-void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,GEO_PointTreeGAOffset &tree, GU_Detail *surfaceGdp)
+void DeformableGridsManager::AdvectGrids()
 {
     //cout << "[Yu2011] Advect markers"<<endl;
     cout << this->approachName<<" Advect grids";
@@ -633,18 +630,18 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     std::clock_t startAdvection;
     startAdvection = std::clock();
 
-    GA_RWHandleV3   attVDeformable(deformableGridsgdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   attNSurface(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleV3   attCd(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
-    GA_RWHandleF    attAlpha(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
-    GA_RWHandleI    attGridId(deformableGridsgdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF    attDP0(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
-    GA_RWHandleF    attDPi(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"dPi",1));
-    GA_RWHandleF    attDeltaOnD(deformableGridsgdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
-    GA_RWHandleF    attQt(deformableGridsgdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
+    GA_RWHandleV3   attVDeformable(this->deformableGridsGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3   attNSurface(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   attCd(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
+    GA_RWHandleF    attAlpha(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"Alpha",1));
+    GA_RWHandleI    attGridId(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleF    attDP0(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"dP0",1));
+    GA_RWHandleF    attDPi(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"dPi",1));
+    GA_RWHandleF    attDeltaOnD(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,"deltaOnD",1));
+    GA_RWHandleF    attQt(this->deformableGridsGdp->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
 
-    GA_RWHandleV3   refAttV(surfaceGdp->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
-    GA_RWHandleV3   refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleV3   refAttV(this->surface->findFloatTuple(GA_ATTRIB_POINT,"v", 3));
+    GA_RWHandleV3   refAttN(this->surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
     if (attV.isInvalid())
     {
@@ -668,16 +665,16 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
 
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
     GA_PointGroup * grpToDestroy;
-    grpToDestroy = (GA_PointGroup *)deformableGridsgdp->newPointGroup("GridPointToDelete");
-    GA_PrimitiveGroup *primGrpToDestroy = (GA_PrimitiveGroup *)deformableGridsgdp->newPrimitiveGroup("PrimToDelete");
+    grpToDestroy = (GA_PointGroup *)this->deformableGridsGdp->newPointGroup("GridPointToDelete");
+    GA_PrimitiveGroup *primGrpToDestroy = (GA_PrimitiveGroup *)this->deformableGridsGdp->newPrimitiveGroup("PrimToDelete");
     GU_MinInfo mininfo;
-    GU_RayIntersect ray(surfaceGdp);
+    GU_RayIntersect ray(this->surface);
     ray.init();
 
     GA_GroupType groupType = GA_GROUP_POINT;
-    const GA_GroupTable *gtable = deformableGridsgdp->getGroupTable(groupType);
+    const GA_GroupTable *gtable = this->deformableGridsGdp->getGroupTable(groupType);
     GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
-    const GA_GroupTable *gPrimTable = deformableGridsgdp->getGroupTable(primGroupType);
+    const GA_GroupTable *gPrimTable = this->deformableGridsGdp->getGroupTable(primGroupType);
 
     GA_PointGroup* pointGrp;
     UT_Vector3 N;
@@ -725,12 +722,12 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                     bool first = true;
                     UT_Vector3 averagePosition;
 
-                    GA_FOR_ALL_GROUP_PTOFF(deformableGridsgdp,pointGrp,ppt)
+                    GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGrp,ppt)
                     {
 
                         //check if it is a lonely point
                         GA_OffsetArray primitivesList;
-                        GA_Size numberOfPrimitives = deformableGridsgdp->getPrimitivesReferencingPoint(primitivesList,ppt);
+                        GA_Size numberOfPrimitives = this->deformableGridsGdp->getPrimitivesReferencingPoint(primitivesList,ppt);
                         if (numberOfPrimitives == 0)
                         {
                             //cout << "Tracker with no primivites"<<endl;
@@ -738,12 +735,12 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                         }
                         v = attVDeformable.get(ppt);
                         N = attNSurface.get(ppt);
-                        p = deformableGridsgdp->getPos3(ppt);
+                        p = this->deformableGridsGdp->getPos3(ppt);
 
                         //advect
                         UT_Vector3 d = v*dt;
                         p1 = p+d;
-                        deformableGridsgdp->setPos3(ppt,p1);
+                        this->deformableGridsGdp->setPos3(ppt,p1);
                         attGridId.set(ppt,id);
                         //------------------------------------------------------------------------
                         bool projection = true;
@@ -771,7 +768,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                             if (distance3d(p1,hitPos) < thresholdDistance)
                             {
                                 p1 = hitPos;
-                                deformableGridsgdp->setPos3(ppt,p1);
+                                this->deformableGridsGdp->setPos3(ppt,p1);
 
                                 //respect poisson disk criterion
                                 //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
@@ -795,22 +792,22 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                                 GA_Offset primOffset = mininfo.prim->getMapOffset();
                                 float u = mininfo.u1;
                                 float v = mininfo.v1;
-                                GEO_Primitive *prim = surfaceGdp->getGEOPrimitive(primOffset);
+                                GEO_Primitive *prim = this->surface->getGEOPrimitive(primOffset);
 
                                 GA_Offset vertexOffset0 = prim->getVertexOffset(0);
                                 //UT_Vector3 v0 = attUV.get(vertexOffset0);
-                                GA_Offset pointOffset0  = surfaceGdp->vertexPoint(vertexOffset0);
+                                GA_Offset pointOffset0  = this->surface->vertexPoint(vertexOffset0);
                                 UT_Vector3 n0 = refAttN.get(pointOffset0);
                                 UT_Vector3 v0 = refAttV.get(pointOffset0);
 
                                 GA_Offset vertexOffset1 = prim->getVertexOffset(1);
-                                GA_Offset pointOffset1  = surfaceGdp->vertexPoint(vertexOffset1);
+                                GA_Offset pointOffset1  = this->surface->vertexPoint(vertexOffset1);
                                 UT_Vector3 n1 = refAttN.get(pointOffset1);
                                 UT_Vector3 v1 = refAttV.get(pointOffset1);
                                 //UT_Vector3 v1 = attUV.get(vertexOffset1);
 
                                 GA_Offset vertexOffset2 = prim->getVertexOffset(2);
-                                GA_Offset pointOffset2  = surfaceGdp->vertexPoint(vertexOffset2);
+                                GA_Offset pointOffset2  = this->surface->vertexPoint(vertexOffset2);
                                 UT_Vector3 n2 = refAttN.get(pointOffset2);//gdp->getPos3(pointOffset3);
                                 UT_Vector3 v2 = refAttV.get(pointOffset2);;//gdp->getPos3(pointOffset2);
                                 //UT_Vector3 v2 = attUV.get(vertexOffset2);
@@ -825,7 +822,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                             }
                             else
                             {
-                                deformableGridsgdp->setPos3(ppt,p1);
+                                this->deformableGridsGdp->setPos3(ppt,p1);
                                 //for debuging purposes
                                 attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
@@ -868,7 +865,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                 {
                     //cout << "Point "<<id<< " is active"<<endl;
                     DistortionMetricSorkine2002 distortionComputer;
-                    bool distorted = distortionComputer.ComputeDistortion(trackersGdp,deformableGridsgdp,trackerPpt,pointGrp,primGroup,distortionParams);
+                    bool distorted = distortionComputer.ComputeDistortion(this->trackersGdp,this->deformableGridsGdp,trackerPpt,pointGrp,primGroup,distortionParams);
                     if (distorted)
                         this->numberOfDistortedPatches++;
                 }
@@ -901,7 +898,7 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         //delete too distorted primitives
         GEO_Primitive *prim;
         int numberOfPrimitives = 0;
-        GA_FOR_ALL_GROUP_PRIMITIVES(deformableGridsgdp,primGroup,prim)
+        GA_FOR_ALL_GROUP_PRIMITIVES(this->deformableGridsGdp,primGroup,prim)
         {
             float qt = attQt.get(prim->getMapOffset());
             if (qt < 0.001)
@@ -915,13 +912,13 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     if (primGrpToDestroy != 0x0)
     {
         cout << "Destroying groups"<<endl;
-        deformableGridsgdp->destroyPrimitiveGroup(primGrpToDestroy);
+        this->deformableGridsGdp->destroyPrimitiveGroup(primGrpToDestroy);
     }
-    deformableGridsgdp->deletePoints(*grpToDestroy,mode);
+    this->deformableGridsGdp->deletePoints(*grpToDestroy,mode);
     //------------------------------------------------------
 
 
-    this->FlagBoundaries(deformableGridsgdp);
+    this->FlagBoundaries();
     cout << "Number of lonely patches: "<<this->numberOfLonelyTracker<<endl;
     cout << "Ok"<<endl;
 
@@ -934,18 +931,17 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
 //                                      UV FLATTENING
 
 //================================================================================================
-bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
+bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp,
                                    GA_Offset tracker, GA_Offset closestPoint,
                                    GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
                                    set<GA_Offset> &pointsAround,
-                                   float scaling,
-                                   ParametersDeformablePatches params)
+                                   float scaling)
 {
     GA_RWHandleI    attFlattening(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"flattening",1));
     GA_RWHandleI    attInitVertexId(tempGdp.addIntTuple(GA_ATTRIB_VERTEX,"initVerterxId",1));
-    GA_RWHandleV3   attUV(deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
+    GA_RWHandleV3   attUV(this->deformableGridsGdp->addFloatTuple(GA_ATTRIB_POINT,uvName, 3));
     GA_RWHandleV3   attTempVertexUV(tempGdp.addFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
-    GA_RWHandleI    attIsTreated(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isTreated",1));
+    GA_RWHandleI    attIsTreated(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"isTreated",1));
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
 
     int id = attId.get(tracker);
@@ -1057,7 +1053,7 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
             //uvCenter += uv;
             //nbUv++;
 
-            GA_Offset point = deformableGridsGdp->vertexPoint(initVertex);
+            GA_Offset point = this->deformableGridsGdp->vertexPoint(initVertex);
             attIsTreated.set(point,1);
             //UT_Vector3 uv = attVertexUV.get(vertex);
             attUV.set(point,uv);
@@ -1065,30 +1061,30 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
     }
 
     GA_PrimitiveGroup *primGroup = 0;
-    GA_Range range = (deformableGridsGdp)->getPrimitiveRange((primGroup));
+    GA_Range range = (this->deformableGridsGdp)->getPrimitiveRange((primGroup));
     GA_Iterator begin = range.begin();
     GA_Iterator end = range.end();
     GA_Iterator itTest(range);
 
-    for (GA_Iterator it((deformableGridsGdp)->getPrimitiveRange(primGroup)); (!it.atEnd() || (prim = nullptr)) &&
-            ((prim)=GA_Detail::GB_MACRO_CAST((deformableGridsGdp), (deformableGridsGdp)->getPrimitive(*it)));
+    for (GA_Iterator it((this->deformableGridsGdp)->getPrimitiveRange(primGroup)); (!it.atEnd() || (prim = nullptr)) &&
+            ((prim)=GA_Detail::GB_MACRO_CAST((this->deformableGridsGdp), (this->deformableGridsGdp)->getPrimitive(*it)));
             ++it)
     {
-        GEO_Primitive *primitive = deformableGridsGdp->getGEOPrimitive(prim->getMapOffset());
+        GEO_Primitive *primitive = this->deformableGridsGdp->getGEOPrimitive(prim->getMapOffset());
         int nbVertex = primitive->getVertexCount();
         if (nbVertex < 3)
             continue;
 
         //-------------compute ratio ------------------
         GA_Offset vertex1 = primitive->getVertexOffset(0);
-        GA_Offset point1 = deformableGridsGdp->vertexPoint(vertex1);
+        GA_Offset point1 = this->deformableGridsGdp->vertexPoint(vertex1);
         UT_Vector3 uv1 = attUV.get(point1);
-        UT_Vector3 pos1 = deformableGridsGdp->getPos3(point1);
+        UT_Vector3 pos1 = this->deformableGridsGdp->getPos3(point1);
 
         GA_Offset vertex2 = primitive->getVertexOffset(1);
-        GA_Offset point2 = deformableGridsGdp->vertexPoint(vertex2);
+        GA_Offset point2 = this->deformableGridsGdp->vertexPoint(vertex2);
         UT_Vector3 uv2 = attUV.get(point2);
-        UT_Vector3 pos2 = deformableGridsGdp->getPos3(point2);
+        UT_Vector3 pos2 = this->deformableGridsGdp->getPos3(point2);
 
         float d3d = distance3d(pos1,pos2);
         float dUv = distance3d(uv1,uv2);
@@ -1099,7 +1095,7 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
         for(int i = 0; i< nbVertex; i++)
         {
             GA_Offset vertex = primitive->getVertexOffset(i);
-            GA_Offset point = deformableGridsGdp->vertexPoint(vertex);
+            GA_Offset point = this->deformableGridsGdp->vertexPoint(vertex);
 
             UT_Vector3 uv = attUV.get(point);
 
@@ -1122,9 +1118,9 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
 
     UT_Vector3 translation = destCenter - uvCenter;
 
-    GA_PointGroup *toDestroy = deformableGridsGdp->newPointGroup("ToDestroy");
+    GA_PointGroup *toDestroy = this->deformableGridsGdp->newPointGroup("ToDestroy");
     GA_Offset ppt;
-    GA_FOR_ALL_GROUP_PTOFF(deformableGridsGdp,pointGroup,ppt)
+    GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,ppt)
     {
         /*
         if (attIsTreated.get(ppt) == 0)
@@ -1140,7 +1136,7 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
             attUV.set(ppt,uv);
         //}
     }
-    deformableGridsGdp->deletePoints(*toDestroy,mode);
+    this->deformableGridsGdp->deletePoints(*toDestroy,mode);
 
     //-------------------------------------------------
     float time = (std::clock() - startFlattening) / (double) CLOCKS_PER_SEC;
@@ -1150,14 +1146,14 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp, GU_Detail *tracker
     return true;
 }
 
-void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
+void DeformableGridsManager::FlagBoundaries()
 {
 
     cout << "[DeformableGridsManager] add border attribute."<<endl;
-    GA_RWHandleI    attBorder(deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"border",1));
+    GA_RWHandleI    attBorder(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"border",1));
 
     GA_Primitive *prim;
-    GA_FOR_ALL_PRIMITIVES(deformableGridsGdp, prim)
+    GA_FOR_ALL_PRIMITIVES(this->deformableGridsGdp, prim)
     {
 
         int nb = prim->getVertexCount();
@@ -1166,9 +1162,9 @@ void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
         GA_Offset vertexA = prim->getVertexOffset(0);
         GA_Offset vertexB = prim->getVertexOffset(1);
         GA_Offset vertexC = prim->getVertexOffset(2);
-        GA_Offset pointA = deformableGridsGdp->vertexPoint(vertexA);
-        GA_Offset pointB = deformableGridsGdp->vertexPoint(vertexB);
-        GA_Offset pointC = deformableGridsGdp->vertexPoint(vertexC);
+        GA_Offset pointA = this->deformableGridsGdp->vertexPoint(vertexA);
+        GA_Offset pointB = this->deformableGridsGdp->vertexPoint(vertexB);
+        GA_Offset pointC = this->deformableGridsGdp->vertexPoint(vertexC);
         vector<GA_Offset> points;
         points.push_back(pointA);
         points.push_back(pointB);
@@ -1185,11 +1181,11 @@ void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
             GA_Offset point = points[i];
             //int pointvertices[] = pointvertices(0,point);
             GA_OffsetArray primitives;
-            deformableGridsGdp->getPrimitivesReferencingPoint(primitives,point);
+            this->deformableGridsGdp->getPrimitivesReferencingPoint(primitives,point);
             for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); prims_it != primitives.end(); ++prims_it)
             {
 
-                GEO_Primitive* nprim = deformableGridsGdp->getGEOPrimitive(*prims_it);
+                GEO_Primitive* nprim = this->deformableGridsGdp->getGEOPrimitive(*prims_it);
                 if (nprim->getMapOffset() == prim->getMapOffset())
                     continue;
 
@@ -1202,7 +1198,7 @@ void DeformableGridsManager::FlagBoundaries(GU_Detail *deformableGridsGdp)
                 for(int k=0;k<nbn;k++)
                 {
                     GA_Offset nvertex = nprim->getVertexOffset(k);
-                    GA_Offset npoint = deformableGridsGdp->vertexPoint(nvertex);
+                    GA_Offset npoint = this->deformableGridsGdp->vertexPoint(nvertex);
                     if (npoint == pointA)
                         A = 1;
                     if (npoint == pointB)

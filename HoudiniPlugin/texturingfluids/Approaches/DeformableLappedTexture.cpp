@@ -38,36 +38,29 @@ DeformableLappedTexture::~DeformableLappedTexture()
 {
 }
 
-void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
+void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    PatchedSurfaceGagnon2020 surface(surfaceGdp, trackersGdp, params);
+    PatchedSurfaceGagnon2020 surface(surfaceGdp, surfaceLowResGdp, trackersGdp,deformableGridGdp, params);
     cout << "[DeformableLappedTexture::Synthesis] Version: (put version here) frame: "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
     std::clock_t start;
     start = std::clock();
     vector<GA_Offset> newPatchesPoints;
-    vector<GA_Offset> trackers;
+
     cout << "reference gdp created"<<endl;
     const GA_SaveOptions *options;
     UT_StringArray *errors;
 
 
     //=======================================================
-    GA_PointGroup *grp = (GA_PointGroup *)gdp->pointGroups().find(surface.markerGroupName.c_str());
 
-    GU_RayIntersect ray(gdp);
+    GU_RayIntersect ray(deformableGridGdp);
     ray.init();
-    GEO_PointTreeGAOffset surfaceTree;
-    surfaceTree.build(surfaceGdp, NULL);
-    GEO_PointTreeGAOffset surfaceLowResTree;
-    surfaceLowResTree.build(surfaceLowResGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
 
-
     //---- for visualisation purpose
-
     //string beforeUpdateString = params.trackersFilename + "beforeAdvection.bgeo";
     //const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
     //trackersGdp->save(filename,options,errors);
@@ -81,13 +74,13 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
         surface.PoissonDiskSampling(levelSet,trackersGdp,params);
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         if (!usingOnlyPoissonDisk)
-            surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+            surface.CreateGridsBasedOnMesh(newPatchesPoints);
     }
     else
     {
         cout << "------------------- Advection ---------------------"<<endl;
         surface.AdvectSingleTrackers();
-        surface.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
+        surface.AdvectGrids();
         cout << "number of patch flaged to delete "<<surface.NumberOfPatchesToDelete()<<endl;
         cout << "number of distorted patches "<<surface.numberOfDistortedPatches<<endl;
         if (params.updateDistribution)
@@ -98,15 +91,15 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
         cout << "------------------- Updating Trackers ---------------------"<<endl;
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         cout << "------------------- Grid Creation ---------------------"<<endl;
-        surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+        surface.CreateGridsBasedOnMesh(newPatchesPoints);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
-        surface.DeleteUnusedPatches(gdp, trackersGdp,params);
+        surface.DeleteUnusedPatches(deformableGridGdp, trackersGdp,params);
     }
     if (!usingOnlyPoissonDisk)
     {
         //For the blending computation, we create uv array per vertex that we called patch
         cout << "------------------- Patch Creation ---------------------"<<endl;
-        surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
+        surface.AddDeformablePatchesUsingBarycentricCoordinates(deformableGridGdp, surfaceGdp,trackersGdp, params,ray);
     }
 
     //-------------------- texture synthesis to test concealed patches --------------------
@@ -117,7 +110,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     atlas.SetSurface(surfaceGdp);
     atlas.SetLowResDeformableGrids(surfaceLowResGdp);
     atlas.SetLowResSurface(surfaceLowResGdp);
-    atlas.SetDeformableGrids(gdp);
+    atlas.SetDeformableGrids(deformableGridGdp);
     atlas.SetTrackers(trackersGdp);
     atlas.SetTextureExemplar1(params.textureExemplar1Name);
     atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
@@ -205,7 +198,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     }
     cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
     //atlas.~AtlasTestingConcealed();
-    atlas.CleanRayMemory(gdp);
+    atlas.CleanRayMemory(deformableGridGdp);
 
     //After ading particle and grids where rasterization didn't work, we need to add patches
     //surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
@@ -219,12 +212,12 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
 
     cout << surface.approachName<<" Done"<<endl;
     //cout << "Clear surface tree"<<endl;
-    surfaceTree.clear();
+//    surfaceTree.clear();
     ray.clear();
 
     cout << surface.approachName<< " saving grids data"<<endl;
     const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
-    gdp->save(filenameGrids,options,errors);
+    deformableGridGdp->save(filenameGrids,options,errors);
 
     cout << surface.approachName<< " saving trackers data"<<endl;
     const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
@@ -234,8 +227,8 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     std::clock_t cleaningStart;
     cleaningStart = std::clock();
     //cout<< "Clear, Destroy and merge"<<endl;
-    gdp->clearAndDestroy();
-    gdp->copy(*surfaceGdp);
+    deformableGridGdp->clearAndDestroy();
+    deformableGridGdp->copy(*surfaceGdp);
 
     // ======================================== REPORT ========================================
 

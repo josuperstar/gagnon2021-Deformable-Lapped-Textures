@@ -108,23 +108,21 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
 int ParticleTrackerManager::NumberOfPatchesToDelete()
 {
     int toDelete = 0;
+
+    GA_Offset ppt;
+    GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
+        int active = attActive.get(ppt);
+        float currentLife = attLife.get(ppt);
 
-        GA_Offset ppt;
-        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+        //Dead patches are not updated
+        if (currentLife <= 0 && active == 0)
         {
-            int active = attActive.get(ppt);
-            float currentLife = attLife.get(ppt);
-
-            //Dead patches are not updated
-            if (currentLife <= 0 && active == 0)
-            {
-                toDelete++;
-                continue;
-            }
+            toDelete++;
+            continue;
         }
-        //cout << "Number Of Patch to delete:"<<toDelete<<endl;
     }
+
     return toDelete;
 }
 
@@ -156,7 +154,7 @@ UT_Vector3 ParticleTrackerManager::GetParamtrericCoordinate(GEO_Primitive *prim,
 //================================================================================================
 
 
-void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk( GA_Offset ppt)
+void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset ppt)
 {
 
     bool useDynamicTau = params.useDynamicTau;

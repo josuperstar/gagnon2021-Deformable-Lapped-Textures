@@ -29,7 +29,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail *trackersGdp, ParametersDeformablePatches params) : DeformableGridsManager(surface, trackersGdp, params)
+PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail *surfaceLowResGdp,GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, ParametersDeformablePatches params) : DeformableGridsManager(surface, surfaceLowResGdp, trackersGdp,deformableGridsGdp, params)
 {
     //this->numberOfPatches = 0;
 
@@ -214,7 +214,7 @@ GA_Offset PatchedSurfaceGagnon2020::CreateAPatch(GU_Detail *trackersGdp, UT_Vect
 //================================================================================================
 
 
-void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GA_Offset ppt, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GA_Offset ppt, ParametersDeformablePatches params,  GU_RayIntersect &ray)
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
@@ -416,7 +416,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU
 //================================================================================================
 
 
-void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GU_RayIntersect &ray)
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.

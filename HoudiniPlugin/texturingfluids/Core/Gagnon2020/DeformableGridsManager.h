@@ -16,21 +16,20 @@ class DeformableGridsManager : public ParticleTrackerManager
 {
 public:
 
-    DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
+    DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *surfaceLowResGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, ParametersDeformablePatches params);
+    ~DeformableGridsManager();
 
+    void CreateGridsBasedOnMesh(vector<GA_Offset> trackers);
+    void CreateGridBasedOnMesh(GA_Offset ppt);
 
-    void CreateGridsBasedOnMesh(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree);
-    void CreateGridBasedOnMesh(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GA_Offset ppt,  GEO_PointTreeGAOffset &tree);
+    void AdvectGrids();
 
-    void AdvectGrids(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &tree, GU_Detail *surfaceGdp);
-
-    bool UVFlattening(GU_Detail &tempGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp,
+    bool UVFlattening(GU_Detail &tempGdp,
                       GA_Offset tracker, GA_Offset closestPoint,
                       GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
                       set<GA_Offset> &pointsAround,
-                      float scaling,
-                      ParametersDeformablePatches params);
-    void FlagBoundaries(GU_Detail *deformableGridsGdp);
+                      float scaling);
+    void FlagBoundaries();
 
     const string gridGroupName = "grids";
 
@@ -46,6 +45,10 @@ public:
 protected :
 
     ParametersDistortion distortionParams;
+    GU_Detail *deformableGridsGdp;
+    GU_Detail *surfaceLowResGdp;
+    GEO_PointTreeGAOffset surfaceTree;
+    GEO_PointTreeGAOffset surfaceLowResTree;
 
     const string uvArrayName = "uvs";
     const string alphaArrayName = "alphas";

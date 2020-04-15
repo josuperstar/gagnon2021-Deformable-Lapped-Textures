@@ -128,8 +128,6 @@ bool AtlasTestingConcealed::initVariables(int life)
     patchArray = patchIds->getAIFNumericArray();
     //-------------------------------------------------------
 
-    gridTree.build(deformableGrids,NULL);
-    //surfaceTree.build(surface, NULL);
     attLife = life;
 
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
@@ -398,9 +396,9 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
     int pixelCellSize = 5;
     Pixel color;
     Pixel displacement;
-    Pixel alphaColor;
+
     UT_Vector3 point;
-    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
+
     GA_RWHandleV3   attN(trackers->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     //-----------------------------------------------------------------
     for(int i =min.x()-pixelCellSize; i < max.x()+pixelCellSize; i++)
@@ -413,8 +411,6 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
 
             Pixel Cf = Pixel(0,0,0);
             Cf.A = 1;
-
-            Pixel R_eq3;
 
             Pixel colorSum0 = Pixel(0,0,0);
             colorSum0.A = 1;
@@ -429,8 +425,6 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
             color.A = 1;
 
             displacement = Pixel(0,0,0);
-            Pixel displacementSumEq3 = Pixel(0,0,0);
-            Pixel displacementSumEq4 = Pixel(0,0,0);
 
             point.x() = i;
             point.y() = j;
@@ -486,8 +480,6 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                     GU_RayIntersect ray(this->deformableGrids);
                     ray.init();
 
-                    surfaceTree.build(surface, NULL);
-                    surfaceLowResTree.build(this->lowResSurface, NULL);
                     //Need another patch
                     UT_Vector3 pixelPositionOnSurface;
 
@@ -505,13 +497,10 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
 
                     //2 - Add Deformable Grid
                     // we should create the grid based on the patch id
-                    patchedSurface.CreateGridBasedOnMesh(this->deformableGrids,lowResSurface,this->trackers, params, newPoint,surfaceLowResTree);
-
+                    patchedSurface.CreateGridBasedOnMesh(newPoint);
 
                     //----------------------- Rebuild data structure------------------------
                     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
-
-
 
                     int newPointId = attId.get(newPoint);
                     string str = std::to_string(newPointId);
