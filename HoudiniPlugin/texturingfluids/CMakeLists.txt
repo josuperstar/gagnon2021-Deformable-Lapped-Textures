@@ -33,6 +33,9 @@ file( GLOB SOURCES
     ${SRC_DIR}/Core/*.[hHcC]*
     ${SRC_DIR}/Core/Deformations/*
     ${SRC_DIR}/Core/Atlas/*
+    ${SRC_DIR}/Core/Gagnon2020/*
+    ${SRC_DIR}/Core/Gagnon2019/*
+    ${SRC_DIR}/Core/Gagnon2016/*
     ${SRC_DIR}/PoissonDisk/*
     ${SRC_DIR}/Images/*
     ${SRC_DIR}/Tests/*

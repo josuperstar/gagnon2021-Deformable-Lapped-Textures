@@ -8,7 +8,7 @@
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 #include "Core/Deformations/ParametersDeformablePatches.h"
-#include <Core/PatchedSurface.h>
+#include <Core/Gagnon2020/PatchedSurface.h>
 
 namespace TexturingFluids {
 
@@ -36,7 +36,7 @@ public:
    void SetDisplacementMap1(string data){displacementMapImageName = data;}
    void RenderColoredPatches(bool data) {renderColoredPatches = data;}
 
-   void RasterizePrimitive(PatchedSurface &patchedSurace, GA_Offset primOffset, int w,int h,  ParametersDeformablePatches params);
+   void RasterizePrimitive(PatchedSurfaceGagnon2020 &patchedSurace, GA_Offset primOffset, int w,int h,  ParametersDeformablePatches params);
    void RasterizePrimitiveYu2011BlendingFunction(GA_Offset primOffset, int w,int h,ParametersDeformablePatches params);
 
    void SaveAtlas();

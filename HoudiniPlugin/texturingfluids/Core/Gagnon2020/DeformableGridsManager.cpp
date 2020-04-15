@@ -28,7 +28,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)  : ParticleTrackerManager(surfaceGdp, trackersGdp)
+DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)  : ParticleTrackerManager(surfaceGdp, trackersGdp)
 {
 
     this->maxId = 0;
@@ -41,6 +41,20 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
 
     this->nbOfFlattenedPatch = 0;
     this->numberOfDegeneratedGrid = 0;
+
+    distortionParams.deletionLife               = params.fadingTau;
+    distortionParams.distortionRatioThreshold   = params.distortionRatioThreshold ;
+    distortionParams.Yu2011DMax                 = params.Yu2011DMax ;
+    distortionParams.QvMin                      = params.QvMin;
+
+    distortionParams.alphaName = "Alpha";
+    distortionParams.temporalRemoveName = "temporalRemove";
+    distortionParams.initialVertexAngle = initialVertexAngle;
+    distortionParams.distortionWeightName = distortionWeightName;
+    distortionParams.primLifeName = "life";
+
+    //should move this in the global approach
+    distortionParams.flagDistortedParticles = true;
 
 
 }
@@ -645,22 +659,10 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     float thresholdDistance = params.maximumProjectionDistance;
     float poissonDiskD = params.poissondiskradius;
 
-    ParametersDistortion distortionParams;
-    distortionParams.deletionLife               = params.fadingTau;
-    distortionParams.distortionRatioThreshold   = params.distortionRatioThreshold ;
-    distortionParams.Yu2011DMax                 = params.Yu2011DMax ;
-    distortionParams.QvMin                      = params.QvMin;
+    //----------------------distortion---------------------------
 
-    distortionParams.alphaName = "Alpha";
-    distortionParams.temporalRemoveName = "temporalRemove";
-    distortionParams.randomThresholdDistortion = randomThresholdDistortion;
-    distortionParams.initialVertexAngle = initialVertexAngle;
-    distortionParams.distortionWeightName = distortionWeightName;
-    distortionParams.primLifeName = "life";
 
-    if (!params.fadingIn)
-        distortionParams.flagDistortedParticles = false;
-
+    //---------------------------------------------------
     float cs = params.CellSize;
     float r = params.poissondiskradius;
 
@@ -678,7 +680,6 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
     const GA_GroupTable *gPrimTable = deformableGridsgdp->getGroupTable(primGroupType);
 
     GA_PointGroup* pointGrp;
-    vector<GA_Offset>::iterator it;
     UT_Vector3 N;
     GA_Offset ppt;
     GA_Offset trackerPpt;
@@ -694,8 +695,6 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
             continue;
 
         active = attActive.get(trackerPpt);
-        float randT = attRandT.get(trackerPpt);
-        distortionParams.randT = randT;
         int spawn = attSpawn.get(trackerPpt);
         life = attLife.get(trackerPpt);
         float gridAlpha = (float)life/(float)params.fadingTau;
@@ -826,15 +825,11 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
                             }
                             else
                             {
-                                //attLife.set(trackerPpt,0);
                                 deformableGridsgdp->setPos3(ppt,p1);
                                 //for debuging purposes
                                 attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
                                 grpToDestroy->addOffset(ppt);
-                                //attActive.set(trackerPpt,0);
-                                //attLife.set(trackerPpt,0);
-                                //this->numberOfDetachedPatches++;
                             }
                         }
                         //---------------------- Dynamic Tau -----------------------------------
@@ -901,12 +896,8 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         if (averageDeltaOnD < 0.0f )
             averageDeltaOnD = 0.0f;
 
-        //attMaxDeltaOnD.set(trackerPpt,maxDeltaOnD);
         attMaxDeltaOnD.set(trackerPpt,averageDeltaOnD);
-        //cout << "Max Delta on D "<<maxDeltaOnD<<endl;
-
-
-
+        //------------------------------------------------
         //delete too distorted primitives
         GEO_Primitive *prim;
         int numberOfPrimitives = 0;
@@ -918,11 +909,8 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
             else
                 numberOfPrimitives++;
         }
-//        attNumberOfPrimitives.set(trackerPpt,numberOfPrimitives);
-//        if (numberOfPrimitives == 0)
-//            attLife.set(trackerPpt,0);
+        //------------------------------------------------------
     }
-
 
     if (primGrpToDestroy != 0x0)
     {
@@ -930,52 +918,14 @@ void DeformableGridsManager::AdvectGrids(GU_Detail *deformableGridsgdp, GU_Detai
         deformableGridsgdp->destroyPrimitiveGroup(primGrpToDestroy);
     }
     deformableGridsgdp->deletePoints(*grpToDestroy,mode);
+    //------------------------------------------------------
+
+
     this->FlagBoundaries(deformableGridsgdp);
     cout << "Number of lonely patches: "<<this->numberOfLonelyTracker<<endl;
     cout << "Ok"<<endl;
 
     this->gridAdvectionTime += (std::clock() - startAdvection) / (double) CLOCKS_PER_SEC;
-}
-
-//================================================================================================
-
-//                                      CONNECTIVITY TEST
-
-//================================================================================================
-
-void DeformableGridsManager::ConnectivityTest(const GU_Detail *gdp, GA_Offset point,GA_PointGroup *grp,  set<GA_Offset> &pointsAround,set<GA_Offset> &group)
-{
-
-    if (grp == 0x0)
-        return;
-
-    GA_OffsetArray connectedTriangle;
-    gdp->getPrimitivesReferencingPoint(connectedTriangle,point);
-    GA_OffsetArray::const_iterator it;
-
-    for(it = connectedTriangle.begin(); it != connectedTriangle.end(); ++it)
-    {
-        GA_Offset index = (*it);
-        const GA_Primitive *prim = gdp->getPrimitive(index);
-        //triangleGroup.insert(index);
-        GA_Size vertexCount = prim->getVertexCount();
-
-        for(int i = 0; i < vertexCount; i++)
-        {
-            GA_Offset vertexPoint = prim->getVertexOffset(i);
-            GA_Offset pointOffset = gdp->vertexPoint(vertexPoint);
-
-            if (grp->containsOffset(pointOffset))
-                continue;
-
-            int found = pointsAround.count(pointOffset);
-            if(found > 0 && group.count(pointOffset) == 0)
-            {
-                group.insert(pointOffset);
-                ConnectivityTest(gdp,pointOffset,grp, pointsAround,group);
-            }
-        }
-    }
 }
 
 

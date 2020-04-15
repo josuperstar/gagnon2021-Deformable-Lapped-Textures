@@ -24,8 +24,8 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/LappedSurfaceGagnon2016.h>
-#include <Core/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Gagnon2016/LappedSurfaceGagnon2016.h>
+#include <Core/Gagnon2016/Bridson2012PoissonDiskDistribution.h>
 
 DynamicLappedTexture::DynamicLappedTexture()
 {

@@ -1,5 +1,5 @@
-#ifndef __Bridson2012PoissonDiskDistribution_h_
-#define __Bridson2012PoissonDiskDistribution_h_
+#ifndef __Bridson2012PoissonDiskDistributionGagnon2019_h_
+#define __Bridson2012PoissonDiskDistributionGagnon2019_h_
 #include <vector>
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
@@ -27,13 +27,13 @@ as the limit of samples to choose before rejection in the algorithm
 (typically k = 30).
 */
 
-class Bridson2012PoissonDiskDistribution
+class Bridson2012PoissonDiskDistributionGagnon2019
 {
 
 public:
 
     //Bridson2012PoissonDiskDistribution(){}
-    ~Bridson2012PoissonDiskDistribution()
+    ~Bridson2012PoissonDiskDistributionGagnon2019()
     {
         cout << "[Bridson2012PoissonDiskDistribution] destrotying grid"<<endl;
         //backgroundGrid.~TreeDGrid();

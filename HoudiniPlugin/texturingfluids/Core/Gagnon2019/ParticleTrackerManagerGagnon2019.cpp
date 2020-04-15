@@ -128,6 +128,7 @@ int ParticleTrackerManagerGagnon2019::NumberOfPatchesToDelete(GU_Detail *tracker
 void ParticleTrackerManagerGagnon2019::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_Offset ppt, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
 {
 
+    bool verbose = false;
     bool useDynamicTau = params.useDynamicTau;
 
     GA_PrimitiveGroup *surfaceGrpPrims = (GA_PrimitiveGroup *)surface->primitiveGroups().find(this->surfaceGroupName.c_str());
@@ -159,6 +160,11 @@ void ParticleTrackerManagerGagnon2019::CreateAndUpdateTrackerBasedOnPoissonDisk(
     int deletedTrackers = 0;
 
     id = attId.get(ppt);
+    if (verbose)
+    {
+        cout << "[ParticleTrackerManagerGagnon2019] CreateAndUpdateTrackerBasedOnPoissonDisk for point "<<id<<endl;
+        cout << "Dealing with primitive group "<<surfaceGrpPrims->getName()<<endl;
+    }
     int active = attActive.get(ppt);
     float currentLife = attLife.get(ppt);
     int currentSpawn = attSpawn.get(ppt);
@@ -200,27 +206,40 @@ void ParticleTrackerManagerGagnon2019::CreateAndUpdateTrackerBasedOnPoissonDisk(
         this->numberOfDetachedPatches++;
         return;
     }
+    if (verbose)
+        cout << "get hit position"<<endl;
     //get pos of hit
     UT_Vector4 hitPos;
     mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+    //cout << "check distance"<<endl;
     if (distance3d(p1,hitPos) < thresholdDistance)
     {
         p1 = hitPos;
 
         //------------------------------PARAMETRIC COORDINATE -----------------------------------
+        if (verbose)
+            cout << "get paramtric coordinate"<<endl;
         GA_Offset primOffset = mininfo.prim->getMapOffset();
         float u = mininfo.u1;
         float v = mininfo.v1;
+        if (verbose)
+            cout << "Getting prim "<<primOffset<<endl;
         GEO_Primitive *prim = surface->getGEOPrimitive(primOffset);
-
+        if (!prim)
+        {
+            cout << "Can't get primitive "<<primOffset<<endl;
+        }
         //Check if the prim is part of the group 'Surface':
         //
-        //cout << "Check if "<<primOffset<< " not in group "<<surfaceGrpPrims->getName()<<endl;
+        if (verbose)
+            cout << "Check if "<<primOffset<< " not in group "<<surfaceGrpPrims->getName()<<endl;
         if (!surfaceGrpPrims->containsOffset(primOffset))
         {
             //cout << "Prim not in surface group and current spawn is "<<currentSpawn<<endl;
             if (currentSpawn <= 1) // we just had it
             {
+                if (verbose)
+                    cout << "setting new particle values"<<endl;
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
                 //cout << "no dealing with "<< ppt<< endl;
@@ -228,6 +247,8 @@ void ParticleTrackerManagerGagnon2019::CreateAndUpdateTrackerBasedOnPoissonDisk(
                 return;
             }
         }
+        if (verbose)
+            cout << "compute paramtric coordinate"<<endl;
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
 
         GA_Offset pointOffset0  = surface->vertexPoint(vertexOffset0);
@@ -256,7 +277,8 @@ void ParticleTrackerManagerGagnon2019::CreateAndUpdateTrackerBasedOnPoissonDisk(
         return;
     }
 
-
+    if (verbose)
+        cout << "Update "<<endl;
     //========================================================================
 
     //========================= UPDATE ===============================
@@ -340,7 +362,8 @@ void ParticleTrackerManagerGagnon2019::CreateAndUpdateTrackerBasedOnPoissonDisk(
     attBlend.set(ppt,blending);
 
     //==============================================
-
+    if (verbose)
+        cout << "save data"<<endl;
     position = p1;
     trackersGdp->setPos3(ppt,position);
     N.normalize();
@@ -376,6 +399,13 @@ void ParticleTrackerManagerGagnon2019::CreateAndUpdateTrackersBasedOnPoissonDisk
 
     bool useDynamicTau = params.useDynamicTau;
     cout <<this->approachName<< " CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau <<endl;
+
+    GA_PrimitiveGroup *surfaceGrpPrims = (GA_PrimitiveGroup *)surface->primitiveGroups().find(this->surfaceGroupName.c_str());
+    if (surfaceGrpPrims == 0x0)
+    {
+        cout << "Can't find surface group"<<endl;
+        return;
+    }
 
     if (surfaceGroup == 0x0)
         return;

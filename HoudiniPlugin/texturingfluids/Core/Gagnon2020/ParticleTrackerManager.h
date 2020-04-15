@@ -27,7 +27,7 @@ public:
 
     const string markerGroupName = "markers";
     const string surfaceGroupName = "surface";
-    const string approachName   = "[Particle Tracker Gagnon 2020]";
+    const string approachName   = "[ParticleTrackerGagnon2020]";
 
     double  markerAdvectionTime;
 
@@ -47,7 +47,6 @@ protected :
     bool tackerPolygon = false;
 
     int maxId = 0;
-    const char*    randomThresholdDistortion = "t_rand";
     float epsilon = 0.0001;
 
     GA_RWHandleV3   attN;
@@ -60,7 +59,7 @@ protected :
     GA_RWHandleI    attIsMature;
     GA_RWHandleI    attDensity;
     GA_RWHandleF    attBlend;
-    GA_RWHandleF    attRandT;
+
     GA_RWHandleF    attMaxDeltaOnD;
     GA_RWHandleI    attDeleteFaster;
     GA_RWHandleV3   refAttV;

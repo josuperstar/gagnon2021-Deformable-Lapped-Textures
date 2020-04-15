@@ -28,7 +28,7 @@ public:
     ~SinglePatchInterface();
 
     //==========================================================================
-    void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet, GU_Detail *surfaceLowRes, ParametersDeformablePatches params);
+    void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail *surfaceLowRes, ParametersDeformablePatches params);
 
 private :
 

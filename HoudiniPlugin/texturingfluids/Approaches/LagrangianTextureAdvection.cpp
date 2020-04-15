@@ -24,8 +24,8 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/PatchedSurface.h>
-#include <Core/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Gagnon2019/PatchedSurfaceGagnon2019.h>
+#include <Core/Gagnon2019/Bridson2012PoissonDiskDistribution.h>
 
 LagrangianTextureAdvection::LagrangianTextureAdvection()
 {
@@ -37,7 +37,7 @@ LagrangianTextureAdvection::~LagrangianTextureAdvection()
 
 void LagrangianTextureAdvection::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    PatchedSurface surface(surfaceGdp, trackersGdp);
+    PatchedSurfaceGagnon2019 surface(surfaceGdp, trackersGdp);
     cout << "[LagrangianTextureAdvection::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 

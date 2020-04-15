@@ -1,4 +1,4 @@
-#include "PatchedSurface.h"
+#include "PatchedSurfaceGagnon2016.h"
 #include <vector>
 #include <algorithm>
 #include <SYS/SYS_Math.h>
@@ -25,16 +25,16 @@
 #include <GU/GU_Flatten.h>
 
 //#include <Strategies/StrategySurfaceTextureSynthesis.h>
-#include <Core/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Gagnon2016/Bridson2012PoissonDiskDistribution.h>
 #include <Core/HoudiniUtils.h>
 
 
-PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : DeformableGridsManager(surface, trackersGdp)
+PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : ParticleAndTrackerManagerGagnon2016(surface, trackersGdp)
 {
     //this->numberOfPatches = 0;
 
     this->maxId = 0;
-    this->gridCenterPosition.clear();
+
 
     /*
     uvsArray->clear(this->uvsAtt);
@@ -132,12 +132,8 @@ PatchedSurface::PatchedSurface(GU_Detail *surface, GU_Detail *trackersGdp) : Def
     }
     alphaArrayAtt->clearDataId();
 
-    this->uvFlatteningTime = 0;
-    this->gridMeshCreation = 0;
-    this->gridAdvectionTime = 0;
     this->markerAdvectionTime = 0;
     this->patchCreationTime = 0;
-    this->nbOfFlattenedPatch = 0;
     this->updatePatchesTime = 0;
 
 }

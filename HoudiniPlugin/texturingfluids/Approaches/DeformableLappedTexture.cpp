@@ -24,8 +24,8 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/PatchedSurface.h>
-#include <Core/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Gagnon2020/PatchedSurface.h>
+#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
 
 #include <Core/Atlas/AtlasTestingConcealed.h>
 #include <Core/Atlas/TBBAtlasTestingConcealed.h>
@@ -40,7 +40,7 @@ DeformableLappedTexture::~DeformableLappedTexture()
 
 void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    PatchedSurface surface(surfaceGdp, trackersGdp);
+    PatchedSurfaceGagnon2020 surface(surfaceGdp, trackersGdp, params);
     cout << "[DeformableLappedTexture::Synthesis] Version: (put version here) frame: "<<params.frame<<endl;
     //params.useDynamicTau = false;
 

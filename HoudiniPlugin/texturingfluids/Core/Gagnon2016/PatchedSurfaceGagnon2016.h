@@ -1,8 +1,8 @@
-#ifndef __PatchedSurface__
-#define __PatchedSurface__
+#ifndef __PatchedSurfaceGagnon2016__
+#define __PatchedSurfaceGagnon2016__
 
 #include <Math/Vec3.h>
-#include <Core/DeformableGridsManager.h>
+#include <Core/Gagnon2016/ParticleAndTrackerManagerGagnon2016.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
@@ -11,7 +11,7 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class PatchedSurface : public DeformableGridsManager
+class PatchedSurface : public ParticleAndTrackerManagerGagnon2016
 {
 public:
 
@@ -45,6 +45,11 @@ private :
     //---------------------------------------------
 
     map<string,GU_RayIntersect*> rays;
+
+    const string uvArrayName = "uvs";
+    const string alphaArrayName = "alphas";
+    const string patchIdsName = "patchIds";
+
 
 };
 

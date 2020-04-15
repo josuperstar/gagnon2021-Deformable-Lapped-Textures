@@ -1,8 +1,8 @@
-#ifndef __DeformableGrid_h__
-#define __DeformableGrid_h__
+#ifndef __DeformableGridGagnon2019_h__
+#define __DeformableGridGagnon2019_h__
 
 #include <Math/Vec3.h>
-#include <Core/ParticleTrackerManager.h>
+#include <Core/Gagnon2019/ParticleTrackerManagerGagnon2019.h>
 #include "Core/Deformations/DistortionMetricSorkine2002.h"
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
@@ -12,11 +12,11 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class DeformableGridsManager : public ParticleTrackerManager
+class DeformableGridsManagerGagnon2019 : public ParticleTrackerManagerGagnon2019
 {
 public:
 
-    DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
+    DeformableGridsManagerGagnon2019(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
 
 
     void CreateGridsBasedOnMesh(GU_Detail *gdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params,vector<GA_Offset> trackers,  GEO_PointTreeGAOffset &tree);
@@ -40,7 +40,7 @@ public:
     int     nbOfFlattenedPatch;
     double  gridMeshCreation;
     double  gridAdvectionTime;
-    const string approachName   = "[Deformable Grids]";
+    const string approachName   = "[Deformable Grids Gagno 2019]";
 
     int numberOfDegeneratedGrid;
 

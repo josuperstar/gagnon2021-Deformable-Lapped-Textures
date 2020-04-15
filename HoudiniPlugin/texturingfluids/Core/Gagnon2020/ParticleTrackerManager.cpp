@@ -56,7 +56,6 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
     this->attIsMature  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     this->attDensity =  GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
     this->attBlend  = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
-    this->attRandT  = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,randomThresholdDistortion,1));
     this->attMaxDeltaOnD  = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     this->attDeleteFaster =  GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
     this->refAttV  = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
@@ -218,13 +217,10 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
         //cout << "Check if "<<primOffset<< " not in group "<<surfaceGrpPrims->getName()<<endl;
         if (!surfaceGrpPrims->containsOffset(primOffset))
         {
-            //cout << "Prim not in surface group and current spawn is "<<currentSpawn<<endl;
             if (currentSpawn <= 1) // we just had it
             {
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
-                //cout << "no dealing with "<< ppt<< endl;
-                //this->numberOfNewAndLonelyTracker++;
                 return;
             }
         }
@@ -323,12 +319,9 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
         else
             currentSpawn+= 1+increment;
 
-        //HACK TO TEST ANIMATED TEXTURE
-        if (params.fadingIn == 0)
-        {
-            //currentSpawn = params.fadingTau;
-            currentLife = params.fadingTau;
-        }
+        //currentSpawn = params.fadingTau;
+        currentLife = params.fadingTau;
+
     }
     if (currentLife > (float)params.fadingTau)
         currentLife = (float)params.fadingTau;
@@ -358,8 +351,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
     attBlend.set(ppt,temporalComponetKt);
     attSpawn.set(ppt,currentSpawn);
     attMaxDeltaOnD.set(ppt,dynamicTau);
-    float randt = (((double) rand() / (RAND_MAX)));
-    attRandT.set(ppt,randt);
 
 }
 
@@ -392,7 +383,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
     cout <<this->approachName<< " Deleted trackers: "<<deletedTrackers<<endl;
     cout <<this->approachName<< " New And Lonely Tracker "<<numberOfNewAndLonelyTracker<<endl;
     cout <<this->approachName<< " Total trackers: "<<trackersGdp->getNumPoints() - deletedTrackers - numberOfNewAndLonelyTracker<<endl;
-    //cout <<" DONE"<<endl;
 }
 
 

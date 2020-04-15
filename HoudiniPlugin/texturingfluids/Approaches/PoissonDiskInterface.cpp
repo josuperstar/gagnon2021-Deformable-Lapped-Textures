@@ -23,8 +23,8 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/PatchedSurface.h>
-#include <Core/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Gagnon2020/PatchedSurface.h>
+#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
 
 PoissonDiskInterface::PoissonDiskInterface()
 {
@@ -36,7 +36,7 @@ PoissonDiskInterface::~PoissonDiskInterface()
 
 void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
-    PatchedSurface strategy(surfaceGdp, trackersGdp);
+    PatchedSurfaceGagnon2020 strategy(surfaceGdp, trackersGdp, params);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     params.useDynamicTau = false;
 

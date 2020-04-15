@@ -5,7 +5,7 @@
 #include "BlendingTestingConcealed.h"
 #include "../HoudiniUtils.h"
 
-#include <Core/PatchedSurface.h>
+#include <Core/Gagnon2020/PatchedSurface.h>
 
 #include <iostream>
 #include <iomanip>
@@ -306,7 +306,7 @@ void AtlasTestingConcealed::CreateListGUDetails()
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-void AtlasTestingConcealed::RasterizePrimitive(PatchedSurface &patchedSurface, GA_Offset primOffset, int w, int h,  ParametersDeformablePatches params)
+void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patchedSurface, GA_Offset primOffset, int w, int h,  ParametersDeformablePatches params)
 {
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)

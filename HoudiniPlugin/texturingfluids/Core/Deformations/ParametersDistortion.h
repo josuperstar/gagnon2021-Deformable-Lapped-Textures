@@ -20,7 +20,6 @@ struct ParametersDistortion
     float squeezeMax;
     float deletionLife;
     float distortionRatioThreshold;
-    float randT;
     std::string alphaName;
     std::string temporalRemoveName;
     std::string randomThresholdDistortion;
