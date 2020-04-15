@@ -62,7 +62,6 @@ DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail 
     surfaceTree.build(surfaceGdp, NULL);
     surfaceLowResTree.build(surfaceLowResGdp, NULL);
 
-
 }
 
 DeformableGridsManager::~DeformableGridsManager()

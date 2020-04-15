@@ -62,7 +62,7 @@ void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *surfaceLo
     surfaceTree.build(surfaceGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
-    strategy.PoissonDiskSampling(levelSet,trackersGdp,params);
+    strategy.PoissonDiskSampling(levelSet);
     strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
     strategy.AdvectSingleTrackers();
     //=======================================================================

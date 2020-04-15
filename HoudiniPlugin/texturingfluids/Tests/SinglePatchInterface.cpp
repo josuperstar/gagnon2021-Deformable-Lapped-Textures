@@ -56,8 +56,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         return;
     }
     //=======================================================
-    GU_RayIntersect ray(gdp);
-    ray.init();
+
 
 
     //=========================== CORE ALGORITHM ============================
@@ -69,9 +68,8 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         cout << "Creating a single poisson disk"<<endl;
         UT_Vector3 position(0,0,0);
         UT_Vector3 normal(0,1,0);
-        strategy.CreateAPatch(trackersGdp,position, normal, params);
+        strategy.CreateAPatch(position, normal);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
-        //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridsBasedOnMesh(newPatchesPoints);
     }
@@ -88,21 +86,19 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridsBasedOnMesh(newPatchesPoints);
-        strategy.DeleteUnusedPatches(gdp, trackersGdp,params);
+        strategy.DeleteUnusedPatches();
 
     }
     if (!usingOnlyPoissonDisk)
     {
         //For the blending computation, we create uv array per vertex that we called patch
-        strategy.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,ray);
+        strategy.AddDeformablePatchesUsingBarycentricCoordinates();
     }
 
     //=======================================================================
 
     cout << strategy.approachName<<" Done"<<endl;
     cout << "Clear surface tree"<<endl;
-
-    ray.clear();
 
     cout << strategy.approachName<< " saving grids data"<<endl;
     const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";

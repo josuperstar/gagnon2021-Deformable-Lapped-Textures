@@ -71,6 +71,8 @@ protected :
     map<int,UT_Vector3> gridCenterPosition;
     bool useUvFlattening = true;
 
+    GU_RayIntersect ray;
+
 
 
 };

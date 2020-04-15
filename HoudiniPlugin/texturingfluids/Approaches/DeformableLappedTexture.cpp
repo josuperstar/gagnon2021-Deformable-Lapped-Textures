@@ -55,9 +55,6 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
 
     //=======================================================
 
-    GU_RayIntersect ray(deformableGridGdp);
-    ray.init();
-
     //=========================== CORE ALGORITHM ============================
 
     //---- for visualisation purpose
@@ -71,7 +68,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
 
     if(params.startFrame == params.frame)
     {
-        surface.PoissonDiskSampling(levelSet,trackersGdp,params);
+        surface.PoissonDiskSampling(levelSet);
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         if (!usingOnlyPoissonDisk)
             surface.CreateGridsBasedOnMesh(newPatchesPoints);
@@ -86,20 +83,20 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
         if (params.updateDistribution)
         {
             cout << "------------------- Sampling ---------------------"<<endl;
-            surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
+            surface.PoissonDiskSampling(levelSet); //Poisson disk on the level set
         }
         cout << "------------------- Updating Trackers ---------------------"<<endl;
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         cout << "------------------- Grid Creation ---------------------"<<endl;
         surface.CreateGridsBasedOnMesh(newPatchesPoints);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
-        surface.DeleteUnusedPatches(deformableGridGdp, trackersGdp,params);
+        surface.DeleteUnusedPatches();
     }
     if (!usingOnlyPoissonDisk)
     {
         //For the blending computation, we create uv array per vertex that we called patch
         cout << "------------------- Patch Creation ---------------------"<<endl;
-        surface.AddDeformablePatchesUsingBarycentricCoordinates(deformableGridGdp, surfaceGdp,trackersGdp, params,ray);
+        surface.AddDeformablePatchesUsingBarycentricCoordinates();
     }
 
     //-------------------- texture synthesis to test concealed patches --------------------
@@ -213,7 +210,6 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     cout << surface.approachName<<" Done"<<endl;
     //cout << "Clear surface tree"<<endl;
 //    surfaceTree.clear();
-    ray.clear();
 
     cout << surface.approachName<< " saving grids data"<<endl;
     const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";

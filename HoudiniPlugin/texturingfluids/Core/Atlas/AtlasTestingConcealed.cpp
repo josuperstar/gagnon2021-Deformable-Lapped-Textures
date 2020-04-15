@@ -19,33 +19,12 @@ std::string format_account_number_concealed(int acct_no) {
 AtlasTestingConcealed::~AtlasTestingConcealed()
 {
     cout << "Destroy Atlas Testing Concealed"<<endl;
-//    if (this->diffuseImageBlendingGagnon->IsValid())
-//        delete this->diffuseImageBlendingGagnon;
-
-//    if (this->diffuseImageBlendingYu2011Equation3->IsValid())
-//        delete this->diffuseImageBlendingYu2011Equation3;
-
-//    if (this->diffuseImageBlendingYu2011Equation4->IsValid())
-//        delete this->diffuseImageBlendingYu2011Equation4;
-
 
     for (int i = 0; i < this->numberOfTextureSampleFrame-1; i++)
     {
-        cout << "delete texture examplar memory "<<i<<endl;
+        //cout << "delete texture examplar memory "<<i<<endl;
         delete this->textureExemplars[i];
     }
-
-
-//    cout << "Delete rays"<< endl;
-//    GA_PrimitiveGroup *primGroup;
-//    GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-//    {
-//         string name = primGroup->getName().toStdString();
-//         delete rays[name];
-//         //delete patchesGeo[name];
-//         //delete details[name];
-//    }
-//    //patchesGeo.clear();
 
     trackerNormal.clear();
 
@@ -492,7 +471,7 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                     //1- Add particle
                     //Here, we should have a patch id as the result
                     cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
-                    GA_Offset newPoint = patchedSurface.CreateAPatch(trackers, positionOnSurface, N, params);
+                    GA_Offset newPoint = patchedSurface.CreateAPatch( positionOnSurface, N);
                     patchedSurface.CreateAndUpdateTrackerBasedOnPoissonDisk(newPoint);
 
                     //2 - Add Deformable Grid
