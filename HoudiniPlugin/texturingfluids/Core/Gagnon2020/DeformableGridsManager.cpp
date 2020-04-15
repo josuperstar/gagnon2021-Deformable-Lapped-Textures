@@ -28,7 +28,7 @@
 #include <Core/HoudiniUtils.h>
 
 
-DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)  : ParticleTrackerManager(surfaceGdp, trackersGdp)
+DeformableGridsManager::DeformableGridsManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)  : ParticleTrackerManager(surfaceGdp, trackersGdp, params)
 {
 
     this->maxId = 0;

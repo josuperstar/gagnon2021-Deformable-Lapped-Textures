@@ -27,11 +27,23 @@
 #include <GU/GU_Flatten.h>
 
 //#include <Strategies/StrategySurfaceTextureSynthesis.h>
-#include <Core/HoudiniUtils.h>
 
 
-ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp)
+
+ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
 {
+    this->surface = surfaceGdp;
+    this->trackersGdp = trackersGdp;
+    this->params = params;
+
+    surfaceGroup = (GA_PointGroup *)surfaceGdp->pointGroups().find(this->surfaceGroupName.c_str());
+    if (surfaceGroup == 0x0)
+    {
+        cout << "There is no surface group to synthesis"<<endl;
+        return;
+    }
+    surfaceGrpPrims = (GA_PrimitiveGroup *)surface->primitiveGroups().find(this->surfaceGroupName.c_str());
+
     //this->numberOfPatches = 0;
     this->maxId = 0;
     this->markerAdvectionTime = 0;
@@ -93,7 +105,7 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
 }
 
 
-int ParticleTrackerManager::NumberOfPatchesToDelete(GU_Detail *trackersGdp)
+int ParticleTrackerManager::NumberOfPatchesToDelete()
 {
     int toDelete = 0;
     {
@@ -117,6 +129,26 @@ int ParticleTrackerManager::NumberOfPatchesToDelete(GU_Detail *trackersGdp)
 }
 
 
+UT_Vector3 ParticleTrackerManager::GetParamtrericCoordinate(GEO_Primitive *prim, GA_RWHandleV3 attribute, float u, float v)
+{
+    GA_Offset vertexOffset0 = prim->getVertexOffset(0);
+
+    GA_Offset pointOffset0  = this->surface->vertexPoint(vertexOffset0);
+    UT_Vector3 v0 = attribute.get(pointOffset0);
+
+    GA_Offset vertexOffset1 = prim->getVertexOffset(1);
+    GA_Offset pointOffset1  = this->surface->vertexPoint(vertexOffset1);
+    UT_Vector3 v1 = attribute.get(pointOffset1);
+
+    GA_Offset vertexOffset2 = prim->getVertexOffset(2);
+    GA_Offset pointOffset2  = this->surface->vertexPoint(vertexOffset2);
+
+    UT_Vector3 v2 = attribute.get(pointOffset2);
+
+    UT_Vector3 result = v0+u*(v1-v0)+v*(v2-v0);
+    return result;
+}
+
 //================================================================================================
 
 //                                      CREATE TRACKER BASED ON POISSON DISK
@@ -124,12 +156,12 @@ int ParticleTrackerManager::NumberOfPatchesToDelete(GU_Detail *trackersGdp)
 //================================================================================================
 
 
-void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_Offset ppt, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
+void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk( GA_Offset ppt)
 {
 
     bool useDynamicTau = params.useDynamicTau;
 
-    GA_PrimitiveGroup *surfaceGrpPrims = (GA_PrimitiveGroup *)surface->primitiveGroups().find(this->surfaceGroupName.c_str());
+
 
     GA_PointGroup *markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
     if (markerGrp == 0x0)
@@ -205,7 +237,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
     if (distance3d(p1,hitPos) < thresholdDistance)
     {
         p1 = hitPos;
-
         //------------------------------PARAMETRIC COORDINATE -----------------------------------
         GA_Offset primOffset = mininfo.prim->getMapOffset();
         float u = mininfo.u1;
@@ -213,8 +244,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
         GEO_Primitive *prim = surface->getGEOPrimitive(primOffset);
 
         //Check if the prim is part of the group 'Surface':
-        //
-        //cout << "Check if "<<primOffset<< " not in group "<<surfaceGrpPrims->getName()<<endl;
         if (!surfaceGrpPrims->containsOffset(primOffset))
         {
             if (currentSpawn <= 1) // we just had it
@@ -224,24 +253,8 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
                 return;
             }
         }
-        GA_Offset vertexOffset0 = prim->getVertexOffset(0);
-
-        GA_Offset pointOffset0  = surface->vertexPoint(vertexOffset0);
-        UT_Vector3 n0 = refAttN.get(pointOffset0);
-        UT_Vector3 v0 = refAttV.get(pointOffset0);
-
-        GA_Offset vertexOffset1 = prim->getVertexOffset(1);
-        GA_Offset pointOffset1  = surface->vertexPoint(vertexOffset1);
-        UT_Vector3 n1 = refAttN.get(pointOffset1);
-        UT_Vector3 v1 = refAttV.get(pointOffset1);
-
-        GA_Offset vertexOffset2 = prim->getVertexOffset(2);
-        GA_Offset pointOffset2  = surface->vertexPoint(vertexOffset2);
-        UT_Vector3 n2 = refAttN.get(pointOffset2);
-        UT_Vector3 v2 = refAttV.get(pointOffset2);
-
-        N                   = n0+u*(n1-n0)+v*(n2-n0);
-        velocity = v0+u*(v1-v0)+v*(v2-v0);
+        N = GetParamtrericCoordinate(prim, refAttN, u, v);
+        velocity = GetParamtrericCoordinate(prim, refAttV, u, v);
     }
     else
     {
@@ -251,7 +264,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
         this->numberOfDetachedPatches++;
         return;
     }
-
 
     //========================================================================
 
@@ -277,7 +289,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
             attDeleteFaster.set(ppt, 0);
         }
     }
-
     //-------------------------------------------------------
 
     int increment = density;
@@ -310,8 +321,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
     //fade in
     else if (currentSpawn < params.fadingTau)
     {
-        //currentLife++;
-        //currentSpawn++;
 
         currentLife += 1.0f+(float)increment;
         if (currentSpawn == 0)
@@ -319,7 +328,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
         else
             currentSpawn+= 1+increment;
 
-        //currentSpawn = params.fadingTau;
         currentLife = params.fadingTau;
 
     }
@@ -351,7 +359,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
     attBlend.set(ppt,temporalComponetKt);
     attSpawn.set(ppt,currentSpawn);
     attMaxDeltaOnD.set(ppt,dynamicTau);
-
 }
 
 
@@ -362,22 +369,16 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail 
 //================================================================================================
 
 
-void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
+void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk()
 {
-
     bool useDynamicTau = params.useDynamicTau;
     cout <<this->approachName<< " CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau <<endl;
-
-    if (surfaceGroup == 0x0)
-        return;
 
     GA_Offset ppt;
     int deletedTrackers = 0;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        this->CreateAndUpdateTrackerBasedOnPoissonDisk(surface,trackersGdp,ppt,surfaceGroup,params);
-
-        //numberOfPatches++;
+        this->CreateAndUpdateTrackerBasedOnPoissonDisk(ppt);
     }
 
     cout <<this->approachName<< " Deleted trackers: "<<deletedTrackers<<endl;
@@ -393,16 +394,15 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail
 //================================================================================================
 
 
-void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void ParticleTrackerManager::AdvectSingleTrackers()
 {
     cout <<this->approachName<< " Advect Single Trackers"<<endl;
 
     std::clock_t startAdvection;
     startAdvection = std::clock();
 
-    GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    //GA_RWHandleV3 refAttN(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
 
-    //numberOfPatches = 0;
     maxId = 0;
 
     if (attV.isInvalid())
@@ -416,7 +416,7 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
         cout << "The is no density defined"<<endl;
         return;
     }
-
+    UT_Vector3 N;
     UT_Vector3 v;
     UT_Vector3 p;
     UT_Vector3 p1;
@@ -427,11 +427,9 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
     {
         GU_MinInfo mininfo;
 
-        GU_RayIntersect ray(surfaceGdp);
+        GU_RayIntersect ray(this->surface);
         ray.init();
 
-        UT_Vector3 refDir(1,0,0);
-        UT_Vector3 N;
         GA_Offset ppt;
         int id;
         int density;
@@ -439,14 +437,12 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
         cout <<this->approachName<< " Start advection loop"<<endl;
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
-            //cout << "advecting point "<<ppt;
             v = attV.get(ppt);
             N = attN.get(ppt);
             density = attDensity.get(ppt);
-            //cout << v << " "<<N << " "<<density;
+
             if (N.length() < epsilon)
             {
-                //cout << "N lenght is too small"<<endl;
                 continue;
             }
             p = trackersGdp->getPos3(ppt);
@@ -457,7 +453,6 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
 
             currentLife = attLife.get(ppt);
 
-            //cout << " "<<currentLife;
             //-----------------------------------------
             //advection
             UT_Vector3 d = v*dt;
@@ -466,8 +461,6 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
             //-----------------------------------------
 
             p1 = trackersGdp->getPos3(ppt);
-
-            //cout << " "<<p1<<endl;
 
             mininfo.init(thresholdDistance,0.0001);
             ray.minimumPoint(p1,mininfo);
@@ -498,33 +491,16 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
                 GA_Offset primOffset = mininfo.prim->getMapOffset();
                 float u = mininfo.u1;
                 float v = mininfo.v1;
-                GEO_Primitive *prim = surfaceGdp->getGEOPrimitive(primOffset);
+                GEO_Primitive *prim = this->surface->getGEOPrimitive(primOffset);
                 int numberOfVertices = prim->getVertexCount();
                 if (numberOfVertices != 3)
                     continue;
-                GA_Offset vertexOffset0 = prim->getVertexOffset(0);
 
-                GA_Offset pointOffset0  = surfaceGdp->vertexPoint(vertexOffset0);
-                UT_Vector3 n0 = refAttN.get(pointOffset0);
-                UT_Vector3 v0 = refAttV.get(pointOffset0);
-
-                GA_Offset vertexOffset1 = prim->getVertexOffset(1);
-                GA_Offset pointOffset1  = surfaceGdp->vertexPoint(vertexOffset1);
-                UT_Vector3 n1 = refAttN.get(pointOffset1);
-                UT_Vector3 v1 = refAttV.get(pointOffset1);
-
-                GA_Offset vertexOffset2 = prim->getVertexOffset(2);
-                GA_Offset pointOffset2  = surfaceGdp->vertexPoint(vertexOffset2);
-                UT_Vector3 n2 = refAttN.get(pointOffset2);
-                UT_Vector3 v2 = refAttV.get(pointOffset2);
-
-                N                   = n0+u*(n1-n0)+v*(n2-n0);
-                UT_Vector3 velocity = v0+u*(v1-v0)+v*(v2-v0);
+                UT_Vector3 N = GetParamtrericCoordinate(prim, refAttN, u, v);
+                UT_Vector3 velocity = GetParamtrericCoordinate(prim, refAttV, u, v);
                 attV.set(ppt,velocity);
-
                 attN.set(ppt,N);
                 //------------------------------------------------------------------------------------
-                //numberOfPatches++;
             }
             else
             {
@@ -536,15 +512,12 @@ void ParticleTrackerManager::AdvectSingleTrackers(GU_Detail *surfaceGdp,GU_Detai
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
 
-                //numberOfPatches--;
                 numberOfDetachedPatches++;
 
                 trackersGdp->setPos3(ppt,p1);
-                //cout << "new new position "<<p1<<endl;
             }
         }
     }
-
 
     //----------------------------------
     cout << this->approachName<< " There are "<<numberOfPatchBefore << " trackers after advection"<<endl;

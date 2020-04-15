@@ -63,8 +63,8 @@ void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
 
     //=========================== CORE ALGORITHM ============================
     strategy.PoissonDiskSampling(levelSet,trackersGdp,params);
-    strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-    strategy.AdvectSingleTrackers(surfaceGdp,trackersGdp, params);
+    strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
+    strategy.AdvectSingleTrackers();
     //=======================================================================
 
     cout << strategy.approachName<<" Done"<<endl;

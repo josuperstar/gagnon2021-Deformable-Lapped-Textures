@@ -501,7 +501,7 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                     //Here, we should have a patch id as the result
                     cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
                     GA_Offset newPoint = patchedSurface.CreateAPatch(trackers, positionOnSurface, N, params);
-                    patchedSurface.CreateAndUpdateTrackerBasedOnPoissonDisk(surface, trackers,newPoint, surfaceGroup, params);
+                    patchedSurface.CreateAndUpdateTrackerBasedOnPoissonDisk(newPoint);
 
                     //2 - Add Deformable Grid
                     // we should create the grid based on the patch id

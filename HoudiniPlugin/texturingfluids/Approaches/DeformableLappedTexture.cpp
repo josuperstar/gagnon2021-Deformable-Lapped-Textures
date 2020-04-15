@@ -52,12 +52,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     const GA_SaveOptions *options;
     UT_StringArray *errors;
 
-    GA_PointGroup *surfaceGroup = (GA_PointGroup *)surfaceGdp->pointGroups().find(surface.surfaceGroupName.c_str());
-    if (surfaceGroup == 0x0)
-    {
-        cout << "There is no surface group to synthesis"<<endl;
-        return;
-    }
+
     //=======================================================
     GA_PointGroup *grp = (GA_PointGroup *)gdp->pointGroups().find(surface.markerGroupName.c_str());
 
@@ -84,16 +79,16 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     if(params.startFrame == params.frame)
     {
         surface.PoissonDiskSampling(levelSet,trackersGdp,params);
-        surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
+        surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         if (!usingOnlyPoissonDisk)
             surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
     }
     else
     {
         cout << "------------------- Advection ---------------------"<<endl;
-        surface.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
+        surface.AdvectSingleTrackers();
         surface.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
-        cout << "number of patch flaged to delete "<<surface.NumberOfPatchesToDelete(trackersGdp)<<endl;
+        cout << "number of patch flaged to delete "<<surface.NumberOfPatchesToDelete()<<endl;
         cout << "number of distorted patches "<<surface.numberOfDistortedPatches<<endl;
         if (params.updateDistribution)
         {
@@ -101,7 +96,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
             surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
         }
         cout << "------------------- Updating Trackers ---------------------"<<endl;
-        surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
+        surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         cout << "------------------- Grid Creation ---------------------"<<endl;
         surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;

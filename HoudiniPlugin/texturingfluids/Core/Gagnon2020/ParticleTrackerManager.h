@@ -5,6 +5,7 @@
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
+#include <Core/HoudiniUtils.h>
 
 namespace TexturingFluids {
 
@@ -15,15 +16,15 @@ class ParticleTrackerManager
 {
 public:
 
-    ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp);
-    void CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail* surface,GU_Detail *trackers, GA_PointGroup *surfaceGroup, ParametersDeformablePatches params);
-    void CreateAndUpdateTrackerBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_Offset ppt, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params);
-    void AdvectSingleTrackers(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
-    void DeleteTracker(GU_Detail* trackers,int trackerId);
+    ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
+    void CreateAndUpdateTrackersBasedOnPoissonDisk();
+    void CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset ppt);
+    void AdvectSingleTrackers();
+    void DeleteTracker(int trackerId);
 
     int GetNumberOfPatches(){return numberOfPatches;}
 
-    int NumberOfPatchesToDelete(GU_Detail *trackersGdp);
+    int NumberOfPatchesToDelete();
 
     const string markerGroupName = "markers";
     const string surfaceGroupName = "surface";
@@ -43,6 +44,8 @@ public:
 
 
 protected :
+
+    UT_Vector3 GetParamtrericCoordinate(GEO_Primitive *prim, GA_RWHandleV3 attribute, float u, float v);
 
     bool tackerPolygon = false;
 
@@ -74,7 +77,13 @@ protected :
     //GA_RWHandleV3 attNSurface;
     GA_RWHandleF attDivergence;
 
+    GU_Detail *surface;
+    GU_Detail *trackersGdp;
 
+    GA_PointGroup *surfaceGroup;
+    GA_PrimitiveGroup *surfaceGrpPrims;
+
+    ParametersDeformablePatches params;
 };
 
 }

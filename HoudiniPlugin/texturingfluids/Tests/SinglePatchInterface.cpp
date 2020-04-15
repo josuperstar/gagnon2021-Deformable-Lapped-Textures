@@ -73,7 +73,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         UT_Vector3 position(0,0,0);
         UT_Vector3 normal(0,1,0);
         strategy.CreateAPatch(trackersGdp,position, normal, params);
-        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
+        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
@@ -84,11 +84,11 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         //TODO add a paramter to test the advection
         if (testAdvection)
         {
-            strategy.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
+            strategy.AdvectSingleTrackers();
             strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
         }
         //strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
-        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
+        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
         strategy.DeleteUnusedPatches(gdp, trackersGdp,params);
