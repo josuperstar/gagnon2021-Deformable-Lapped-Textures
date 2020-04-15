@@ -20,7 +20,6 @@ struct ParametersDistortion
     float squeezeMax;
     float deletionLife;
     float distortionRatioThreshold;
-    float randT;
     std::string alphaName;
     std::string temporalRemoveName;
     std::string randomThresholdDistortion;
@@ -32,6 +31,7 @@ struct ParametersDistortion
     bool computeShearing = false;
     float Yu2011DMax;
     float QvMin;
+    int flagDistortedParticles = true;
 };
 
 }

@@ -118,6 +118,8 @@ bool DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
                 //For each grid vertex V , we then compute its quality, QV as the mean of the quality of its incident triangles.
                 //TODO compute Qv:
 
+                //Apparently, this part does not work.
+                //TODO: investigate
 
                 GA_OffsetArray primitives;
                 vector<GA_Offset>::iterator itPoint;
@@ -176,7 +178,7 @@ bool DistortionMetricSorkine2002::ComputeDistortion(GU_Detail *trackersGdp, GU_D
     if (killParticle)
     {
         //flag killing particle if it's not already flagged:
-        if (attActive.get(trackerPpt) == 1)
+        if (params.flagDistortedParticles && attActive.get(trackerPpt) == 1)
         {
             attActive.set(trackerPpt,0);
             return true;

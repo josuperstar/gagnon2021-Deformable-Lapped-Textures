@@ -58,9 +58,9 @@ and e = 1.085 worked well, but could be further tuned.
 */
 
 
-void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params)
+void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params)
 {
-    cout << "[Bridson2012PoissonDiskDistribution] on level set using a threshold of "<<angleNormalThreshold<<endl;
+    cout << "[Bridson2012PoissonDiskDistributionGagnon2020] on level set using a threshold of "<<angleNormalThreshold<<endl;
 
     GA_RWHandleV3   attN(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
@@ -81,7 +81,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
     if (!phi || !phi->hasGrid())
     {
-        cout << "[Bridson2012PoissonDiskDistribution] Input geometry 0 has no VDB grid!"<<endl;
+        cout << "[Bridson2012PoissonDiskDistributionGagnon2020] Input geometry 0 has no VDB grid!"<<endl;
         return;
     }
 
@@ -93,7 +93,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
     this->poissonDiskRadius = diskRadius;
     float killDistance = (1-a)*diskRadius/2;
 
-    cout << "[Bridson2012PoissonDiskDistribution] We have a valid vdb"<<endl;
+    cout << "[Bridson2012PoissonDiskDistributionGagnon2020] We have a valid vdb"<<endl;
 
     GA_RWHandleI    attDeleteFaster(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"deleteFaster", 1));
     GA_Offset ppt;
@@ -121,8 +121,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 
         if (attActive.get(ppt) == 0)
             continue;
-
-        if (params.fadingIn == 1)
+        //If we have fading in, we are using 2019's approach
+        //if (params.fadingIn == 1)
         {
             attActive.set(ppt,meetPoissonDiskCriterion);
         }
@@ -271,7 +271,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 //================================================================================================
 
 
-openvdb::Vec3f Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad)
+openvdb::Vec3f Bridson2012PoissonDiskDistributionGagnon2020::projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad)
 {
     //get the norm of the gradient
     openvdb::Vec3f gradNorm = grad;
@@ -296,7 +296,7 @@ openvdb::Vec3f Bridson2012PoissonDiskDistribution::projectPointOnLevelSet(openvd
 //================================================================================================
 
 
-bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
+GA_Offset Bridson2012PoissonDiskDistributionGagnon2020::CreateAParticle(GU_Detail *trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 p, UT_Vector3 N,  float killDistance , int &numberOfClosePoint, ParametersDeformablePatches &params)
 {
 
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
@@ -322,12 +322,12 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
         divider = 2;
     if (trackersGdp->getNumPoints()/divider > this->maxId) //existing points
     {
-        cout << "New Max Id = "<<trackersGdp->getNumPoints()/divider<<endl;
+        //cout << "New Max Id = "<<trackersGdp->getNumPoints()/divider<<endl;
         this->maxId = trackersGdp->getNumPoints()/divider;
     }
     int id = this->maxId+1;
     this->maxId = id;
-
+    //cout << "New Max Id = "<<this->maxId<<endl;
     GA_Offset newPoint = trackersGdp->appendPoint();
     trackersGdp->setPos3(newPoint, p);
     attN.set(newPoint,N);
@@ -368,10 +368,10 @@ bool Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *trackersGdp,
 
     this->numberOfNewPoints++;
 
-    return true;
+    return newPoint;
 }
 
-void Bridson2012PoissonDiskDistribution::CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N)
+void Bridson2012PoissonDiskDistributionGagnon2020::CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N)
 {
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
@@ -413,7 +413,7 @@ void Bridson2012PoissonDiskDistribution::CreateAPointDisk(GU_Detail* trackersGdp
 
 //================================================================================================
 
-bool Bridson2012PoissonDiskDistribution::RespectCriterion(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint,   GA_Offset exclude, ParametersDeformablePatches params )
+bool Bridson2012PoissonDiskDistributionGagnon2020::RespectCriterion(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint,   GA_Offset exclude, ParametersDeformablePatches params )
 {
     numberOfClosePoint = 0;
 

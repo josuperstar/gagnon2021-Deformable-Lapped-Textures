@@ -2,7 +2,7 @@
 #define __LAPPED_SURFACE_H__
 
 #include <Math/Vec3.h>
-#include <Core/ParticleAndTrackerManagerGagnon2016.h>
+#include <Core/Gagnon2016/ParticleAndTrackerManagerGagnon2016.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 

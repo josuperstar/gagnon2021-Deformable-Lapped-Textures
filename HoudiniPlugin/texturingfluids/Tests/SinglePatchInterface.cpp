@@ -23,8 +23,8 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/PatchedSurface.h>
-#include <Core/Bridson2012PoissonDiskDistribution.h>
+#include <Core/Gagnon2020/PatchedSurface.h>
+#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
 
 SinglePatchInterface::SinglePatchInterface()
 {
@@ -34,9 +34,9 @@ SinglePatchInterface::~SinglePatchInterface()
 {
 }
 
-void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
+void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    PatchedSurface strategy(surfaceGdp, trackersGdp);
+    PatchedSurfaceGagnon2020 strategy(surfaceGdp, trackersGdp, params);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
@@ -44,7 +44,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
     start = std::clock();
 
     vector<GA_Offset> newPatchesPoints;
-    vector<GA_Offset> trackers;
+
     cout << "reference gdp created"<<endl;
     const GA_SaveOptions *options;
     UT_StringArray *errors;
@@ -65,17 +65,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
 
     //=========================== CORE ALGORITHM ============================
 
-
-    //---- for visualisation purpose
-
-    //string beforeUpdateString = params.trackersFilename + "beforeAdvection.bgeo";
-    //const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
-    //trackersGdp->save(filename,options,errors);
-    //----------------------------------
-
-
     bool usingOnlyPoissonDisk = false;
-
 
     if(params.startFrame == params.frame)
     {
@@ -86,12 +76,11 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
         if (!usingOnlyPoissonDisk)
-            strategy.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+            strategy.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
     }
     else
     {
         bool testAdvection = false;
-        int frameToFlagToRemove = 100;
         //TODO add a paramter to test the advection
         if (testAdvection)
         {
@@ -101,7 +90,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         //strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
         if (!usingOnlyPoissonDisk)
-            strategy.CreateGridBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+            strategy.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
         strategy.DeleteUnusedPatches(gdp, trackersGdp,params);
 
     }

@@ -8,7 +8,7 @@
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 #include "Core/Deformations/ParametersDeformablePatches.h"
-#include <Core/PatchedSurface.h>
+#include <Core/Gagnon2020/PatchedSurface.h>
 
 namespace TexturingFluids {
 
@@ -23,8 +23,11 @@ public:
    bool BuildAtlas(int w, int h, int life);
 
    void SetSurface(GU_Detail *data) {surface = data;}
+   void SetLowResSurface(GU_Detail *data) {lowResSurface = data;}
    void SetDeformableGrids(GU_Detail *data) {deformableGrids = data;}
+   void SetLowResDeformableGrids(GU_Detail *data) {lowResDeformableGrids = data;}
    void SetTrackers(GU_Detail *data) {trackers = data;}
+
    void SetTrackersPosition(map<int,UT_Vector3> data){ trackerNormal = data;}
    void SetNumberOfTextureSampleFrame(int data){ numberOfTextureSampleFrame = data;}
 
@@ -33,7 +36,7 @@ public:
    void SetDisplacementMap1(string data){displacementMapImageName = data;}
    void RenderColoredPatches(bool data) {renderColoredPatches = data;}
 
-   void RasterizePrimitive(GA_Offset primOffset, int w,int h,  ParametersDeformablePatches params);
+   void RasterizePrimitive(PatchedSurfaceGagnon2020 &patchedSurace, GA_Offset primOffset, int w,int h,  ParametersDeformablePatches params);
    void RasterizePrimitiveYu2011BlendingFunction(GA_Offset primOffset, int w,int h,ParametersDeformablePatches params);
 
    void SaveAtlas();
@@ -49,14 +52,20 @@ private:
 
    void BoundingBox2D(UT_Vector3 a, UT_Vector3 b, UT_Vector3 c, UT_Vector3 &min,UT_Vector3 &max);
    bool IsPointInTriangle(UT_Vector3  p, UT_Vector3 a,UT_Vector3 b,UT_Vector3 c);
-
+   bool initImages(int w, int h);
+   bool initVariables(int life);
+   void buildRayList();
+   void buildArrayList();
+   bool imageInitied = false;
    void CreateListGUDetails();
    Pixel SetRandomColor(int patchNumber);
    map<int,Pixel> patchColors;
    void initPatchColors(GU_Detail *trackersGdp);
 
    GU_Detail* surface;
+   GU_Detail* lowResSurface;
    GU_Detail* deformableGrids;
+   GU_Detail* lowResDeformableGrids;
    GU_Detail* trackers;
 
    ImageCV *diffuseImageBlendingGagnon;
@@ -76,6 +85,7 @@ private:
    string displacementMapImageName;
 
    GEO_PointTreeGAOffset surfaceTree;
+   GEO_PointTreeGAOffset surfaceLowResTree;
    GEO_PointTreeGAOffset gridTree;
 
 

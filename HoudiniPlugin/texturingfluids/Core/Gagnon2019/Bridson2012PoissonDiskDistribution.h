@@ -1,5 +1,5 @@
-#ifndef __Bridson2012PoissonDiskDistribution_h_
-#define __Bridson2012PoissonDiskDistribution_h_
+#ifndef __Bridson2012PoissonDiskDistributionGagnon2019_h_
+#define __Bridson2012PoissonDiskDistributionGagnon2019_h_
 #include <vector>
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
@@ -27,13 +27,13 @@ as the limit of samples to choose before rejection in the algorithm
 (typically k = 30).
 */
 
-class Bridson2012PoissonDiskDistribution
+class Bridson2012PoissonDiskDistributionGagnon2019
 {
 
 public:
 
     //Bridson2012PoissonDiskDistribution(){}
-    ~Bridson2012PoissonDiskDistribution()
+    ~Bridson2012PoissonDiskDistributionGagnon2019()
     {
         cout << "[Bridson2012PoissonDiskDistribution] destrotying grid"<<endl;
         //backgroundGrid.~TreeDGrid();
@@ -43,7 +43,7 @@ public:
     void SetNumberOfPoint(int data){this->numberOfPoints = data;}
     void initializeGrid(GEO_PointTreeGAOffset &tree, GU_Detail *trackerGdp, float diskRadius,  float angleNormalThreshold);
     void CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N);
-    bool CreateAParticle(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
+    GA_Offset CreateAParticle(GU_Detail *trackerGdp, GEO_PointTreeGAOffset &tree, UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, float killDistance, int &numberOfClosePoint, ParametersDeformablePatches &params);
     void SetMaxId(long data){maxId = data;}
     int numberOfNewPoints;
 

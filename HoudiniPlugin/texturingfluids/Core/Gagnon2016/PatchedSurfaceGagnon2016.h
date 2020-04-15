@@ -1,8 +1,8 @@
-#ifndef __PatchedSurface__
-#define __PatchedSurface__
+#ifndef __PatchedSurfaceGagnon2016__
+#define __PatchedSurfaceGagnon2016__
 
 #include <Math/Vec3.h>
-#include <Core/DeformableGridsManager.h>
+#include <Core/Gagnon2016/ParticleAndTrackerManagerGagnon2016.h>
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 
@@ -11,7 +11,7 @@ namespace TexturingFluids {
 #define VERBOSE 0
 
 
-class PatchedSurface : public DeformableGridsManager
+class PatchedSurface : public ParticleAndTrackerManagerGagnon2016
 {
 public:
 
@@ -19,11 +19,12 @@ public:
     ~PatchedSurface();
 
     void PoissonDiskSampling(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
+    void AddDeformablePatcheUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GA_Offset ppt, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray);
     void AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);
     void DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
 
     //for test purpose
-    void CreateAPatch(GU_Detail *trackers, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params);
+    GA_Offset CreateAPatch(GU_Detail *trackers, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params);
 
     double poissondisk;
     double  patchCreationTime;
@@ -44,6 +45,11 @@ private :
     //---------------------------------------------
 
     map<string,GU_RayIntersect*> rays;
+
+    const string uvArrayName = "uvs";
+    const string alphaArrayName = "alphas";
+    const string patchIdsName = "patchIds";
+
 
 };
 

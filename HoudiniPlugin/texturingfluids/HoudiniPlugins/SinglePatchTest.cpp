@@ -265,8 +265,7 @@ SinglePatchTest::cookMySop(OP_Context &context)
     surfaceLowRes->copy(*surfaceLowResRef);
 
     SinglePatchInterface interface;
-    //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
-    interface.Synthesis(gdp,surfaceCopy,trackersCopy,levelSet,surfaceLowRes, params);
+    interface.Synthesis(gdp,surfaceCopy,trackersCopy,surfaceLowRes, params);
 
     delete trackersCopy;
     delete surfaceCopy;
