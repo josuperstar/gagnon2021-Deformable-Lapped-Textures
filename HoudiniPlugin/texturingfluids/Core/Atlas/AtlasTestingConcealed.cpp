@@ -304,6 +304,7 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
     const GA_GroupTable *primitiveGTable = deformableGrids->getGroupTable(primitiveGroupType);
 
     //--------------------- SORTED DATA PER PATCH ------------------------
+    // put this in surfacePatched class:
     vector<UT_Vector3> surfaceTexturePosition;
     vector<UT_Vector3> surfaceUv;
     vector<UT_Vector3> surfacePosition;

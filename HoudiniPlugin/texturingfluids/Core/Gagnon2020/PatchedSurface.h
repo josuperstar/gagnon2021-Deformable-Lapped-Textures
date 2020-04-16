@@ -23,6 +23,7 @@ public:
     void AddDeformablePatchesUsingBarycentricCoordinates();
     void DeleteUnusedPatches();
 
+    set<int> GetSortedPatches(GA_Offset primOffset);
     //for test purpose
     GA_Offset CreateAPatch(UT_Vector3 position, UT_Vector3 normal);
 
@@ -43,8 +44,9 @@ private :
     GA_Attribute        *alphaArrayAtt;
     const GA_AIFNumericArray *alphaAtt;
     //---------------------------------------------
+    map<GA_Offset, set<int> > patchesPerPrimitives;
 
-    map<string,GU_RayIntersect*> rays;
+    GA_RWHandleV3 attUV;
 
 };
 

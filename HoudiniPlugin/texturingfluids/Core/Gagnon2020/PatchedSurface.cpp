@@ -132,6 +132,8 @@ PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail
     }
     alphaArrayAtt->clearDataId();
 
+    attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
+
     this->uvFlatteningTime = 0;
     this->gridMeshCreation = 0;
     this->gridAdvectionTime = 0;
@@ -144,7 +146,7 @@ PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail
 
 PatchedSurfaceGagnon2020::~PatchedSurfaceGagnon2020()
 {
-    this->rays.clear();
+
 }
 
 
@@ -171,7 +173,6 @@ void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet)
     trackerTree.build(trackersGdp, NULL);
     int numberOfInitialTrackers = this->numberOfPatches;
     cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
-    //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
     poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
     this->numberOfNewPatches = poissonDiskDistribution.numberOfNewPoints;
@@ -206,6 +207,12 @@ GA_Offset PatchedSurfaceGagnon2020::CreateAPatch(UT_Vector3 position, UT_Vector3
     return newPoint;
 }
 
+set<int> PatchedSurfaceGagnon2020::GetSortedPatches(GA_Offset primOffset)
+{
+    set<int> sortedPatches = patchesPerPrimitives[primOffset];
+
+    return sortedPatches;
+}
 
 //================================================================================================
 
@@ -564,6 +571,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
                     attNumberOfPatch.set(surfacePointOffset,numberOfPatch);
                 }
                 patchIdsAtt->set(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
+
             }
             neighborhood.clear();
         }
