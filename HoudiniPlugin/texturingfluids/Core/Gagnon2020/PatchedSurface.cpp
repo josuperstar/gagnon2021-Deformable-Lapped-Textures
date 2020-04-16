@@ -174,7 +174,17 @@ void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet)
     int numberOfInitialTrackers = this->numberOfPatches;
     cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
     Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
-    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+    vector<GA_Offset> newPoints = poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+    vector<GA_Offset>::iterator itPoisson;
+    cout << "Create trackers"<<endl;
+    for(itPoisson=newPoints.begin(); itPoisson != newPoints.end(); itPoisson++)
+    {
+        GA_Offset p = *itPoisson;
+        this->CreateAndUpdateTrackerBasedOnPoissonDisk(p);
+        this->CreateGridBasedOnMesh(p);
+    }
+
+
     this->numberOfNewPatches = poissonDiskDistribution.numberOfNewPoints;
     cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
@@ -198,9 +208,16 @@ GA_Offset PatchedSurfaceGagnon2020::CreateAPatch(UT_Vector3 position, UT_Vector3
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
     int numberOfClosePoint = 0;
+    poissonDiskDistribution.SetMaxId(this->maxId);
     GA_Offset newPoint = poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, position,normal,1,numberOfClosePoint,params);
 
-    cout << this->approachName<<" poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
+    this->CreateAndUpdateTrackerBasedOnPoissonDisk(newPoint);
+
+    //2 - Add Deformable Grid
+    // we should create the grid based on the patch id
+    this->CreateGridBasedOnMesh(newPoint);
+
+    //cout << this->approachName<<" poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
     //this->numberOfPatches = trackersGdp->getNumPoints();
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
@@ -241,12 +258,6 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GA
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
 
-    /*
-    GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
-    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    */
     GA_RWHandleV3 attNSurface(this->surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attNumberOfPatch(this->surface->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
 
@@ -320,27 +331,6 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GA
             //    continue;
 
             patchP = this->surface->getPos3(surfacePointOffset);
-            //respect poisson disk criterion
-            //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-            UT_Vector3 pos          = patchP;
-            //=====================================================
-
-            UT_Vector3 pNp          = position - pos;
-            pNp.normalize();
-            dotP              = dot(pNp, N);
-
-            //float d              = distance3d( pos, position );
-            float dp                = abs(dotP);
-
-            float k        = (1-dp)*r*3;
-            if (k < cs*2)
-                k = cs*2;
-            //bool insideBigEllipse    = d < k;
-            //if (!insideBigEllipse)
-            //    continue;
-
-            //=====================================================
-
 
             //------------------------------------ RAY -----------------------------------------
             //project patchP on trackers set
@@ -445,12 +435,6 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
 
-    /*
-    GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
-    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    */
     GA_RWHandleV3 attNSurface(this->surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI attNumberOfPatch(this->surface->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
 
@@ -527,27 +511,6 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
                 //    continue;
 
                 patchP = this->surface->getPos3(surfacePointOffset);
-                //respect poisson disk criterion
-                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-                UT_Vector3 pos          = patchP;
-                //=====================================================
-
-                UT_Vector3 pNp          = position - pos;
-                pNp.normalize();
-                dotP              = dot(pNp, N);
-
-                //float d              = distance3d( pos, position );
-                float dp                = abs(dotP);
-
-                float k        = (1-dp)*r*3;
-                if (k < cs*2)
-                    k = cs*2;
-                //bool insideBigEllipse    = d < k;
-                //if (!insideBigEllipse)
-                //    continue;
-
-                //=====================================================
-
 
                 //------------------------------------ RAY -----------------------------------------
                 //project patchP on trackers set

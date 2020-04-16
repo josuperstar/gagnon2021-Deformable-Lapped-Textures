@@ -149,6 +149,56 @@ UT_Vector3 ParticleTrackerManager::GetParamtrericCoordinate(GEO_Primitive *prim,
 
 //================================================================================================
 
+//                                      CREATE TRACKER
+
+//================================================================================================
+
+GA_Offset ParticleTrackerManager::CreateTracker(UT_Vector3 position, UT_Vector3 N)
+{
+//    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+//    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
+//    GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
+//    GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
+//    GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
+//    GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
+//    GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
+//    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
+//    GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
+    GA_RWHandleI    attNumberOfPrimitives(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives", 1));
+
+    int divider = 1;
+    if (params.useTangeantTracker == 1)
+        divider = 2;
+    if (trackersGdp->getNumPoints()/divider > this->maxId) //existing points
+    {
+        //cout << "New Max Id = "<<trackersGdp->getNumPoints()/divider<<endl;
+        //this->maxId = trackersGdp->getNumPoints()/divider;
+    }
+    int id = this->maxId+1;
+    this->maxId = id;
+    //cout << "New Max Id = "<<this->maxId<<endl;
+    GA_Offset newPoint = trackersGdp->appendPoint();
+    trackersGdp->setPos3(newPoint, position);
+    attN.set(newPoint,N);
+    attActive.set(newPoint,true);
+
+    attId.set(newPoint,id);
+    attSpawn.set(newPoint,0);
+    attLife.set(newPoint,0.001f);
+    attNumberOfPrimitives.set(newPoint,0);
+    attIsMature.set(newPoint,0);
+    attMaxDeltaOnD.set(newPoint,0);
+
+    if(params.startFrame == params.frame)
+    {
+        attLife.set(newPoint,params.fadingTau);
+    }
+
+    return newPoint;
+}
+
+//================================================================================================
+
 //                                      CREATE TRACKER BASED ON POISSON DISK
 
 //================================================================================================

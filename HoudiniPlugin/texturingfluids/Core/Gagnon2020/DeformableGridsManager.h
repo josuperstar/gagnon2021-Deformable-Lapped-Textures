@@ -21,15 +21,7 @@ public:
 
     void CreateGridsBasedOnMesh(vector<GA_Offset> trackers);
     void CreateGridBasedOnMesh(GA_Offset ppt);
-
     void AdvectGrids();
-
-    bool UVFlattening(GU_Detail &tempGdp,
-                      GA_Offset tracker, GA_Offset closestPoint,
-                      GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
-                      set<GA_Offset> &pointsAround,
-                      float scaling);
-    void FlagBoundaries();
 
     const string gridGroupName = "grids";
 
@@ -43,6 +35,13 @@ public:
 
 
 protected :
+
+    void FlagBoundaries();
+    bool UVFlattening(GU_Detail &tempGdp,
+                      GA_Offset tracker, GA_Offset closestPoint,
+                      GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,
+                      set<GA_Offset> &pointsAround,
+                      float scaling);
 
     ParametersDistortion distortionParams;
     GU_Detail *deformableGridsGdp;

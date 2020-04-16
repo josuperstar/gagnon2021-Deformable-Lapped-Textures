@@ -86,9 +86,9 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
             surface.PoissonDiskSampling(levelSet); //Poisson disk on the level set
         }
         cout << "------------------- Updating Trackers ---------------------"<<endl;
-        surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
+        //surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         cout << "------------------- Grid Creation ---------------------"<<endl;
-        surface.CreateGridsBasedOnMesh(newPatchesPoints);
+        //surface.CreateGridsBasedOnMesh(newPatchesPoints);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches();
     }

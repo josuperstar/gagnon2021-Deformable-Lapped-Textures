@@ -16,6 +16,14 @@ using namespace std;
 namespace TexturingFluids {
 
 
+class PoissonDisk
+{
+public:
+    UT_Vector3 N;
+    UT_Vector3 position;
+};
+
+
 //Based on paper from Bridson "Fast Poisson Disk Sampling in Arbritrary Dimensions"
 // http://people.cs.ubc.ca/~rbridson/docs/bridson-siggraph07-poissondisk.pdf
 
@@ -35,11 +43,11 @@ public:
     //Bridson2012PoissonDiskDistribution(){}
     ~Bridson2012PoissonDiskDistributionGagnon2020()
     {
-        cout << "[Bridson2012PoissonDiskDistribution] destrotying grid"<<endl;
+        //cout << "[Bridson2012PoissonDiskDistribution] destrotying grid"<<endl;
         //backgroundGrid.~TreeDGrid();
 
     }
-    void PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params);
+    vector<GA_Offset> PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params);
     void SetNumberOfPoint(int data){this->numberOfPoints = data;}
     void initializeGrid(GEO_PointTreeGAOffset &tree, GU_Detail *trackerGdp, float diskRadius,  float angleNormalThreshold);
     void CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N);
@@ -68,6 +76,8 @@ private:
 
 
 };
+
+
 }
 
 #endif

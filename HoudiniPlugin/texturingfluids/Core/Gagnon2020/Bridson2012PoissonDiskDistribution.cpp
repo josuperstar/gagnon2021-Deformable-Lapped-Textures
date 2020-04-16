@@ -58,7 +58,7 @@ and e = 1.085 worked well, but could be further tuned.
 */
 
 
-void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params)
+vector<GA_Offset> Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params)
 {
     cout << "[Bridson2012PoissonDiskDistributionGagnon2020] on level set using a threshold of "<<angleNormalThreshold<<endl;
 
@@ -67,6 +67,8 @@ void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
     GA_RWHandleI    isTangeantTracker(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
+
+    vector<GA_Offset> newPoissonDisk;
 
     this->numberOfNewPoints = 0;
 
@@ -82,7 +84,7 @@ void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail
     if (!phi || !phi->hasGrid())
     {
         cout << "[Bridson2012PoissonDiskDistributionGagnon2020] Input geometry 0 has no VDB grid!"<<endl;
-        return;
+        return newPoissonDisk;
     }
 
 //    cout << "Grid name: " << phi->getGridName() << std::endl;
@@ -124,7 +126,7 @@ void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail
         //If we have fading in, we are using 2019's approach
         //if (params.fadingIn == 1)
         {
-            attActive.set(ppt,meetPoissonDiskCriterion);
+            //attActive.set(ppt,meetPoissonDiskCriterion);
         }
         if (!meetPoissonDiskCriterion)
         {
@@ -144,12 +146,12 @@ void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail
     if(!gridSurface)
     {
         cout << "[Bridson2012PoissonDiskDistribution] Surface grid can't be converted in FloatGrid"<<endl;
-        return;
+        return newPoissonDisk;
     }
     if ((gridSurface->getGridClass() != openvdb::GRID_LEVEL_SET))
     {
         cout<< "[Bridson2012PoissonDiskDistribution] Surface grid is not a Level-set FloatGrid!"<<endl;
-        return;
+        return newPoissonDisk;
     }
 
     //=================================================================
@@ -244,11 +246,10 @@ void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail
                     //=================================================================
                     //6:          S ← S ∪ {p}
                     //=================================================================
-                    bool isValid = this->CreateAParticle(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius , numberOfClosePoint, params);
-                    if (isValid)
-                    {
-                        break;
-                    }
+
+                    GA_Offset newPoint = this->CreateAParticle(trackersGdp,tree, newPointPosition, newPointNormal, poissonDiskRadius , numberOfClosePoint, params);
+                    newPoissonDisk.push_back(newPoint);
+                    break;
                 }
             }
             if (!ableToInsertPoint)
@@ -259,7 +260,7 @@ void Bridson2012PoissonDiskDistributionGagnon2020::PoissonDiskSampling(GU_Detail
         nbOfCell++;
     }
     //cout << nbOfCell << " cells have been treated."<<endl;
-    return;
+    return newPoissonDisk;
 }
 
 

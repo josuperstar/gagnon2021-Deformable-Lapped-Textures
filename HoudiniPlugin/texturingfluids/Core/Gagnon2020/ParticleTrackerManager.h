@@ -17,13 +17,14 @@ class ParticleTrackerManager
 public:
 
     ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
+
+    GA_Offset CreateTracker(UT_Vector3 position, UT_Vector3 N);
     void CreateAndUpdateTrackersBasedOnPoissonDisk();
     void CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset ppt);
     void AdvectSingleTrackers();
     void DeleteTracker(int trackerId);
 
     int GetNumberOfPatches(){return numberOfPatches;}
-
     int NumberOfPatchesToDelete();
 
     const string markerGroupName = "markers";
