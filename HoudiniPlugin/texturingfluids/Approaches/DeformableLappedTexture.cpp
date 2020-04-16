@@ -69,26 +69,28 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     if(params.startFrame == params.frame)
     {
         surface.PoissonDiskSampling(levelSet);
+        //----------------- TO get rid of -----------
         surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
         if (!usingOnlyPoissonDisk)
             surface.CreateGridsBasedOnMesh(newPatchesPoints);
+
+        surface.AddDeformablePatchesUsingBarycentricCoordinates();
     }
     else
     {
         cout << "------------------- Advection ---------------------"<<endl;
         surface.AdvectSingleTrackers();
         surface.AdvectGrids();
-        cout << "number of patch flaged to delete "<<surface.NumberOfPatchesToDelete()<<endl;
-        cout << "number of distorted patches "<<surface.numberOfDistortedPatches<<endl;
+
+
         if (params.updateDistribution)
         {
             cout << "------------------- Sampling ---------------------"<<endl;
             surface.PoissonDiskSampling(levelSet); //Poisson disk on the level set
         }
         cout << "------------------- Updating Trackers ---------------------"<<endl;
-        //surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
-        cout << "------------------- Grid Creation ---------------------"<<endl;
-        //surface.CreateGridsBasedOnMesh(newPatchesPoints);
+        surface.CreateAndUpdateTrackersBasedOnPoissonDisk();
+        surface.CreateGridsBasedOnMesh(newPatchesPoints);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches();
     }

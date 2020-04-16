@@ -83,6 +83,8 @@ protected :
 
     GA_PointGroup *surfaceGroup;
     GA_PrimitiveGroup *surfaceGrpPrims;
+    GA_PointGroup *markerGrp;
+    GA_PrimitiveGroup *markerGrpPrims;
 
     ParametersDeformablePatches params;
 };

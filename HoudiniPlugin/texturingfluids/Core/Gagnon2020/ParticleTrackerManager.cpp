@@ -44,6 +44,18 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
     }
     surfaceGrpPrims = (GA_PrimitiveGroup *)surface->primitiveGroups().find(this->surfaceGroupName.c_str());
 
+
+    markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
+    if (markerGrp == 0x0)
+        markerGrp = trackersGdp->newPointGroup(markerGroupName.c_str());
+
+    if (tackerPolygon)
+    {
+        markerGrpPrims = (GA_PrimitiveGroup *)trackersGdp->primitiveGroups().find(this->markerGroupName.c_str());
+        if (markerGrpPrims == 0x0)
+            markerGrpPrims = trackersGdp->newPrimitiveGroup(markerGroupName.c_str());
+    }
+
     //this->numberOfPatches = 0;
     this->maxId = 0;
     this->markerAdvectionTime = 0;
@@ -209,20 +221,6 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset 
 
     bool useDynamicTau = params.useDynamicTau;
 
-
-
-    GA_PointGroup *markerGrp = (GA_PointGroup *)trackersGdp->pointGroups().find(this->markerGroupName.c_str());
-    if (markerGrp == 0x0)
-        markerGrp = trackersGdp->newPointGroup(markerGroupName.c_str());
-
-
-    GA_PrimitiveGroup *markerGrpPrims;
-    if (tackerPolygon)
-    {
-        markerGrpPrims = (GA_PrimitiveGroup *)trackersGdp->primitiveGroups().find(this->markerGroupName.c_str());
-        if (markerGrpPrims == 0x0)
-            markerGrpPrims = trackersGdp->newPrimitiveGroup(markerGroupName.c_str());
-    }
 
     UT_Vector3 position;
     UT_Vector3 N;

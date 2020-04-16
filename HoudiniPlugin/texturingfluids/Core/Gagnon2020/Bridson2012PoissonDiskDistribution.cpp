@@ -341,26 +341,6 @@ GA_Offset Bridson2012PoissonDiskDistributionGagnon2020::CreateAParticle(GU_Detai
     attIsMature.set(newPoint,0);
     attMaxDeltaOnD.set(newPoint,0);
 
-    if (params.useTangeantTracker == 1)
-    {
-        GA_RWHandleI    isTangeantTracker(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
-        //---------- ADD TANGEANT TRACKER ----------
-        cout << "Add Tangeant Tracker"<<endl;
-        //put this in a function, and/or move this where we already add point
-        S = cross(N,defaultDirection);
-        S.normalize();
-        T = cross(S,N);
-        T.normalize();
-        UT_Vector3 translation = T*Tlenght;
-        //cout << "Translation: "<<translation<<endl;
-        UT_Vector3 tangeantPosition = p + translation;
-        //cout << "adding tangeant tracker"<<endl;
-        tracker_offset = trackersGdp->appendPoint();
-        isTangeantTracker.set(tracker_offset,1);
-        attId.set(tracker_offset,id);
-        trackersGdp->setPos3(tracker_offset,tangeantPosition);
-    }
-
     if(params.startFrame == params.frame)
     {
         attExistingLife.set(newPoint,params.fadingTau);

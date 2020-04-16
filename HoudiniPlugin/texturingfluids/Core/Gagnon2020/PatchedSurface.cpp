@@ -180,8 +180,8 @@ void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet)
     for(itPoisson=newPoints.begin(); itPoisson != newPoints.end(); itPoisson++)
     {
         GA_Offset p = *itPoisson;
-        this->CreateAndUpdateTrackerBasedOnPoissonDisk(p);
-        this->CreateGridBasedOnMesh(p);
+        //this->CreateGridBasedOnMesh(p);
+        //this->AddDeformablePatcheUsingBarycentricCoordinates(p);
     }
 
 
