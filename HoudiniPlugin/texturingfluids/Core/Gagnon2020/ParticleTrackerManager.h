@@ -6,6 +6,7 @@
 #include <GEO/GEO_PointTree.h>
 #include <GU/GU_RayIntersect.h>
 #include <Core/HoudiniUtils.h>
+#include <openvdb/tools/Interpolation.h>
 
 namespace TexturingFluids {
 
@@ -18,7 +19,10 @@ public:
 
     ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
 
-    GA_Offset CreateTracker(UT_Vector3 position, UT_Vector3 N);
+    vector<GA_Offset> PoissonDiskSamplingDistribution(GU_Detail *levelSet, float diskRadius, float angleNormalThreshold);
+
+    GA_Offset CreateAParticle(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, int &numberOfClosePoint);
+
     void CreateAndUpdateTrackersBasedOnPoissonDisk();
     void CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset ppt);
     void AdvectSingleTrackers();
@@ -42,9 +46,12 @@ public:
     int numberOfNewAndLonelyTracker;
     int numberOfInitialPatches;
     int numberOfDistortedPatches;
-
+    int numberOfNewPoints;
 
 protected :
+
+    openvdb::Vec3f projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad );
+    bool RespectCriterion(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal,  float killDistance, int &numberOfClosePoint, GA_Offset exclude);
 
     UT_Vector3 GetParamtrericCoordinate(GEO_Primitive *prim, GA_RWHandleV3 attribute, float u, float v);
 
@@ -52,6 +59,10 @@ protected :
 
     int maxId = 0;
     float epsilon = 0.0001;
+    float poissonDiskRadius;    //radius
+    int k;      //the limit of samples to choose before rejection in the algorithm, typically k = 30
+    int n = 3; // n-dimensional
+    int t; // number of attemps
 
     GA_RWHandleV3   attN;
     GA_RWHandleV3   attV;
@@ -85,6 +96,8 @@ protected :
     GA_PrimitiveGroup *surfaceGrpPrims;
     GA_PointGroup *markerGrp;
     GA_PrimitiveGroup *markerGrpPrims;
+
+    GEO_PointTreeGAOffset trackerTree;
 
     ParametersDeformablePatches params;
 };

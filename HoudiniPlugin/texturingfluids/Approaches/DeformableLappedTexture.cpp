@@ -25,7 +25,6 @@
 #include <GU/GU_RayIntersect.h>
 
 #include <Core/Gagnon2020/PatchedSurface.h>
-#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
 
 #include <Core/Atlas/AtlasTestingConcealed.h>
 #include <Core/Atlas/TBBAtlasTestingConcealed.h>

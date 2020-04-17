@@ -25,7 +25,7 @@
 #include <GU/GU_Flatten.h>
 
 //#include <Strategies/StrategySurfaceTextureSynthesis.h>
-#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
+//#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
 #include <Core/HoudiniUtils.h>
 
 
@@ -142,6 +142,8 @@ PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail
     this->nbOfFlattenedPatch = 0;
     this->updatePatchesTime = 0;
 
+
+    trackerTree.build(trackersGdp, NULL);
 }
 
 PatchedSurfaceGagnon2020::~PatchedSurfaceGagnon2020()
@@ -173,8 +175,18 @@ void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet)
     trackerTree.build(trackersGdp, NULL);
     int numberOfInitialTrackers = this->numberOfPatches;
     cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
-    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
-    vector<GA_Offset> newPoints = poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+//    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
+//    vector<GA_Offset> newPoints = poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+//    vector<GA_Offset>::iterator itPoisson;
+//    cout << "Create trackers"<<endl;
+//    for(itPoisson=newPoints.begin(); itPoisson != newPoints.end(); itPoisson++)
+//    {
+//        GA_Offset p = *itPoisson;
+//        //this->CreateGridBasedOnMesh(p);
+//        //this->AddDeformablePatcheUsingBarycentricCoordinates(p);
+//    }
+
+    vector<GA_Offset> newPoints = this->PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
     vector<GA_Offset>::iterator itPoisson;
     cout << "Create trackers"<<endl;
     for(itPoisson=newPoints.begin(); itPoisson != newPoints.end(); itPoisson++)
@@ -184,8 +196,8 @@ void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet)
         //this->AddDeformablePatcheUsingBarycentricCoordinates(p);
     }
 
-
-    this->numberOfNewPatches = poissonDiskDistribution.numberOfNewPoints;
+    //yeah right:
+    this->numberOfNewPatches = this->numberOfNewPoints;
     cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
     cout << this->approachName<<" Total :"<<trackersGdp->getNumPoints()<<endl;
@@ -206,22 +218,22 @@ GA_Offset PatchedSurfaceGagnon2020::CreateAPatch(UT_Vector3 position, UT_Vector3
     trackerTree.build(trackersGdp, NULL);
 
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
-    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
-    int numberOfClosePoint = 0;
-    poissonDiskDistribution.SetMaxId(this->maxId);
-    GA_Offset newPoint = poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, position,normal,1,numberOfClosePoint,params);
+//    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
+//    int numberOfClosePoint = 0;
+//    poissonDiskDistribution.SetMaxId(this->maxId);
+//    GA_Offset newPoint = poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, position,normal,1,numberOfClosePoint,params);
 
-    this->CreateAndUpdateTrackerBasedOnPoissonDisk(newPoint);
+    //this->CreateAndUpdateTrackerBasedOnPoissonDisk(newPoint);
 
     //2 - Add Deformable Grid
     // we should create the grid based on the patch id
-    this->CreateGridBasedOnMesh(newPoint);
+    //this->CreateGridBasedOnMesh(newPoint);
 
     //cout << this->approachName<<" poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
     //this->numberOfPatches = trackersGdp->getNumPoints();
 
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
-    return newPoint;
+    return 0;//newPoint;
 }
 
 set<int> PatchedSurfaceGagnon2020::GetSortedPatches(GA_Offset primOffset)
