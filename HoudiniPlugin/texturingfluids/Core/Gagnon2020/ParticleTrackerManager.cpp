@@ -536,7 +536,7 @@ UT_Vector3 ParticleTrackerManager::GetParamtrericCoordinate(GEO_Primitive *prim,
 //================================================================================================
 
 
-void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset ppt)
+void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
 {
 
     bool useDynamicTau = params.useDynamicTau;
@@ -735,7 +735,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset 
 //================================================================================================
 
 
-void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk()
+void ParticleTrackerManager::ProjectAndUpdateAllTrackers()
 {
     bool useDynamicTau = params.useDynamicTau;
     cout <<this->approachName<< " CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau <<endl;
@@ -744,7 +744,7 @@ void ParticleTrackerManager::CreateAndUpdateTrackersBasedOnPoissonDisk()
     int deletedTrackers = 0;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        this->CreateAndUpdateTrackerBasedOnPoissonDisk(ppt);
+        this->ProjectAndUpdateTracker(ppt);
     }
 
     cout <<this->approachName<< " Deleted trackers: "<<deletedTrackers<<endl;

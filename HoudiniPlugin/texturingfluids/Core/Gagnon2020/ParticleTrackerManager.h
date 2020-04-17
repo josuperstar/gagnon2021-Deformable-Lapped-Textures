@@ -23,8 +23,8 @@ public:
 
     GA_Offset CreateAParticle(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal);
 
-    void CreateAndUpdateTrackersBasedOnPoissonDisk();
-    void CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset ppt);
+    void ProjectAndUpdateAllTrackers();
+    void ProjectAndUpdateTracker(GA_Offset ppt);
     void AdvectSingleTrackers();
     void DeleteTracker(int trackerId);
 

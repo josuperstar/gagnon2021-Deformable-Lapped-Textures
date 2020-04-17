@@ -69,7 +69,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         UT_Vector3 position(0,0,0);
         UT_Vector3 normal(0,1,0);
         strategy.CreateAParticle(position, normal);
-        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
+        strategy.ProjectAndUpdateAllTrackers();
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridsBasedOnMesh(newPatchesPoints);
     }
@@ -83,7 +83,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
             strategy.AdvectGrids();
         }
         //strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
-        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
+        strategy.ProjectAndUpdateAllTrackers();
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridsBasedOnMesh(newPatchesPoints);
         strategy.DeleteUnusedPatches();
