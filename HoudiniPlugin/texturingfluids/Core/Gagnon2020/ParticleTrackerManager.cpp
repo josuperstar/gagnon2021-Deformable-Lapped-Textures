@@ -528,19 +528,8 @@ UT_Vector3 ParticleTrackerManager::GetParamtrericCoordinate(GEO_Primitive *prim,
     return result;
 }
 
-
-//================================================================================================
-
-//                                      CREATE TRACKER BASED ON POISSON DISK
-
-//================================================================================================
-
-
-void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
+bool ParticleTrackerManager::ProjectTrackerOnSurface(GA_Offset ppt)
 {
-
-    bool useDynamicTau = params.useDynamicTau;
-
 
     UT_Vector3 position;
     UT_Vector3 N;
@@ -562,15 +551,13 @@ void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
 
 
     UT_Vector3 velocity;
-
-    float dynamicTau = attMaxDeltaOnD.get(ppt);
     UT_Vector3 centerUV = attCenterUV.get(ppt);
 
     //Dead patches are not updated
     if (currentLife <= 0 && active == 0)
     {
         deletedTrackers++;
-        return;
+        return false;
     }
 
     //============================ PROJECTION ON MESH =======================
@@ -584,7 +571,7 @@ void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
         attLife.set(ppt,0);
         attActive.set(ppt,0);
         this->numberOfDetachedPatches++;
-        return;
+        return false;
     }
 
     const GEO_Primitive *geoPrim = mininfo.prim;
@@ -595,7 +582,7 @@ void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
         attLife.set(ppt,0);
         attActive.set(ppt,0);
         this->numberOfDetachedPatches++;
-        return;
+        return false;
     }
     //get pos of hit
     UT_Vector4 hitPos;
@@ -616,11 +603,19 @@ void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
             {
                 attLife.set(ppt,0);
                 attActive.set(ppt,0);
-                return;
+                return false;
             }
         }
         N = GetParamtrericCoordinate(prim, refAttN, u, v);
         velocity = GetParamtrericCoordinate(prim, refAttV, u, v);
+        position = p1;
+        N.normalize();
+        //save data:
+        trackersGdp->setPos3(ppt,position);
+        attN.set(ppt,N);
+        attV.set(ppt,velocity);
+        attCenterUV.set(ppt,centerUV);
+        trackersGdp->setPos3(ppt,position);
     }
     else
     {
@@ -628,11 +623,20 @@ void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
         attLife.set(ppt,0);
         attActive.set(ppt,0);
         this->numberOfDetachedPatches++;
-        return;
+        return false;
     }
 
     //========================================================================
+}
 
+void ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
+{
+    bool useDynamicTau = params.useDynamicTau;
+    int id = attId.get(ppt);
+    int active = attActive.get(ppt);
+    float currentLife = attLife.get(ppt);
+    int currentSpawn = attSpawn.get(ppt);
+    float dynamicTau = attMaxDeltaOnD.get(ppt);
     //========================= UPDATE ===============================
     //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
     //or that are too close to each other
@@ -708,14 +712,7 @@ void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
 
     //==============================================
 
-    position = p1;
-    trackersGdp->setPos3(ppt,position);
-    N.normalize();
 
-    attV.set(ppt,velocity);
-    attN.set(ppt,N);
-    attCenterUV.set(ppt,centerUV);
-    trackersGdp->setPos3(ppt,position);
 
     float life = currentLife;
     attLife.set(ppt,life);
@@ -725,6 +722,25 @@ void ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
     attBlend.set(ppt,temporalComponetKt);
     attSpawn.set(ppt,currentSpawn);
     attMaxDeltaOnD.set(ppt,dynamicTau);
+
+}
+
+
+//================================================================================================
+
+//                                      CREATE TRACKER BASED ON POISSON DISK
+
+//================================================================================================
+
+
+bool ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
+{
+
+    bool canProject = this->ProjectTrackerOnSurface(ppt);
+    if (!canProject)
+        return false;
+    this->UpdateTracker(ppt);
+    return true;
 }
 
 
