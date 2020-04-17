@@ -18,14 +18,11 @@ public:
     PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail *surfaceLowResGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, ParametersDeformablePatches params);
     ~PatchedSurfaceGagnon2020();
 
-    void PoissonDiskSampling(GU_Detail *levelSet);
     void AddDeformablePatcheUsingBarycentricCoordinates(GA_Offset ppt);
     void AddDeformablePatchesUsingBarycentricCoordinates();
     void DeleteUnusedPatches();
 
     set<int> GetSortedPatches(GA_Offset primOffset);
-    //for test purpose
-    GA_Offset CreateAPatch(UT_Vector3 position, UT_Vector3 normal);
 
     double poissondisk;
     double  patchCreationTime;

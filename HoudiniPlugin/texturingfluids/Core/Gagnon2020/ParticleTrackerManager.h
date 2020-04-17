@@ -21,7 +21,7 @@ public:
 
     vector<GA_Offset> PoissonDiskSamplingDistribution(GU_Detail *levelSet, float diskRadius, float angleNormalThreshold);
 
-    GA_Offset CreateAParticle(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal, int &numberOfClosePoint);
+    GA_Offset CreateAParticle(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal);
 
     void CreateAndUpdateTrackersBasedOnPoissonDisk();
     void CreateAndUpdateTrackerBasedOnPoissonDisk(GA_Offset ppt);

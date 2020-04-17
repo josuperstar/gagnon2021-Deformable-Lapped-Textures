@@ -68,7 +68,7 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         cout << "Creating a single poisson disk"<<endl;
         UT_Vector3 position(0,0,0);
         UT_Vector3 normal(0,1,0);
-        strategy.CreateAPatch(position, normal);
+        strategy.CreateAParticle(position, normal);
         strategy.CreateAndUpdateTrackersBasedOnPoissonDisk();
         if (!usingOnlyPoissonDisk)
             strategy.CreateGridsBasedOnMesh(newPatchesPoints);

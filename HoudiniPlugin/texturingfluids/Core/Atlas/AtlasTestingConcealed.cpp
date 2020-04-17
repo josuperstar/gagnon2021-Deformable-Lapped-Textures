@@ -472,7 +472,7 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                     //1- Add particle
                     //Here, we should have a patch id as the result
                     cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
-                    GA_Offset newPoint = patchedSurface.CreateAPatch( positionOnSurface, N);
+                    GA_Offset newPoint = patchedSurface.CreateAParticle( positionOnSurface, N);
 
 
                     //----------------------- Rebuild data structure------------------------

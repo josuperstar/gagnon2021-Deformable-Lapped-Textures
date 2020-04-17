@@ -314,7 +314,7 @@ vector<GA_Offset> ParticleTrackerManager::PoissonDiskSamplingDistribution(GU_Det
                     //6:          S ← S ∪ {p}
                     //=================================================================
 
-                    GA_Offset newPoint = this->CreateAParticle(newPointPosition, newPointNormal, numberOfClosePoint);
+                    GA_Offset newPoint = this->CreateAParticle(newPointPosition, newPointNormal);
                     newPoissonDisk.push_back(newPoint);
                     break;
                 }
@@ -334,19 +334,8 @@ vector<GA_Offset> ParticleTrackerManager::PoissonDiskSamplingDistribution(GU_Det
     return newPoissonDisk;
 }
 
-GA_Offset ParticleTrackerManager::CreateAParticle(UT_Vector3 p, UT_Vector3 N,  int &numberOfClosePoint)
+GA_Offset ParticleTrackerManager::CreateAParticle(UT_Vector3 p, UT_Vector3 N)
 {
-
-//    GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-//    GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
-//    GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
-//    GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-//    GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
-//    GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
-//    GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
-//    GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
-//    GA_RWHandleF    attExistingLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life", 1));
-//    GA_RWHandleI    attNumberOfPrimitives(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives", 1));
 
     int divider = 1;
     if (params.useTangeantTracker == 1)
@@ -363,7 +352,6 @@ GA_Offset ParticleTrackerManager::CreateAParticle(UT_Vector3 p, UT_Vector3 N,  i
     trackersGdp->setPos3(newPoint, p);
     attN.set(newPoint,N);
     attActive.set(newPoint,true);
-    attDensity.set(newPoint,numberOfClosePoint);
     attId.set(newPoint,id);
     attSpawn.set(newPoint,0);
     attLife.set(newPoint,0.001f);
