@@ -167,16 +167,26 @@ void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet)
     //It basically take the points from Houdini and fill it to the approach.
 
 
-    std::clock_t addPoissonDisk;
-    addPoissonDisk = std::clock();
+//    std::clock_t addPoissonDisk;
+//    addPoissonDisk = std::clock();
 
 
-    GEO_PointTreeGAOffset trackerTree;
-    trackerTree.build(trackersGdp, NULL);
-    int numberOfInitialTrackers = this->numberOfPatches;
-    cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
-//    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
-//    vector<GA_Offset> newPoints = poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+//    GEO_PointTreeGAOffset trackerTree;
+//    trackerTree.build(trackersGdp, NULL);
+//    int numberOfInitialTrackers = this->numberOfPatches;
+//    cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
+////    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
+////    vector<GA_Offset> newPoints = poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+////    vector<GA_Offset>::iterator itPoisson;
+////    cout << "Create trackers"<<endl;
+////    for(itPoisson=newPoints.begin(); itPoisson != newPoints.end(); itPoisson++)
+////    {
+////        GA_Offset p = *itPoisson;
+////        //this->CreateGridBasedOnMesh(p);
+////        //this->AddDeformablePatcheUsingBarycentricCoordinates(p);
+////    }
+
+//    vector<GA_Offset> newPoints = this->PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
 //    vector<GA_Offset>::iterator itPoisson;
 //    cout << "Create trackers"<<endl;
 //    for(itPoisson=newPoints.begin(); itPoisson != newPoints.end(); itPoisson++)
@@ -186,21 +196,11 @@ void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet)
 //        //this->AddDeformablePatcheUsingBarycentricCoordinates(p);
 //    }
 
-    vector<GA_Offset> newPoints = this->PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
-    vector<GA_Offset>::iterator itPoisson;
-    cout << "Create trackers"<<endl;
-    for(itPoisson=newPoints.begin(); itPoisson != newPoints.end(); itPoisson++)
-    {
-        GA_Offset p = *itPoisson;
-        //this->CreateGridBasedOnMesh(p);
-        //this->AddDeformablePatcheUsingBarycentricCoordinates(p);
-    }
-
-    //yeah right:
-    this->numberOfNewPatches = this->numberOfNewPoints;
-    cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
-    this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
-    cout << this->approachName<<" Total :"<<trackersGdp->getNumPoints()<<endl;
+//    //yeah right:
+//    this->numberOfNewPatches = this->numberOfNewPoints;
+//    cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
+//    this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
+//    cout << this->approachName<<" Total :"<<trackersGdp->getNumPoints()<<endl;
 
 }
 

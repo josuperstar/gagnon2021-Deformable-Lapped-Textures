@@ -125,6 +125,10 @@ vector<GA_Offset> ParticleTrackerManager::PoissonDiskSamplingDistribution(GU_Det
 {
     cout << "[Bridson2012PoissonDiskDistributionGagnon2020] on level set using a threshold of "<<angleNormalThreshold<<endl;
 
+
+    std::clock_t addPoissonDisk;
+    addPoissonDisk = std::clock();
+
     GA_RWHandleV3   attN(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
@@ -322,6 +326,10 @@ vector<GA_Offset> ParticleTrackerManager::PoissonDiskSamplingDistribution(GU_Det
         }
         nbOfCell++;
     }
+    this->numberOfNewPatches = this->numberOfNewPoints;
+    cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
+    this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
+    cout << this->approachName<<" Total :"<<trackersGdp->getNumPoints()<<endl;
     //cout << nbOfCell << " cells have been treated."<<endl;
     return newPoissonDisk;
 }

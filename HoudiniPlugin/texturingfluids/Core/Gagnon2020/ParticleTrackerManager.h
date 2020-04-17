@@ -36,7 +36,7 @@ public:
     const string approachName   = "[ParticleTrackerGagnon2020]";
 
     double  markerAdvectionTime;
-
+    double poissondisk;
     int numberOfPatches;
     int numberOfInitialPatchFlagToDelete;
     int numberOfConcealedPatches;
