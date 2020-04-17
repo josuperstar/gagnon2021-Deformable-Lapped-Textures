@@ -67,7 +67,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
 
     if(params.startFrame == params.frame)
     {
-        surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
+        newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
         //----------------- TO get rid of -----------
         surface.ProjectAndUpdateAllTrackers();
         if (!usingOnlyPoissonDisk)
@@ -81,11 +81,10 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
         surface.AdvectSingleTrackers();
         surface.AdvectGrids();
 
-
         if (params.updateDistribution)
         {
             cout << "------------------- Sampling ---------------------"<<endl;
-            surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold); //Poisson disk on the level set
+            newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold); //Poisson disk on the level set
         }
         cout << "------------------- Updating Trackers ---------------------"<<endl;
         surface.ProjectAndUpdateAllTrackers();

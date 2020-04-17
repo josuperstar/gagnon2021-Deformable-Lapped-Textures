@@ -143,14 +143,14 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     GA_Offset newPoint;
     float life = 1.0f;
     float cs = params.CellSize;
-    float r = params.poissondiskradius;
+
     string groupName = "grids";
-    GA_PointGroup *grpGrid = this->deformableGridsGdp->newPointGroup(groupName.c_str());
+    //GA_PointGroup *grpGrid = this->deformableGridsGdp->newPointGroup(groupName.c_str());
 
     float scaling = gridwidth;
 
     //cout << "go through all trackers"<<endl;
-    vector<GA_Offset>::iterator it;
+
     int id =0;
     //for(it = trackers.begin(); it != trackers.end(); it++)
     //GA_Offset ppt;
@@ -186,6 +186,8 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     GA_PointGroup *pointGroup = this->deformableGridsGdp->newPointGroup(groupName.c_str());
     GA_PointGroup *tempPointGroup = tempGdp.newPointGroup(groupName.c_str());
     GA_PrimitiveGroup *primGroup = this->deformableGridsGdp->newPrimitiveGroup(groupName.c_str());
+
+    cout << "[DeformableGridsManager] CreateGridBasedOnMesh  "<<groupName<<endl;
 
     trackerPositition = trackersGdp->getPos3(ppt);
     set<GA_Offset> primList;
@@ -251,7 +253,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
             tempPointGroup->addOffset(tempNewPoint);
             pointsAround.insert(tempNewPoint);
 
-            grpGrid->addOffset(newPoint);
+            //grpGrid->addOffset(newPoint);
 
             attIsGrid.set(newPoint,1);
             attAlpha.set(newPoint,(float)life/(float)params.fadingTau);
@@ -597,11 +599,14 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
 void DeformableGridsManager::CreateGridsBasedOnMesh( vector<GA_Offset> trackers)
 {
     cout << "[DeformableGridsManager] CreateGridBasedOnMesh with beta "<<params.Yu2011Beta<<endl;
-
-    GA_Offset ppt;
-    GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+    vector<GA_Offset>::iterator itT;
+    for (itT = trackers.begin(); itT != trackers.end(); itT++)
     {
-       this->CreateGridBasedOnMesh(ppt);
+        GA_Offset ppt= *itT;
+        //GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+        {
+           this->CreateGridBasedOnMesh(ppt);
+        }
     }
     this->FlagBoundaries();
 }

@@ -345,7 +345,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
-    cout << this->approachName<<"[AddPatchesUsingBarycentricCoordinates]" << endl;
+    //cout << this->approachName<<"[AddPatchesUsingBarycentricCoordinates]" << endl;
 
     std::clock_t addPatchesStart;
     addPatchesStart = std::clock();
@@ -526,18 +526,10 @@ void PatchedSurfaceGagnon2020::DeleteUnusedPatches()
 
     //--------------------------------------------------------------------------
 
-    /*
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleI attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
-    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
-
-    GA_RWHandleI attIsMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
-    */
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
 
     GA_Offset ppt;
-    int beforeAddingNumber = this->numberOfPatches;
+
     this->numberOfPatches = 0;
     int deletedPatches = 0;
 
