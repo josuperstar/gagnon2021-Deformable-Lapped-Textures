@@ -26,7 +26,7 @@ public:
     void ProjectAndUpdateAllTrackers();
 
     bool ProjectTrackerOnSurface(GA_Offset ppt);
-    void UpdateTracker(GA_Offset ppt);
+    bool UpdateTracker(GA_Offset ppt);
 
     void AdvectSingleTrackers();
     void DeleteTracker(int trackerId);

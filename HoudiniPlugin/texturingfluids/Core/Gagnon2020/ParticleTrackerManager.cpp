@@ -540,25 +540,11 @@ bool ParticleTrackerManager::ProjectTrackerOnSurface(GA_Offset ppt)
     GU_RayIntersect ray(surface);
     ray.init();
 
-    int id = 0;
-
-    int deletedTrackers = 0;
-
-    id = attId.get(ppt);
-    int active = attActive.get(ppt);
-    float currentLife = attLife.get(ppt);
     int currentSpawn = attSpawn.get(ppt);
-
 
     UT_Vector3 velocity;
     UT_Vector3 centerUV = attCenterUV.get(ppt);
 
-    //Dead patches are not updated
-    if (currentLife <= 0 && active == 0)
-    {
-        deletedTrackers++;
-        return false;
-    }
 
     //============================ PROJECTION ON MESH =======================
     UT_Vector3 p1 = trackersGdp->getPos3(ppt);
@@ -629,10 +615,9 @@ bool ParticleTrackerManager::ProjectTrackerOnSurface(GA_Offset ppt)
     //========================================================================
 }
 
-void ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
+bool ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
 {
     bool useDynamicTau = params.useDynamicTau;
-    int id = attId.get(ppt);
     int active = attActive.get(ppt);
     float currentLife = attLife.get(ppt);
     int currentSpawn = attSpawn.get(ppt);
@@ -641,32 +626,13 @@ void ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
     //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
     //or that are too close to each other
 
-    int maxNumberOfNeighbour = 5; // TODO promotve that variable
-    int density = attDensity.get(ppt);
-    //-------------- deleting faster logic ------------------
-    //Can we move this to the ParticleTracker update ?
-    int deleteFaster = 0;
-    if (params.fadingIn == 0)
+
+
+    //Dead patches are not updated
+    if (currentLife <= 0 && active == 0)
     {
-        int deleteFaster = attDeleteFaster.get(ppt);
-        int numberOfNeighbourThreshold = 1; // TODO: promote this variable
-        if (density > numberOfNeighbourThreshold && deleteFaster == 0)
-        {
-            attDeleteFaster.set(ppt, 1);
-        }
-        else if(deleteFaster == 1 && density <= numberOfNeighbourThreshold)
-        {
-            attDeleteFaster.set(ppt, 0);
-        }
+        return false;
     }
-    //-------------------------------------------------------
-
-    int increment = density;
-    if (maxNumberOfNeighbour <= density)
-        increment = maxNumberOfNeighbour;
-
-    if (!useDynamicTau)
-        increment = 0;
 
     //int deleteFaster = attDeleteFaster.get(ppt);
     bool isMature = (currentSpawn >= params.fadingTau);
@@ -680,23 +646,14 @@ void ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
     if (isMature)
         attIsMature.set(ppt,1);
 
-    if (active == 0 && deleteFaster == 1 && isMature)
-    {
-        currentLife -= 1.0f+((float)increment);
-    }
-    else if(active == 0 && deleteFaster == 0 && isMature)
-    {
-        currentLife -= 1.0f;
-    }
     //fade in
-    else if (currentSpawn < params.fadingTau)
+    if (currentSpawn < params.fadingTau)
     {
-
-        currentLife += 1.0f+(float)increment;
+        currentLife += 1.0f;
         if (currentSpawn == 0)
             currentSpawn+= 1;
         else
-            currentSpawn+= 1+increment;
+            currentSpawn+= 1;
 
         currentLife = params.fadingTau;
 
@@ -712,8 +669,6 @@ void ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
 
     //==============================================
 
-
-
     float life = currentLife;
     attLife.set(ppt,life);
 
@@ -722,7 +677,7 @@ void ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
     attBlend.set(ppt,temporalComponetKt);
     attSpawn.set(ppt,currentSpawn);
     attMaxDeltaOnD.set(ppt,dynamicTau);
-
+    return true;
 }
 
 
