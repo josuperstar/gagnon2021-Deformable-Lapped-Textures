@@ -474,7 +474,12 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                     //cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
                     GA_Offset newPoint = patchedSurface.CreateAParticle( positionOnSurface, N);
 
-                    patchedSurface.ProjectAndUpdateTracker(newPoint);
+                    //patchedSurface.ProjectAndUpdateTracker(newPoint);
+                    bool canProject = patchedSurface.ProjectTrackerOnSurface(newPoint);
+                    if (!canProject)
+                        continue;
+                    patchedSurface.UpdateTracker(newPoint);
+
                     patchedSurface.CreateGridBasedOnMesh(newPoint);
                     patchedSurface.AddDeformablePatcheUsingBarycentricCoordinates(newPoint);
 

@@ -24,7 +24,10 @@ public:
     GA_Offset CreateAParticle(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal);
 
     void ProjectAndUpdateAllTrackers();
-    bool ProjectAndUpdateTracker(GA_Offset ppt);
+
+    bool ProjectTrackerOnSurface(GA_Offset ppt);
+    void UpdateTracker(GA_Offset ppt);
+
     void AdvectSingleTrackers();
     void DeleteTracker(int trackerId);
 
@@ -53,8 +56,7 @@ protected :
     openvdb::Vec3f projectPointOnLevelSet(openvdb::Vec3f point, float distance, openvdb::Vec3f grad );
     bool RespectCriterion(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal,  float killDistance, int &numberOfClosePoint, GA_Offset exclude);
 
-    bool ProjectTrackerOnSurface(GA_Offset ppt);
-    void UpdateTracker(GA_Offset ppt);
+
 
     UT_Vector3 GetParamtrericCoordinate(GEO_Primitive *prim, GA_RWHandleV3 attribute, float u, float v);
 

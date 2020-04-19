@@ -726,23 +726,6 @@ void ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
 }
 
 
-//================================================================================================
-
-//                                      CREATE TRACKER BASED ON POISSON DISK
-
-//================================================================================================
-
-
-bool ParticleTrackerManager::ProjectAndUpdateTracker(GA_Offset ppt)
-{
-
-    bool canProject = this->ProjectTrackerOnSurface(ppt);
-    if (!canProject)
-        return false;
-    this->UpdateTracker(ppt);
-    return true;
-}
-
 
 //================================================================================================
 
@@ -760,7 +743,12 @@ void ParticleTrackerManager::ProjectAndUpdateAllTrackers()
     int deletedTrackers = 0;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        this->ProjectAndUpdateTracker(ppt);
+        //this->ProjectAndUpdateTracker(ppt);
+        bool canProject = this->ProjectTrackerOnSurface(ppt);
+        if (!canProject)
+            continue;
+        this->UpdateTracker(ppt);
+
     }
 
     cout <<this->approachName<< " Deleted trackers: "<<deletedTrackers<<endl;
