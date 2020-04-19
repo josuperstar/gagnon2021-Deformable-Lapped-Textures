@@ -23,10 +23,10 @@ public:
 
     GA_Offset CreateAParticle(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal);
 
-    void ProjectAndUpdateAllTrackers();
-
     bool ProjectTrackerOnSurface(GA_Offset ppt);
+    void ProjectAllTrackersOnSurface();
     bool UpdateTracker(GA_Offset ppt);
+    void UpdateAllTrackers();
 
     void AdvectSingleTrackers();
     void DeleteTracker(int trackerId);

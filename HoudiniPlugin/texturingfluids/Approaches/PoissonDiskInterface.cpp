@@ -63,7 +63,8 @@ void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *surfaceLo
 
     //=========================== CORE ALGORITHM ============================
     //strategy.PoissonDiskSampling(levelSet);
-    strategy.ProjectAndUpdateAllTrackers();
+    strategy.ProjectAllTrackersOnSurface();
+    strategy.UpdateAllTrackers();
     strategy.AdvectSingleTrackers();
     //=======================================================================
 

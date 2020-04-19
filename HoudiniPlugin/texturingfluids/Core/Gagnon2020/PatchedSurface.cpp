@@ -374,8 +374,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
 
     set<int> patchTreated;
     float thresholdDistance = params.maximumProjectionDistance;
-    float cs = params.CellSize;
-    float r = params.poissondiskradius;
+
     GA_Offset ppt;
     UT_Vector3 N;
     UT_Vector3 NN;
@@ -433,9 +432,6 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
             {
                 surfacePointOffset = *itG;
                 NN = attNSurface.get(surfacePointOffset);
-                float dotP = dot(N,NN); //exlude points that are not in the same plane.
-                //if (dotP < params.angleNormalThreshold*2)
-                //    continue;
 
                 patchP = this->surface->getPos3(surfacePointOffset);
 

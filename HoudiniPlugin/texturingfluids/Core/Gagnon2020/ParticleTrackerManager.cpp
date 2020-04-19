@@ -617,24 +617,17 @@ bool ParticleTrackerManager::ProjectTrackerOnSurface(GA_Offset ppt)
 
 bool ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
 {
-    bool useDynamicTau = params.useDynamicTau;
+
     int active = attActive.get(ppt);
     float currentLife = attLife.get(ppt);
     int currentSpawn = attSpawn.get(ppt);
     float dynamicTau = attMaxDeltaOnD.get(ppt);
-    //========================= UPDATE ===============================
-    //we want to fade out poisson disk that are flagged a inactive and that are mature (life spawn greater than the fading in time)
-    //or that are too close to each other
-
-
 
     //Dead patches are not updated
     if (currentLife <= 0 && active == 0)
     {
         return false;
     }
-
-    //int deleteFaster = attDeleteFaster.get(ppt);
     bool isMature = (currentSpawn >= params.fadingTau);
     if (params.fadingIn == 0)
         isMature = true;
@@ -663,17 +656,11 @@ bool ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
     if (currentLife < 0)
         currentLife = 0;
 
-    float deletionLife = params.fadingTau;
-    float blending = (float)currentLife/(float(deletionLife));
-    attBlend.set(ppt,blending);
-
-    //==============================================
 
     float life = currentLife;
-    attLife.set(ppt,life);
-
     float temporalComponetKt = ((float)life)/params.fadingTau;
 
+    attLife.set(ppt,life);
     attBlend.set(ppt,temporalComponetKt);
     attSpawn.set(ppt,currentSpawn);
     attMaxDeltaOnD.set(ppt,dynamicTau);
@@ -689,26 +676,29 @@ bool ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
 //================================================================================================
 
 
-void ParticleTrackerManager::ProjectAndUpdateAllTrackers()
+void ParticleTrackerManager::ProjectAllTrackersOnSurface()
 {
     bool useDynamicTau = params.useDynamicTau;
     cout <<this->approachName<< " CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau <<endl;
 
     GA_Offset ppt;
-    int deletedTrackers = 0;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
-        //this->ProjectAndUpdateTracker(ppt);
-        bool canProject = this->ProjectTrackerOnSurface(ppt);
-        if (!canProject)
-            continue;
-        this->UpdateTracker(ppt);
-
+        this->ProjectTrackerOnSurface(ppt);
     }
+}
 
-    cout <<this->approachName<< " Deleted trackers: "<<deletedTrackers<<endl;
-    cout <<this->approachName<< " New And Lonely Tracker "<<numberOfNewAndLonelyTracker<<endl;
-    cout <<this->approachName<< " Total trackers: "<<trackersGdp->getNumPoints() - deletedTrackers - numberOfNewAndLonelyTracker<<endl;
+void ParticleTrackerManager::UpdateAllTrackers()
+{
+    bool useDynamicTau = params.useDynamicTau;
+    cout <<this->approachName<< " CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau <<endl;
+
+    GA_Offset ppt;
+
+    GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+    {
+        this->UpdateTracker(ppt);
+    }
 }
 
 

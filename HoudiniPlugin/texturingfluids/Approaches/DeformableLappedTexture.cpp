@@ -63,16 +63,12 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     //----------------------------------
 
 
-    bool usingOnlyPoissonDisk = false;
-
     if(params.startFrame == params.frame)
     {
         newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
-        //----------------- TO get rid of -----------
-        surface.ProjectAndUpdateAllTrackers();
-        if (!usingOnlyPoissonDisk)
-            surface.CreateGridsBasedOnMesh(newPatchesPoints);
-
+        surface.ProjectAllTrackersOnSurface();
+        surface.UpdateAllTrackers();
+        surface.CreateGridsBasedOnMesh(newPatchesPoints);
         surface.AddDeformablePatchesUsingBarycentricCoordinates();
     }
     else
@@ -81,23 +77,22 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
         surface.AdvectSingleTrackers();
         surface.AdvectGrids();
 
-        if (params.updateDistribution)
-        {
-            cout << "------------------- Sampling ---------------------"<<endl;
-            newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold); //Poisson disk on the level set
-        }
+
+        cout << "------------------- Sampling ---------------------"<<endl;
+        newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold); //Poisson disk on the level set
+
         cout << "------------------- Updating Trackers ---------------------"<<endl;
-        surface.ProjectAndUpdateAllTrackers();
+        surface.ProjectAllTrackersOnSurface();
+        surface.UpdateAllTrackers();
         surface.CreateGridsBasedOnMesh(newPatchesPoints);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches();
     }
-    if (!usingOnlyPoissonDisk)
-    {
-        //For the blending computation, we create uv array per vertex that we called patch
-        cout << "------------------- Patch Creation ---------------------"<<endl;
-        surface.AddDeformablePatchesUsingBarycentricCoordinates();
-    }
+
+    //For the blending computation, we create uv array per vertex that we called patch
+    cout << "------------------- Patch Creation ---------------------"<<endl;
+    surface.AddDeformablePatchesUsingBarycentricCoordinates();
+
 
     //-------------------- texture synthesis to test concealed patches --------------------
     AtlasTestingConcealed atlas;
