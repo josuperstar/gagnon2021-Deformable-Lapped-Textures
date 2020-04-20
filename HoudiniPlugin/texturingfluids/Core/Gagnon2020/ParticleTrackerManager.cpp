@@ -93,9 +93,11 @@ ParticleTrackerManager::ParticleTrackerManager(GU_Detail *surfaceGdp, GU_Detail 
     this->attFadeIn  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"fadeIn",1));
 
     this->AttCd = GA_RWHandleV3(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
+    this->attAlpha = GA_RWHandleF(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"Alpha",1));
+    this->attNeedNewPatch = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"NeedNewPatch",1));
 
     this->attNumberOfPrimitives  = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPrimitives",1));
-
+    this->attRasterizationPoint = GA_RWHandleI(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"rasterizationPoint", 1));
 
     this->attVSurface = GA_RWHandleV3(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"v", 3));
     this->attDivergence = GA_RWHandleF(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"divergence",1));
@@ -134,6 +136,7 @@ vector<GA_Offset> ParticleTrackerManager::PoissonDiskSamplingDistribution(GU_Det
     GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
     GA_RWHandleI    isTangeantTracker(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
+
 
     vector<GA_Offset> newPoissonDisk;
 
@@ -505,6 +508,16 @@ int ParticleTrackerManager::NumberOfPatchesToDelete()
     }
 
     return toDelete;
+}
+
+void ParticleTrackerManager::CreateDebugRasterizationPoint(UT_Vector3 position, UT_Vector3 color, float alpha, int needNewPatch)
+{
+    GA_Offset newPoint = this->trackersGdp->appendPoint();
+    trackersGdp->setPos3(newPoint, position);
+    AttCd.set(newPoint,color);
+    attRasterizationPoint.set(newPoint,1);
+    attAlpha.set(newPoint,alpha);
+    attNeedNewPatch.set(newPoint,needNewPatch);
 }
 
 

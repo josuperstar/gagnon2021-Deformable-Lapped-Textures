@@ -45,7 +45,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     color.A = 1;
 
     Pixel Cf = Pixel(0,0,0);
-    Cf.A = 1;
+    Cf.A = 0;
 
     Pixel displacement = Pixel(0,0,0);
 
@@ -239,7 +239,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         // Flag that we use this patch during the synthesis.
         // We could therefore delete unused patches in the future.
-        usePatches[patchId] = true;
+        if (color.A > 0.0f)
+            usePatches[patchId] = true;
 
         //clamping color values ...
         if (color.B > 1.0f)
@@ -254,7 +255,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         Cf.R =  (alpha)*(color.R) + (1.0f-alpha)*(Cf.R);
         Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);
         Cf.B =  (alpha)*(color.B) + (1.0f-alpha)*(Cf.B);
-
+        Cf.A += color.A;
         colorsList.push_back(color);
 
         k--;

@@ -36,7 +36,7 @@ public:
    void SetDisplacementMap1(string data){displacementMapImageName = data;}
    void RenderColoredPatches(bool data) {renderColoredPatches = data;}
 
-   void RasterizePrimitive(PatchedSurfaceGagnon2020 &patchedSurace, GA_Offset primOffset, int w,int h,  ParametersDeformablePatches params);
+   vector<GA_Offset>  RasterizePrimitive(PatchedSurfaceGagnon2020 &patchedSurace, GA_Offset primOffset, int w,int h,  ParametersDeformablePatches params);
    void RasterizePrimitiveYu2011BlendingFunction(GA_Offset primOffset, int w,int h,ParametersDeformablePatches params);
 
    void SaveAtlas();

@@ -22,6 +22,7 @@ public:
     vector<GA_Offset> PoissonDiskSamplingDistribution(GU_Detail *levelSet, float diskRadius, float angleNormalThreshold);
 
     GA_Offset CreateAParticle(UT_Vector3 newPointPosition, UT_Vector3 newPointNormal);
+    void CreateDebugRasterizationPoint(UT_Vector3 position, UT_Vector3 color, float alpha, int needNewPatch);
 
     bool ProjectTrackerOnSurface(GA_Offset ppt);
     void ProjectAllTrackersOnSurface();
@@ -78,6 +79,9 @@ protected :
     GA_RWHandleI    attActive;
     GA_RWHandleI    attIsMature;
     GA_RWHandleI    attDensity;
+    GA_RWHandleI    attRasterizationPoint;
+    GA_RWHandleF    attAlpha;
+    GA_RWHandleI    attNeedNewPatch;
     GA_RWHandleF    attBlend;
 
     GA_RWHandleF    attMaxDeltaOnD;
@@ -87,7 +91,7 @@ protected :
     GA_RWHandleV3   tangeant;
     GA_RWHandleI    attFadeIn;
     GA_RWHandleF    temporalComponentKt;
-    GA_RWHandleV3 AttCd;
+    GA_RWHandleV3   AttCd;
     GA_RWHandleI    attNumberOfPrimitives;
 
     GA_RWHandleV3 attVSurface;

@@ -386,6 +386,8 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
 
     GA_Offset surfacePointOffset;
     int patchNumber = 0;
+
+    //Create PatchID array
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
@@ -462,7 +464,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
             neighborhood.clear();
         }
     }
-
+    //Create Patch Group
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {

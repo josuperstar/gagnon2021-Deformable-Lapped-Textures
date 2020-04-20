@@ -79,12 +79,12 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
 
 
         cout << "------------------- Sampling ---------------------"<<endl;
-        newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold); //Poisson disk on the level set
+        //newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold); //Poisson disk on the level set
 
         cout << "------------------- Updating Trackers ---------------------"<<endl;
         surface.ProjectAllTrackersOnSurface();
         surface.UpdateAllTrackers();
-        surface.CreateGridsBasedOnMesh(newPatchesPoints);
+        //surface.CreateGridsBasedOnMesh(newPatchesPoints);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches();
     }
@@ -152,10 +152,13 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     long i = 0;
     int lastModulo = 0;
 
+    vector<GA_Offset> newPointsOnSurface;
     GA_FOR_ALL_PRIMITIVES(surfaceGdp,prim)
     {
         GA_Offset primOffset = prim->getMapOffset();
-        atlas.RasterizePrimitive(surface, primOffset, params.atlasWidth,params.atlasHeight,params);
+        vector<GA_Offset> newPoints = atlas.RasterizePrimitive(surface, primOffset, params.atlasWidth,params.atlasHeight,params);
+        //newPointsOnSurface.push_back(newPoints);
+        newPointsOnSurface.insert(newPointsOnSurface.end(), newPoints.begin(), newPoints.end());
         i++;
 
 //        float pourcentage = ((float)i/(float)nbOfPrimitive)*100.0f;
@@ -169,26 +172,34 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     }
     //--------------------------------
 
+
+//    vector<GA_Offset>::iterator itP;
+//    for (itP = newPointsOnSurface.begin(); itP != newPointsOnSurface.end(); itP++)
+//    {
+//        surface.CreateGridBasedOnMesh(*itP);
+//        surface.AddDeformablePatcheUsingBarycentricCoordinates(*itP);
+//    }
+
     map<int, bool> usedPatches = atlas.getUsedPatches();
-    map<int, bool>::iterator itUsedPatches;
+//    map<int, bool>::iterator itUsedPatches;
     int concealedPatches = 0;
-    {
-        GA_Offset ppt;
-        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
-        {
-            int id = attId.get(ppt);
-            int active = attActive.get(ppt);
-            if (!usedPatches[id] && active == 1)
-            {
-                //if (id == 1388)
-                //    cout << "Patch is not used !!!"<<endl;
-                attLife.set(ppt,0);
-                attActive.set(ppt,0);
-                concealedPatches++;
-            }
-        }
-    }
-    cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
+//    {
+//        GA_Offset ppt;
+//        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+//        {
+//            int id = attId.get(ppt);
+//            int active = attActive.get(ppt);
+//            if (!usedPatches[id] && active == 1)
+//            {
+//                //if (id == 1388)
+//                //    cout << "Patch is not used !!!"<<endl;
+//                attLife.set(ppt,0);
+//                attActive.set(ppt,0);
+//                concealedPatches++;
+//            }
+//        }
+//    }
+    //cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
     //atlas.~AtlasTestingConcealed();
     atlas.CleanRayMemory(deformableGridGdp);
 
