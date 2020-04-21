@@ -175,13 +175,6 @@ vector<GA_Offset> ParticleTrackerManager::PoissonDiskSamplingDistribution(GU_Det
     {
         int numberOfClosePoint;
 
-        if (isTangeantTracker.isValid())
-        {
-            if (isTangeantTracker.get(ppt) == 1)
-            {
-                continue;
-            }
-        }
         UT_Vector3 pointPosition = trackersGdp->getPos3(ppt);
         UT_Vector3 pointNormal   = attN.get(ppt);
         if (attId.get(ppt) > this->maxId)

@@ -529,8 +529,6 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
                     new_ray->init(deformableGrids,gridPrimitiveGroup);
                     rays[groupName] = new_ray;
 
-                    buildArrayList();
-
                     sortedPatches.push_back(newPointId);
                     float blend = attBlend.get(newPoint);
                     if (isinf(blend))

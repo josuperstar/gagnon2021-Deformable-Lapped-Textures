@@ -183,22 +183,22 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     map<int, bool> usedPatches = atlas.getUsedPatches();
 //    map<int, bool>::iterator itUsedPatches;
     int concealedPatches = 0;
-//    {
-//        GA_Offset ppt;
-//        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
-//        {
-//            int id = attId.get(ppt);
-//            int active = attActive.get(ppt);
-//            if (!usedPatches[id] && active == 1)
-//            {
-//                //if (id == 1388)
-//                //    cout << "Patch is not used !!!"<<endl;
-//                attLife.set(ppt,0);
-//                attActive.set(ppt,0);
-//                concealedPatches++;
-//            }
-//        }
-//    }
+    {
+        GA_Offset ppt;
+        GA_FOR_ALL_PTOFF(trackersGdp,ppt)
+        {
+            int id = attId.get(ppt);
+            int active = attActive.get(ppt);
+            if (!usedPatches[id] && active == 1)
+            {
+                //if (id == 1388)
+                //    cout << "Patch is not used !!!"<<endl;
+                attLife.set(ppt,0);
+                attActive.set(ppt,0);
+                concealedPatches++;
+            }
+        }
+    }
     //cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
     //atlas.~AtlasTestingConcealed();
     atlas.CleanRayMemory(deformableGridGdp);

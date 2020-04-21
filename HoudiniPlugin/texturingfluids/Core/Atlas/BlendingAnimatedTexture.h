@@ -21,7 +21,7 @@ public:
                        map<int,UT_Vector3> &trackersNormal,
                        map<int,UT_Vector3> &trackersPosition,
                        map<int,UT_Vector3> &trackersUVPosition,
-                       map<int, bool> usePatches,
+                       map<int, bool> &usePatches,
                        map<string,GU_RayIntersect*> &rays,
                        map<int,Pixel> &patchColors,
                        Pixel RM,           //Mean Value
