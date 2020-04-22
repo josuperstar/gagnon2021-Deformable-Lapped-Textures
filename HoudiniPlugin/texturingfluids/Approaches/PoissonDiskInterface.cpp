@@ -24,7 +24,7 @@
 #include <GU/GU_RayIntersect.h>
 
 #include <Core/Gagnon2020/PatchedSurface.h>
-#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
+
 
 PoissonDiskInterface::PoissonDiskInterface()
 {
@@ -34,9 +34,9 @@ PoissonDiskInterface::~PoissonDiskInterface()
 {
 }
 
-void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
+void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *surfaceLowResGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridGdp, GU_Detail *levelSet,  ParametersDeformablePatches params)
 {
-    PatchedSurfaceGagnon2020 strategy(surfaceGdp, trackersGdp, params);
+    PatchedSurfaceGagnon2020 strategy(surfaceGdp,surfaceLowResGdp, trackersGdp,deformableGridGdp, params);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     params.useDynamicTau = false;
 
@@ -62,9 +62,10 @@ void PoissonDiskInterface::Synthesis(GU_Detail *surfaceGdp, GU_Detail *trackersG
     surfaceTree.build(surfaceGdp, NULL);
 
     //=========================== CORE ALGORITHM ============================
-    strategy.PoissonDiskSampling(levelSet,trackersGdp,params);
-    strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-    strategy.AdvectSingleTrackers(surfaceGdp,trackersGdp, params);
+    //strategy.PoissonDiskSampling(levelSet);
+    strategy.ProjectAllTrackersOnSurface();
+    strategy.UpdateAllTrackers();
+    strategy.AdvectSingleTrackers();
     //=======================================================================
 
     cout << strategy.approachName<<" Done"<<endl;

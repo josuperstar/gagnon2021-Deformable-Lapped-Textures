@@ -25,7 +25,6 @@
 #include <GU/GU_RayIntersect.h>
 
 #include <Core/Gagnon2020/PatchedSurface.h>
-#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
 
 #include <Core/Atlas/AtlasTestingConcealed.h>
 #include <Core/Atlas/TBBAtlasTestingConcealed.h>
@@ -38,81 +37,62 @@ DeformableLappedTexture::~DeformableLappedTexture()
 {
 }
 
-void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
+void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *levelSet, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    PatchedSurfaceGagnon2020 surface(surfaceGdp, trackersGdp, params);
+    PatchedSurfaceGagnon2020 surface(surfaceGdp, surfaceLowResGdp, trackersGdp,deformableGridGdp, params);
     cout << "[DeformableLappedTexture::Synthesis] Version: (put version here) frame: "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
     std::clock_t start;
     start = std::clock();
     vector<GA_Offset> newPatchesPoints;
-    vector<GA_Offset> trackers;
+
     cout << "reference gdp created"<<endl;
     const GA_SaveOptions *options;
     UT_StringArray *errors;
 
-    GA_PointGroup *surfaceGroup = (GA_PointGroup *)surfaceGdp->pointGroups().find(surface.surfaceGroupName.c_str());
-    if (surfaceGroup == 0x0)
-    {
-        cout << "There is no surface group to synthesis"<<endl;
-        return;
-    }
-    //=======================================================
-    GA_PointGroup *grp = (GA_PointGroup *)gdp->pointGroups().find(surface.markerGroupName.c_str());
 
-    GU_RayIntersect ray(gdp);
-    ray.init();
-    GEO_PointTreeGAOffset surfaceTree;
-    surfaceTree.build(surfaceGdp, NULL);
-    GEO_PointTreeGAOffset surfaceLowResTree;
-    surfaceLowResTree.build(surfaceLowResGdp, NULL);
+    //=======================================================
 
     //=========================== CORE ALGORITHM ============================
 
-
     //---- for visualisation purpose
-
     //string beforeUpdateString = params.trackersFilename + "beforeAdvection.bgeo";
     //const char* filename = beforeUpdateString.c_str();//"dlttest.bgeo";
     //trackersGdp->save(filename,options,errors);
     //----------------------------------
 
 
-    bool usingOnlyPoissonDisk = false;
-
     if(params.startFrame == params.frame)
     {
-        surface.PoissonDiskSampling(levelSet,trackersGdp,params);
-        surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-        if (!usingOnlyPoissonDisk)
-            surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+        newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
+        surface.ProjectAllTrackersOnSurface();
+        surface.UpdateAllTrackers();
+        surface.CreateGridsBasedOnMesh(newPatchesPoints);
+        surface.AddDeformablePatchesUsingBarycentricCoordinates();
     }
     else
     {
         cout << "------------------- Advection ---------------------"<<endl;
-        surface.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
-        surface.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
-        cout << "number of patch flaged to delete "<<surface.NumberOfPatchesToDelete(trackersGdp)<<endl;
-        cout << "number of distorted patches "<<surface.numberOfDistortedPatches<<endl;
-        if (params.updateDistribution)
-        {
-            cout << "------------------- Sampling ---------------------"<<endl;
-            surface.PoissonDiskSampling(levelSet,trackersGdp,params); //Poisson disk on the level set
-        }
+        surface.AdvectSingleTrackers();
+        surface.AdvectGrids();
+
+
+        cout << "------------------- Sampling ---------------------"<<endl;
+        //newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold); //Poisson disk on the level set
+
         cout << "------------------- Updating Trackers ---------------------"<<endl;
-        surface.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-        cout << "------------------- Grid Creation ---------------------"<<endl;
-        surface.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+        surface.ProjectAllTrackersOnSurface();
+        surface.UpdateAllTrackers();
+        //surface.CreateGridsBasedOnMesh(newPatchesPoints);
         cout << "------------------- Delete Dead Patches ---------------------"<<endl;
-        surface.DeleteUnusedPatches(gdp, trackersGdp,params);
+        surface.DeleteUnusedPatches();
     }
-    if (!usingOnlyPoissonDisk)
-    {
-        //For the blending computation, we create uv array per vertex that we called patch
-        cout << "------------------- Patch Creation ---------------------"<<endl;
-        surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
-    }
+
+    //For the blending computation, we create uv array per vertex that we called patch
+    cout << "------------------- Patch Creation ---------------------"<<endl;
+    surface.AddDeformablePatchesUsingBarycentricCoordinates();
+
 
     //-------------------- texture synthesis to test concealed patches --------------------
     AtlasTestingConcealed atlas;
@@ -122,7 +102,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     atlas.SetSurface(surfaceGdp);
     atlas.SetLowResDeformableGrids(surfaceLowResGdp);
     atlas.SetLowResSurface(surfaceLowResGdp);
-    atlas.SetDeformableGrids(gdp);
+    atlas.SetDeformableGrids(deformableGridGdp);
     atlas.SetTrackers(trackersGdp);
     atlas.SetTextureExemplar1(params.textureExemplar1Name);
     atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
@@ -172,10 +152,13 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     long i = 0;
     int lastModulo = 0;
 
+    vector<GA_Offset> newPointsOnSurface;
     GA_FOR_ALL_PRIMITIVES(surfaceGdp,prim)
     {
         GA_Offset primOffset = prim->getMapOffset();
-        atlas.RasterizePrimitive(surface, primOffset, params.atlasWidth,params.atlasHeight,params);
+        vector<GA_Offset> newPoints = atlas.RasterizePrimitive(surface, primOffset, params.atlasWidth,params.atlasHeight,params);
+        //newPointsOnSurface.push_back(newPoints);
+        newPointsOnSurface.insert(newPointsOnSurface.end(), newPoints.begin(), newPoints.end());
         i++;
 
 //        float pourcentage = ((float)i/(float)nbOfPrimitive)*100.0f;
@@ -189,8 +172,16 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     }
     //--------------------------------
 
+
+//    vector<GA_Offset>::iterator itP;
+//    for (itP = newPointsOnSurface.begin(); itP != newPointsOnSurface.end(); itP++)
+//    {
+//        surface.CreateGridBasedOnMesh(*itP);
+//        surface.AddDeformablePatcheUsingBarycentricCoordinates(*itP);
+//    }
+
     map<int, bool> usedPatches = atlas.getUsedPatches();
-    map<int, bool>::iterator itUsedPatches;
+//    map<int, bool>::iterator itUsedPatches;
     int concealedPatches = 0;
     {
         GA_Offset ppt;
@@ -208,9 +199,9 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
             }
         }
     }
-    cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
+    //cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
     //atlas.~AtlasTestingConcealed();
-    atlas.CleanRayMemory(gdp);
+    atlas.CleanRayMemory(deformableGridGdp);
 
     //After ading particle and grids where rasterization didn't work, we need to add patches
     //surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
@@ -224,12 +215,11 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
 
     cout << surface.approachName<<" Done"<<endl;
     //cout << "Clear surface tree"<<endl;
-    surfaceTree.clear();
-    ray.clear();
+//    surfaceTree.clear();
 
     cout << surface.approachName<< " saving grids data"<<endl;
     const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
-    gdp->save(filenameGrids,options,errors);
+    deformableGridGdp->save(filenameGrids,options,errors);
 
     cout << surface.approachName<< " saving trackers data"<<endl;
     const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
@@ -239,8 +229,8 @@ void DeformableLappedTexture::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, G
     std::clock_t cleaningStart;
     cleaningStart = std::clock();
     //cout<< "Clear, Destroy and merge"<<endl;
-    gdp->clearAndDestroy();
-    gdp->copy(*surfaceGdp);
+    deformableGridGdp->clearAndDestroy();
+    deformableGridGdp->copy(*surfaceGdp);
 
     // ======================================== REPORT ========================================
 

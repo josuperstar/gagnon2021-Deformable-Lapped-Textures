@@ -24,7 +24,7 @@
 #include <GU/GU_RayIntersect.h>
 
 #include <Core/Gagnon2020/PatchedSurface.h>
-#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
+
 
 SinglePatchInterface::SinglePatchInterface()
 {
@@ -36,7 +36,7 @@ SinglePatchInterface::~SinglePatchInterface()
 
 void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *surfaceLowResGdp,  ParametersDeformablePatches params)
 {
-    PatchedSurfaceGagnon2020 strategy(surfaceGdp, trackersGdp, params);
+    PatchedSurfaceGagnon2020 strategy(surfaceGdp, surfaceLowResGdp, trackersGdp,gdp, params);
     cout << "[Yu2011Interface::Synthesis] "<<params.frame<<endl;
     //params.useDynamicTau = false;
 
@@ -56,12 +56,8 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         return;
     }
     //=======================================================
-    GU_RayIntersect ray(gdp);
-    ray.init();
-    GEO_PointTreeGAOffset surfaceTree;
-    surfaceTree.build(surfaceGdp, NULL);
-    GEO_PointTreeGAOffset surfaceLowResTree;
-    surfaceLowResTree.build(surfaceLowResGdp, NULL);
+
+
 
     //=========================== CORE ALGORITHM ============================
 
@@ -72,11 +68,11 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         cout << "Creating a single poisson disk"<<endl;
         UT_Vector3 position(0,0,0);
         UT_Vector3 normal(0,1,0);
-        strategy.CreateAPatch(trackersGdp,position, normal, params);
-        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
-        //strategy.AdvectMarkers(surfaceGdp,trackersGdp, params,surfaceTree);
+        strategy.CreateAParticle(position, normal);
+        strategy.ProjectAllTrackersOnSurface();
+        strategy.UpdateAllTrackers();
         if (!usingOnlyPoissonDisk)
-            strategy.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
+            strategy.CreateGridsBasedOnMesh(newPatchesPoints);
     }
     else
     {
@@ -84,28 +80,27 @@ void SinglePatchInterface::Synthesis(GU_Detail *gdp, GU_Detail *surfaceGdp, GU_D
         //TODO add a paramter to test the advection
         if (testAdvection)
         {
-            strategy.AdvectSingleTrackers(surfaceLowResGdp,trackersGdp, params);
-            strategy.AdvectGrids(gdp,trackersGdp,params,surfaceLowResTree,surfaceLowResGdp);
+            strategy.AdvectSingleTrackers();
+            strategy.AdvectGrids();
         }
         //strategy.PoissonDiskSampling(gdp,levelSet,trackersGdp,grp,params); //Poisson disk on the level set
-        strategy.CreateAndUpdateTrackersBasedOnPoissonDisk(surfaceGdp,trackersGdp, surfaceGroup,params);
+        strategy.ProjectAllTrackersOnSurface();
+        strategy.UpdateAllTrackers();
         if (!usingOnlyPoissonDisk)
-            strategy.CreateGridsBasedOnMesh(gdp,surfaceLowResGdp,trackersGdp, params,newPatchesPoints,surfaceLowResTree);
-        strategy.DeleteUnusedPatches(gdp, trackersGdp,params);
+            strategy.CreateGridsBasedOnMesh(newPatchesPoints);
+        strategy.DeleteUnusedPatches();
 
     }
     if (!usingOnlyPoissonDisk)
     {
         //For the blending computation, we create uv array per vertex that we called patch
-        strategy.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
+        strategy.AddDeformablePatchesUsingBarycentricCoordinates();
     }
 
     //=======================================================================
 
     cout << strategy.approachName<<" Done"<<endl;
     cout << "Clear surface tree"<<endl;
-    surfaceTree.clear();
-    ray.clear();
 
     cout << strategy.approachName<< " saving grids data"<<endl;
     const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";

@@ -15,16 +15,14 @@ class PatchedSurfaceGagnon2020 : public DeformableGridsManager
 {
 public:
 
-    PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail *trackersGdp, ParametersDeformablePatches params);
+    PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail *surfaceLowResGdp, GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, ParametersDeformablePatches params);
     ~PatchedSurfaceGagnon2020();
 
-    void PoissonDiskSampling(GU_Detail *surfaceGdp, GU_Detail *trackers, ParametersDeformablePatches params);
-    void AddDeformablePatcheUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GA_Offset ppt, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray);
-    void AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *gdp, GU_Detail* surface, GU_Detail *trackersGdp, ParametersDeformablePatches params,  GEO_PointTreeGAOffset &surfaceTree, GU_RayIntersect &ray);
-    void DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params);
+    void AddDeformablePatcheUsingBarycentricCoordinates(GA_Offset ppt);
+    void AddDeformablePatchesUsingBarycentricCoordinates();
+    void DeleteUnusedPatches();
 
-    //for test purpose
-    GA_Offset CreateAPatch(GU_Detail *trackers, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params);
+    set<int> GetSortedPatches(GA_Offset primOffset);
 
     double poissondisk;
     double  patchCreationTime;
@@ -43,8 +41,9 @@ private :
     GA_Attribute        *alphaArrayAtt;
     const GA_AIFNumericArray *alphaAtt;
     //---------------------------------------------
+    map<GA_Offset, set<int> > patchesPerPrimitives;
 
-    map<string,GU_RayIntersect*> rays;
+    GA_RWHandleV3 attUV;
 
 };
 

@@ -3,6 +3,7 @@
 //#include "TBBAtlas.h"
 
 #include "BlendingTestingConcealed.h"
+#include "BlendingAnimatedTexture.h"
 #include "../HoudiniUtils.h"
 
 #include <Core/Gagnon2020/PatchedSurface.h>
@@ -19,33 +20,12 @@ std::string format_account_number_concealed(int acct_no) {
 AtlasTestingConcealed::~AtlasTestingConcealed()
 {
     cout << "Destroy Atlas Testing Concealed"<<endl;
-//    if (this->diffuseImageBlendingGagnon->IsValid())
-//        delete this->diffuseImageBlendingGagnon;
-
-//    if (this->diffuseImageBlendingYu2011Equation3->IsValid())
-//        delete this->diffuseImageBlendingYu2011Equation3;
-
-//    if (this->diffuseImageBlendingYu2011Equation4->IsValid())
-//        delete this->diffuseImageBlendingYu2011Equation4;
-
 
     for (int i = 0; i < this->numberOfTextureSampleFrame-1; i++)
     {
-        cout << "delete texture examplar memory "<<i<<endl;
+        //cout << "delete texture examplar memory "<<i<<endl;
         delete this->textureExemplars[i];
     }
-
-
-//    cout << "Delete rays"<< endl;
-//    GA_PrimitiveGroup *primGroup;
-//    GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-//    {
-//         string name = primGroup->getName().toStdString();
-//         delete rays[name];
-//         //delete patchesGeo[name];
-//         //delete details[name];
-//    }
-//    //patchesGeo.clear();
 
     trackerNormal.clear();
 
@@ -81,7 +61,7 @@ bool AtlasTestingConcealed::initImages(int w, int h)
             string noPaddedNumber = std::to_string(i+1);
 
             currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
-            //cout << "[AtlasTestingConcealed::BuildAtlas] Opening "<<currentName<<endl;
+            cout << "[AtlasTestingConcealed::BuildAtlas] Opening "<<currentName<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
             {
@@ -128,8 +108,6 @@ bool AtlasTestingConcealed::initVariables(int life)
     patchArray = patchIds->getAIFNumericArray();
     //-------------------------------------------------------
 
-    gridTree.build(deformableGrids,NULL);
-    //surfaceTree.build(surface, NULL);
     attLife = life;
 
     attBlend = GA_RWHandleF(trackers->findFloatTuple(GA_ATTRIB_POINT,"temporalComponetKt", 1));
@@ -306,11 +284,17 @@ void AtlasTestingConcealed::CreateListGUDetails()
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patchedSurface, GA_Offset primOffset, int w, int h,  ParametersDeformablePatches params)
+vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patchedSurface, GA_Offset primOffset, int w, int h,  ParametersDeformablePatches params)
 {
+    vector<GA_Offset> newPoints;
     GA_Primitive *prim = surface->getPrimitive(primOffset);
     if(prim == 0x0)
-        return;
+        return newPoints;
+
+
+    Pixel displacementSumEq3 = Pixel(0,0,0);
+    Pixel displacementSumEq4 = Pixel(0,0,0);
+    Pixel R_eq3;
 
     GEO_Primitive *geoPrim = surface->getGEOPrimitive(primOffset);
     UT_Vector3 N = geoPrim->computeNormal();
@@ -320,13 +304,14 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
     if (vertexCount != 3)
     {
         cout << "Primitive "<<prim->getMapOffset()<< " has "<<vertexCount<< " vertices"<<endl;
-        return;
+        return newPoints;
     }
 
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGrids->getGroupTable(primitiveGroupType);
 
     //--------------------- SORTED DATA PER PATCH ------------------------
+    // put this in surfacePatched class:
     vector<UT_Vector3> surfaceTexturePosition;
     vector<UT_Vector3> surfaceUv;
     vector<UT_Vector3> surfacePosition;
@@ -398,9 +383,9 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
     int pixelCellSize = 5;
     Pixel color;
     Pixel displacement;
-    Pixel alphaColor;
+
     UT_Vector3 point;
-    GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
+
     GA_RWHandleV3   attN(trackers->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     //-----------------------------------------------------------------
     for(int i =min.x()-pixelCellSize; i < max.x()+pixelCellSize; i++)
@@ -409,7 +394,6 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
         {
             if (i < 0 || j < 0)
                 continue;
-
 
             Pixel Cf = Pixel(0,0,0);
             Cf.A = 1;
@@ -463,8 +447,22 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                 color.G = 1;
                 color.B = 1;
                 //======================== Yu2011  function =====================
-
-                Pixel R_eq4 = BlendingTestingConcealed::Blend(deformableGrids,i,j,w,h,
+                //Pixel R_eq4 = BlendingTestingConcealed::Blend(deformableGrids,i,j,w,h,
+//                Pixel R_eq4 = BlendingAnimatedTexture::Blend(deformableGrids,i,j,w,h,
+//                                          pixelPositionX,pixelPositionY,
+//                                          sortedPatches,
+//                                          surfaceUv,
+//                                          surfacePosition,
+//                                          trackerNormal,
+//                                          trackersPosition,
+//                                          trackerUVPosition,
+//                                          usePatches,
+//                                          rays,
+//                                          attPointUV,
+//                                          temporalComponetKt,
+//                                          textureExemplars,
+//                                          params);
+                Pixel R_eq4 = BlendingAnimatedTexture::Blend(deformableGrids,i,j,w,h,
                                           pixelPositionX,pixelPositionY,
                                           sortedPatches,
                                           surfaceUv,
@@ -474,44 +472,54 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                                           trackerUVPosition,
                                           usePatches,
                                           rays,
+                                          patchColors,
+                                          RM,
                                           attPointUV,
                                           temporalComponetKt,
                                           textureExemplars,
+                                          displacementMapImage,
+                                          computeDisplacement,
+                                          renderColoredPatches,
+                                          R_eq3,
+                                          displacementSumEq3,
+                                          displacementSumEq4,
                                           params);
                 //cout << "Resulting color: "<<R_eq4.R << " "<<R_eq4.G << " "<<R_eq4.B << " "<<R_eq4.A <<endl;
-                bool addPatchOnRasterization = false;
-                if (R_eq4.A == 0 && addPatchOnRasterization)
+                bool addPatchOnRasterization = true;
+
+                //========================== ADD A NEW PATCH ========================
+//                GU_RayIntersect ray(this->deformableGrids);
+//                ray.init();
+
+                //Need another patch
+                UT_Vector3 pixelPositionOnSurface;
+
+                pixelPositionOnSurface.x() = ((float)pixelPositionX/(w-1));
+                pixelPositionOnSurface.y() = ((float)pixelPositionY/(h-1));
+                pixelPositionOnSurface.z() = 0;
+
+                UT_Vector3 positionOnSurface = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],surfacePosition[0],surfacePosition[1],surfacePosition[2],pixelPositionOnSurface);
+
+
+                if (R_eq4.A < 0.1 && addPatchOnRasterization)
                 {
-                    //========================== ADD A NEW PATCH ========================
-                    GU_RayIntersect ray(this->deformableGrids);
-                    ray.init();
-
-                    surfaceTree.build(surface, NULL);
-                    surfaceLowResTree.build(this->lowResSurface, NULL);
-                    //Need another patch
-                    UT_Vector3 pixelPositionOnSurface;
-
-                    pixelPositionOnSurface.x() = ((float)pixelPositionX/(w-1));
-                    pixelPositionOnSurface.y() = ((float)pixelPositionY/(h-1));
-                    pixelPositionOnSurface.z() = 0;
-
-                    UT_Vector3 positionOnSurface = HoudiniUtils::GetBarycentricPosition(surfaceUv[0],surfaceUv[1],surfaceUv[2],surfacePosition[0],surfacePosition[1],surfacePosition[2],pixelPositionOnSurface);
-
+                    //patchedSurface.CreateDebugRasterizationPoint(positionOnSurface, UT_Vector3(R_eq4.R,R_eq4.G,R_eq4.B),R_eq4.A, 1);
                     //1- Add particle
                     //Here, we should have a patch id as the result
-                    cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
-                    GA_Offset newPoint = patchedSurface.CreateAPatch(trackers, positionOnSurface, N, params);
-                    patchedSurface.CreateAndUpdateTrackerBasedOnPoissonDisk(surface, trackers,newPoint, surfaceGroup, params);
+                    //cout << "Create new paticle with position "<<positionOnSurface<< " and normal "<<N<<endl;
+                    GA_Offset newPoint = patchedSurface.CreateAParticle( positionOnSurface, N);
+                    newPoints.push_back(newPoint);
+                    //patchedSurface.ProjectAndUpdateTracker(newPoint);
+                    bool canProject = patchedSurface.ProjectTrackerOnSurface(newPoint);
+                    if (!canProject)
+                        continue;
+                    patchedSurface.UpdateTracker(newPoint);
 
-                    //2 - Add Deformable Grid
-                    // we should create the grid based on the patch id
-                    patchedSurface.CreateGridBasedOnMesh(this->deformableGrids,lowResSurface,this->trackers, params, newPoint,surfaceLowResTree);
-
+                    patchedSurface.CreateGridBasedOnMesh(newPoint);
+                    patchedSurface.AddDeformablePatcheUsingBarycentricCoordinates(newPoint);
 
                     //----------------------- Rebuild data structure------------------------
                     GA_RWHandleI    attId(trackers->findIntTuple(GA_ATTRIB_POINT,"id",1));
-
-
 
                     int newPointId = attId.get(newPoint);
                     string str = std::to_string(newPointId);
@@ -520,8 +528,6 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                     GU_RayIntersect *new_ray = new GU_RayIntersect(deformableGrids,gridPrimitiveGroup);
                     new_ray->init(deformableGrids,gridPrimitiveGroup);
                     rays[groupName] = new_ray;
-
-                    buildArrayList();
 
                     sortedPatches.push_back(newPointId);
                     float blend = attBlend.get(newPoint);
@@ -534,11 +540,16 @@ void AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon2020 &patched
                     usePatches[newPointId] = true;
                     cout << "sorted patch "<<newPointId<<endl;
                 }
+                else
+                {
+                    //patchedSurface.CreateDebugRasterizationPoint(positionOnSurface, UT_Vector3(R_eq4.R,R_eq4.G,R_eq4.B),R_eq4.A, 0);
+                }
                 if (inTriangle)
                     this->pixelUsed[pixelPositionX][pixelPositionY] = true;
             }
         }
     }//------------------------ FIN RASTERISATION ---------------------
+    return newPoints;
 }
 
 

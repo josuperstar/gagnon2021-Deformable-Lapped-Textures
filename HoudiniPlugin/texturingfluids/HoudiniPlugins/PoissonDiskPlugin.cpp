@@ -219,7 +219,7 @@ PoissonDiskPlugin::cookMySop(OP_Context &context)
 
     PoissonDiskInterface interface;
     //interface.Synthesis(gdp,const_cast<GU_Detail*>(surface), params);
-    interface.Synthesis(gdp,trackersCopy,levelSet, params);
+    //interface.Synthesis(gdp,trackersCopy,levelSet, params);
 
     delete trackersCopy;
     delete levelSet;

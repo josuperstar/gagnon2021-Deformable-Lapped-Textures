@@ -25,11 +25,11 @@
 #include <GU/GU_Flatten.h>
 
 //#include <Strategies/StrategySurfaceTextureSynthesis.h>
-#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
+//#include <Core/Gagnon2020/Bridson2012PoissonDiskDistribution.h>
 #include <Core/HoudiniUtils.h>
 
 
-PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail *trackersGdp, ParametersDeformablePatches params) : DeformableGridsManager(surface, trackersGdp, params)
+PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail *surfaceLowResGdp,GU_Detail *trackersGdp, GU_Detail *deformableGridsGdp, ParametersDeformablePatches params) : DeformableGridsManager(surface, surfaceLowResGdp, trackersGdp,deformableGridsGdp, params)
 {
     //this->numberOfPatches = 0;
 
@@ -132,6 +132,8 @@ PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail
     }
     alphaArrayAtt->clearDataId();
 
+    attUV = GA_RWHandleV3(surface->findFloatTuple(GA_ATTRIB_VERTEX,"uv", 3));
+
     this->uvFlatteningTime = 0;
     this->gridMeshCreation = 0;
     this->gridAdvectionTime = 0;
@@ -140,72 +142,21 @@ PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail
     this->nbOfFlattenedPatch = 0;
     this->updatePatchesTime = 0;
 
+
+    trackerTree.build(trackersGdp, NULL);
 }
 
 PatchedSurfaceGagnon2020::~PatchedSurfaceGagnon2020()
 {
-    this->rays.clear();
+
 }
 
-
-//================================================================================================
-
-//                                     POISSON DISK SAMPLING
-
-//================================================================================================
-
-
-void PatchedSurfaceGagnon2020::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+set<int> PatchedSurfaceGagnon2020::GetSortedPatches(GA_Offset primOffset)
 {
+    set<int> sortedPatches = patchesPerPrimitives[primOffset];
 
-    //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
-    //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
-    //It basically take the points from Houdini and fill it to the approach.
-
-
-    std::clock_t addPoissonDisk;
-    addPoissonDisk = std::clock();
-
-
-    GEO_PointTreeGAOffset trackerTree;
-    trackerTree.build(trackersGdp, NULL);
-    int numberOfInitialTrackers = this->numberOfPatches;
-    cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
-    //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
-    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
-    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
-    this->numberOfNewPatches = poissonDiskDistribution.numberOfNewPoints;
-    cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
-    this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
-    cout << this->approachName<<" Total :"<<trackersGdp->getNumPoints()<<endl;
-
+    return sortedPatches;
 }
-
-GA_Offset PatchedSurfaceGagnon2020::CreateAPatch(GU_Detail *trackersGdp, UT_Vector3 position, UT_Vector3 normal, ParametersDeformablePatches params)
-{
-    //This is a function that does a Poisson Disk Sampling using the approach of Bridson 2012 paper
-    //This function is a wrapper to the Bridson2012PoissonDiskDistribution class.
-    //It basically take the points from Houdini and fill it to the approach.
-
-    std::clock_t addPoissonDisk;
-    addPoissonDisk = std::clock();
-
-
-    GEO_PointTreeGAOffset trackerTree;
-    trackerTree.build(trackersGdp, NULL);
-
-    //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
-    Bridson2012PoissonDiskDistributionGagnon2020 poissonDiskDistribution;
-    int numberOfClosePoint = 0;
-    GA_Offset newPoint = poissonDiskDistribution.CreateAParticle(trackersGdp, trackerTree, position,normal,1,numberOfClosePoint,params);
-
-    cout << this->approachName<<" poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
-    //this->numberOfPatches = trackersGdp->getNumPoints();
-
-    this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;
-    return newPoint;
-}
-
 
 //================================================================================================
 
@@ -214,7 +165,7 @@ GA_Offset PatchedSurfaceGagnon2020::CreateAPatch(GU_Detail *trackersGdp, UT_Vect
 //================================================================================================
 
 
-void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GA_Offset ppt, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GA_Offset ppt)
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
@@ -234,14 +185,8 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
 
-    /*
-    GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
-    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    */
-    GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attNumberOfPatch(surfaceGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
+    GA_RWHandleV3 attNSurface(this->surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI attNumberOfPatch(this->surface->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
 
     if (attLife.isInvalid())
     {
@@ -287,12 +232,13 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU
         string str = std::to_string(patchNumber);
         UT_String patchGroupName("patch"+str);
         //cout << "Create patch "<<patchGroupName<<endl;
-        GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
+        GA_PointGroup* patchGroup = this->surface->newPointGroup(patchGroupName, 0);
         UT_String gridGroupName("grid"+str);
         GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
         if (gridPrimitiveGroup == 0x0)
             return;
 
+        GU_RayIntersect ray(this->deformableGridsGdp);
         ray.init(deformableGridsGdp,gridPrimitiveGroup);
 
         set<GA_Offset> neighborhood;
@@ -311,28 +257,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU
             //if (dotP < params.angleNormalThreshold*2)
             //    continue;
 
-            patchP = surfaceGdp->getPos3(surfacePointOffset);
-            //respect poisson disk criterion
-            //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-            UT_Vector3 pos          = patchP;
-            //=====================================================
-
-            UT_Vector3 pNp          = position - pos;
-            pNp.normalize();
-            dotP              = dot(pNp, N);
-
-            //float d              = distance3d( pos, position );
-            float dp                = abs(dotP);
-
-            float k        = (1-dp)*r*3;
-            if (k < cs*2)
-                k = cs*2;
-            //bool insideBigEllipse    = d < k;
-            //if (!insideBigEllipse)
-            //    continue;
-
-            //=====================================================
-
+            patchP = this->surface->getPos3(surfacePointOffset);
 
             //------------------------------------ RAY -----------------------------------------
             //project patchP on trackers set
@@ -385,17 +310,17 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU
         string str = std::to_string(patchNumber);
         UT_String pointGroupName("patch"+str);
         //cout << "Create primitive group" << str <<endl;
-        GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(pointGroupName);
+        GA_PrimitiveGroup* primGrp = this->surface->newPrimitiveGroup(pointGroupName);
         GA_GroupType groupType = GA_GROUP_POINT;
-        const GA_GroupTable *gtable = surfaceGdp->getGroupTable(groupType);
+        const GA_GroupTable *gtable = this->surface->getGroupTable(groupType);
         GA_OffsetArray primitives;
         GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(primGrp->getName());
         if (pointGrp == 0x0)
             return;
 
-        GA_FOR_ALL_GROUP_PTOFF(surfaceGdp,pointGrp,ppt)
+        GA_FOR_ALL_GROUP_PTOFF(this->surface,pointGrp,ppt)
         {
-            surfaceGdp->getPrimitivesReferencingPoint(primitives,ppt);
+            this->surface->getPrimitivesReferencingPoint(primitives,ppt);
             for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); !prims_it.atEnd(); ++prims_it)
             {
                 primGrp->addOffset(*prims_it);
@@ -416,11 +341,11 @@ void PatchedSurfaceGagnon2020::AddDeformablePatcheUsingBarycentricCoordinates(GU
 //================================================================================================
 
 
-void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(GU_Detail *deformableGridsGdp,GU_Detail *surfaceGdp, GU_Detail *trackersGdp, ParametersDeformablePatches params, GEO_PointTreeGAOffset &surfaceTree,  GU_RayIntersect &ray)
+void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
 {
 
     //This function is used to transfer the uv list from the deformable patches to the surface where the texture will be synthesis.
-    cout << this->approachName<<"[AddPatchesUsingBarycentricCoordinates]" << endl;
+    //cout << this->approachName<<"[AddPatchesUsingBarycentricCoordinates]" << endl;
 
     std::clock_t addPatchesStart;
     addPatchesStart = std::clock();
@@ -437,14 +362,8 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
     GA_GroupType primitiveGroupType = GA_GROUP_PRIMITIVE;
     const GA_GroupTable *primitiveGTable = deformableGridsGdp->getGroupTable(primitiveGroupType);
 
-    /*
-    GA_RWHandleV3 attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active",1));
-    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    */
-    GA_RWHandleV3 attNSurface(surfaceGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
-    GA_RWHandleI attNumberOfPatch(surfaceGdp->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
+    GA_RWHandleV3 attNSurface(this->surface->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
+    GA_RWHandleI attNumberOfPatch(this->surface->addIntTuple(GA_ATTRIB_POINT,"numberOfPatch",1));
 
     if (attLife.isInvalid())
     {
@@ -455,16 +374,20 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
 
     set<int> patchTreated;
     float thresholdDistance = params.maximumProjectionDistance;
-    float cs = params.CellSize;
-    float r = params.poissondiskradius;
+
     GA_Offset ppt;
     UT_Vector3 N;
     UT_Vector3 NN;
     UT_Vector3 position;
     UT_Vector3 patchP;
 
+    GU_RayIntersect ray(this->deformableGridsGdp);
+    ray.init();
+
     GA_Offset surfacePointOffset;
     int patchNumber = 0;
+
+    //Create PatchID array
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
@@ -491,7 +414,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
             string str = std::to_string(patchNumber);
             UT_String patchGroupName("patch"+str);
             //cout << "Create patch "<<patchGroupName<<endl;
-            GA_PointGroup* patchGroup = surfaceGdp->newPointGroup(patchGroupName, 0);
+            GA_PointGroup* patchGroup = this->surface->newPointGroup(patchGroupName, 0);
             UT_String gridGroupName("grid"+str);
             GA_PrimitiveGroup*  gridPrimitiveGroup  = (GA_PrimitiveGroup*)primitiveGTable->find(gridGroupName);
             if (gridPrimitiveGroup == 0x0)
@@ -511,32 +434,8 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
             {
                 surfacePointOffset = *itG;
                 NN = attNSurface.get(surfacePointOffset);
-                float dotP = dot(N,NN); //exlude points that are not in the same plane.
-                //if (dotP < params.angleNormalThreshold*2)
-                //    continue;
 
-                patchP = surfaceGdp->getPos3(surfacePointOffset);
-                //respect poisson disk criterion
-                //UT_Vector3 pos          = trackersGdp->getPos3(neighbor);
-                UT_Vector3 pos          = patchP;
-                //=====================================================
-
-                UT_Vector3 pNp          = position - pos;
-                pNp.normalize();
-                dotP              = dot(pNp, N);
-
-                //float d              = distance3d( pos, position );
-                float dp                = abs(dotP);
-
-                float k        = (1-dp)*r*3;
-                if (k < cs*2)
-                    k = cs*2;
-                //bool insideBigEllipse    = d < k;
-                //if (!insideBigEllipse)
-                //    continue;
-
-                //=====================================================
-
+                patchP = this->surface->getPos3(surfacePointOffset);
 
                 //------------------------------------ RAY -----------------------------------------
                 //project patchP on trackers set
@@ -560,11 +459,12 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
                     attNumberOfPatch.set(surfacePointOffset,numberOfPatch);
                 }
                 patchIdsAtt->set(patchIdsArrayAttrib,surfacePointOffset, patchArrayData);
+
             }
             neighborhood.clear();
         }
     }
-
+    //Create Patch Group
     {
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
@@ -589,17 +489,17 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
             string str = std::to_string(patchNumber);
             UT_String pointGroupName("patch"+str);
             //cout << "Create primitive group" << str <<endl;
-            GA_PrimitiveGroup* primGrp = surfaceGdp->newPrimitiveGroup(pointGroupName);
+            GA_PrimitiveGroup* primGrp = this->surface->newPrimitiveGroup(pointGroupName);
             GA_GroupType groupType = GA_GROUP_POINT;
-            const GA_GroupTable *gtable = surfaceGdp->getGroupTable(groupType);
+            const GA_GroupTable *gtable = this->surface->getGroupTable(groupType);
             GA_OffsetArray primitives;
             GA_PointGroup* pointGrp = (GA_PointGroup*)gtable->find(primGrp->getName());
             if (pointGrp == 0x0)
                 continue;
 
-            GA_FOR_ALL_GROUP_PTOFF(surfaceGdp,pointGrp,ppt)
+            GA_FOR_ALL_GROUP_PTOFF(this->surface,pointGrp,ppt)
             {
-                surfaceGdp->getPrimitivesReferencingPoint(primitives,ppt);
+                this->surface->getPrimitivesReferencingPoint(primitives,ppt);
                 for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); !prims_it.atEnd(); ++prims_it)
                 {
                     primGrp->addOffset(*prims_it);
@@ -607,6 +507,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
             }
         }
      }
+    ray.clear();
     this->patchCreationTime += (std::clock() - addPatchesStart) / (double) CLOCKS_PER_SEC;
 }
 
@@ -615,7 +516,7 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates(G
 //                                                  UpdateUsingBridson2012PoissonDisk
 //======================================================================================================================================
 
-void PatchedSurfaceGagnon2020::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *trackersGdp, ParametersDeformablePatches params)
+void PatchedSurfaceGagnon2020::DeleteUnusedPatches()
 {
 //    cout << this->approachName<<" Update Using Bridson 2012 Poisson Disk with "<<numberOfPatches<<" existing trackers"<<endl;
     std::clock_t startUpdatePatches;
@@ -623,26 +524,18 @@ void PatchedSurfaceGagnon2020::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *tr
 
     //--------------------------------------------------------------------------
 
-    /*
-    GA_RWHandleI attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
-    GA_RWHandleF attLife(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleI attSpawn(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"spawn",1));
-    GA_RWHandleI attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
-
-    GA_RWHandleI attIsMature(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isMature", 1));
-    */
     GU_Detail::GA_DestroyPointMode mode = GU_Detail::GA_DESTROY_DEGENERATE;
 
     GA_Offset ppt;
-    int beforeAddingNumber = this->numberOfPatches;
+
     this->numberOfPatches = 0;
     int deletedPatches = 0;
 
     GA_PointGroup *grpToDestroy = (GA_PointGroup *)trackersGdp->newPointGroup("ToDelete");
     GA_GroupType groupType = GA_GROUP_POINT;
-    const GA_GroupTable *gtable = gdp->getGroupTable(groupType);
+    const GA_GroupTable *gtable = this->deformableGridsGdp->getGroupTable(groupType);
     GA_GroupType primGroupType = GA_GROUP_PRIMITIVE;
-    const GA_GroupTable *gPrimTable = gdp->getGroupTable(primGroupType);
+    const GA_GroupTable *gPrimTable = this->deformableGridsGdp->getGroupTable(primGroupType);
     set<int> toDelete;
     //--------------------------- DELETE DEAD PATCH --------------------------------------------
     {
@@ -666,14 +559,14 @@ void PatchedSurfaceGagnon2020::DeleteUnusedPatches(GU_Detail *gdp, GU_Detail *tr
                 if (pointGrp != 0x0)
                 {
                     //cout << "delete points "<<endl;
-                    gdp->deletePoints(*pointGrp,mode);
+                    this->deformableGridsGdp->deletePoints(*pointGrp,mode);
                     //cout << "delete point group "<<groupName<<endl;
-                    gdp->destroyPointGroup(pointGrp);
+                    this->deformableGridsGdp->destroyPointGroup(pointGrp);
                 }
                 if (primGroup != 0x0)
                 {
                     //cout << "delete point group "<<groupName<<endl;
-                    gdp->destroyPrimitiveGroup(primGroup);
+                    this->deformableGridsGdp->destroyPrimitiveGroup(primGroup);
                 }
                 deletedPatches++;
             }
