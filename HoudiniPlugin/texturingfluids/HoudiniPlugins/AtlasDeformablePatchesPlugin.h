@@ -1,7 +1,7 @@
 
 
-#ifndef __AtlasSeamCarvingPlugin_h__
-#define __AtlasSeamCarvingPlugin_h__
+#ifndef __AtlasDeformablePatchesPlugin_h__
+#define __AtlasDeformablePatchesPlugin_h__
 #include <vector>
 #include <SOP/SOP_Node.h>
 #include <GEO/GEO_PrimPart.h>
@@ -9,7 +9,7 @@
 #include <Math/Vec3.h>
 #include "Images/Image.h"
 #include "Set/SpatialGrid.h"
-#include "Approaches/AtlasAnimatedTextureInterface.h"
+#include "Approaches/AtlasDeformablePatchesInterface.h"
 
 
 
@@ -25,11 +25,11 @@ using namespace std;
 namespace TexturingFluids {
 
 
-class AtlasSeamCarvingPlugin : public SOP_Node
+class AtlasDeformablePatchesPlugin : public SOP_Node
 {
 public:
-    AtlasSeamCarvingPlugin(OP_Network *net, const char *name, OP_Operator *op);
-    virtual ~AtlasSeamCarvingPlugin();
+    AtlasDeformablePatchesPlugin(OP_Network *net, const char *name, OP_Operator *op);
+    virtual ~AtlasDeformablePatchesPlugin();
 
 	/// This method is created so that it can be called by handles.  It only
 	/// cooks the input group of this SOP.  The geometry in this group is
@@ -82,7 +82,7 @@ private:
 	const GA_EdgeGroup	*myGroup;
 	const GA_PrimitiveGroup *primGroup;
 
-    AtlasAnimatedTextureInterface interface;
+    AtlasDeformablePatchesInterface interface;
 
     UT_String trackersFilename;
     UT_String deformableGridsFilename;

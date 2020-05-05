@@ -19,7 +19,7 @@
     #include <ctime>
     #include <Core/HoudiniUtils.h>
     #include <Strategies/StrategyPatchSurfaceSynthesis.h>
-    #include "AtlasSeamCarvingPlugin.h"
+    #include "AtlasDeformablePatchesPlugin.h"
 
     #include <omp.h>
 
@@ -61,7 +61,7 @@
     static PRM_Default NumberOfFrameDefault(100);
 
     PRM_Template
-    AtlasSeamCarvingPlugin::myTemplateList[] =
+    AtlasDeformablePatchesPlugin::myTemplateList[] =
     {
         PRM_Template(PRM_TOGGLE, 1, &names[5]),
         PRM_Template(PRM_INT, 1, &names[0]),
@@ -82,26 +82,26 @@
 
 
     OP_Node *
-    AtlasSeamCarvingPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
+    AtlasDeformablePatchesPlugin::myConstructor(OP_Network *net, const char *name, OP_Operator *op)
     {
-        return new AtlasSeamCarvingPlugin(net, name, op);
+        return new AtlasDeformablePatchesPlugin(net, name, op);
     }
 
-    AtlasSeamCarvingPlugin::AtlasSeamCarvingPlugin(OP_Network *net, const char *name, OP_Operator *op)
+    AtlasDeformablePatchesPlugin::AtlasDeformablePatchesPlugin(OP_Network *net, const char *name, OP_Operator *op)
         : SOP_Node(net, name, op), myGroup(0)
     {
         // Make sure to flag that we can supply a guide geometry
         mySopFlags.setNeedGuide1(1);
     }
 
-    AtlasSeamCarvingPlugin::~AtlasSeamCarvingPlugin()
+    AtlasDeformablePatchesPlugin::~AtlasDeformablePatchesPlugin()
     {
-        cout << "Destroying AtlasSeamCarvingPlugin"<<endl;
+        cout << "Destroying AtlasDeformablePatchesPlugin"<<endl;
         //this->interface.~UnitTestInterface();
     }
 
     OP_ERROR
-    AtlasSeamCarvingPlugin::cookInputGroups(OP_Context &context, int alone)
+    AtlasDeformablePatchesPlugin::cookInputGroups(OP_Context &context, int alone)
     {
         // If we are called by the handle, then "alone" equals 1.  In that
         // case, we have to lock the inputs oursevles, and unlock them
@@ -161,7 +161,7 @@
 
 
     OP_ERROR
-    AtlasSeamCarvingPlugin::cookMySop(OP_Context &context)
+    AtlasDeformablePatchesPlugin::cookMySop(OP_Context &context)
     {
         // Before we do anything, we must lock our inputs.  Before returning,
         //	we have to make sure that the inputs get unlocked.
@@ -178,7 +178,7 @@
         int frame = context.getFrame();
         //int numberOfGaussianLevel = 2;
 
-        cout << "======================== GAGNON 2020 Deformable Lapped Texture ============================="<<endl;
+        cout << "======================== GAGNON 2020 AtlasDeformablePatchesPlugin ============================="<<endl;
 
         string baseVariable = "REZ_YU2011LAGRANGIANTEXTUREADVECTION_BASE";
         char* pPath;
@@ -240,8 +240,10 @@
         trackersCopy->copy(*trackersGdp);
 
         // We need to create a new Interface here:
-        AtlasAnimatedTextureInterface interface;
+        AtlasDeformablePatchesInterface interface;
         bool synthesised = interface.Synthesis(gdp,surfaceCopy,trackersCopy, params);
+        //bool synthesised = true;
+        cout << " sysnthesis "<<synthesised<<endl;
         if (synthesised)
             cout << "was able to synthesis the atlas"<<endl;
         else
@@ -258,7 +260,7 @@
 
 
     const char *
-    AtlasSeamCarvingPlugin::inputLabel(unsigned) const
+    AtlasDeformablePatchesPlugin::inputLabel(unsigned) const
     {
         return "Surface Deformable Patches";
     }
