@@ -1,10 +1,10 @@
-name = "texturing_fluid"
+name = "deformable_patches_fluid"
 
 uuid = "ef6377e8-6cfa-4870-a409-b2e2d1a32d6d"
 
-description = "Texturing Fluid"
+description = "Texturing Fluid with deformable patches"
 
-version = "1.0.18"
+version = "1.0.0"
 
 
 authors = [ "Jonathan Gagnon" ]
