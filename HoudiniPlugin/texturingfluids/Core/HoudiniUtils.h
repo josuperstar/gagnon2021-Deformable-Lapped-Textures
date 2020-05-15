@@ -6,6 +6,9 @@
 #include <GEO/GEO_PointTree.h>
 //#include <GA_ElementGroup.h>
 #include <vector>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
 
 
 namespace TexturingFluids {
@@ -35,6 +38,13 @@ public:
 
 	
     static UT_Vector3 GetBarycentricPosition(UT_Vector3 A,UT_Vector3 B, UT_Vector3 C, UT_Vector3 a, UT_Vector3 b, UT_Vector3 c, UT_Vector3 position);
+
+    static std::string format_account_number(int acct_no) {
+      std::ostringstream out;
+      out << std::internal << std::setfill('0') << std::setw(4) << acct_no;
+      return out.str();
+    }
+
 };
 }
 

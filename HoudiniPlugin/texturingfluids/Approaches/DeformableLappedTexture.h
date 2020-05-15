@@ -11,6 +11,8 @@
 #include <GU/GU_Flatten.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 
+#include <Core/Gagnon2020/PatchedSurface.h>
+
 #include <tbb/parallel_for.h>
 #include <tbb/blocked_range.h>
 #include <tbb/tbb.h>
@@ -30,6 +32,7 @@ public:
     void Synthesis(GU_Detail* gdp, GU_Detail* surface, GU_Detail* trackersGdp, GU_Detail* levelSet, GU_Detail *surfaceLowRes, ParametersDeformablePatches params);
 
 private :
+    void UpdateByRasterization(PatchedSurfaceGagnon2020 &surface, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *surfaceLowResGdp, GU_Detail *deformableGridGdp, ParametersDeformablePatches params);
 
 	
 };

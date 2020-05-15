@@ -24,7 +24,7 @@
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
 
-#include <Core/Gagnon2020/PatchedSurface.h>
+
 
 #include <Core/Atlas/AtlasTestingConcealed.h>
 #include <Core/Atlas/TBBAtlasTestingConcealed.h>
@@ -94,6 +94,81 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     surface.AddDeformablePatchesUsingBarycentricCoordinates();
 
 
+    this->UpdateByRasterization(surface, surfaceGdp,trackersGdp, surfaceLowResGdp, deformableGridGdp, params);
+
+    //=======================================================================
+
+    cout << surface.approachName<<" Done"<<endl;
+
+    cout << surface.approachName<< " saving grids data"<<endl;
+    const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
+    deformableGridGdp->save(filenameGrids,options,errors);
+
+    cout << surface.approachName<< " saving trackers data"<<endl;
+    const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
+    trackersGdp->save(filenameTrackers,options,errors);
+
+    //================================================================
+    std::clock_t cleaningStart;
+    cleaningStart = std::clock();
+    //cout<< "Clear, Destroy and merge"<<endl;
+    deformableGridGdp->clearAndDestroy();
+    deformableGridGdp->copy(*surfaceGdp);
+
+    // ======================================== REPORT ========================================
+
+    int nbPatches = surface.GetNumberOfPatches();
+
+    float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
+
+    //surface.numberOfPatches -= concealedPatches;
+
+    int sumOfPatches = surface.numberOfInitialPatches;
+
+    sumOfPatches += surface.numberOfNewPatches;
+    sumOfPatches -= surface.numberOfInitialPatchFlagToDelete;
+    sumOfPatches -= surface.numberOfDetachedPatches;
+    sumOfPatches -= surface.numberOfNewAndLonelyTracker;
+    sumOfPatches -= surface.numberOfLonelyTracker;
+    //sumOfPatches -= concealedPatches;
+
+    cout << "---------------------------------- Patches  ----------------------------------------------"<<endl;
+    cout << surface.approachName<<" Initial number of patches   \t"<<surface.numberOfInitialPatches<<endl;
+    cout << surface.approachName<<" Initial flaged to delete    \t"<<surface.numberOfInitialPatchFlagToDelete<<endl;
+    cout << surface.approachName<<" New And Lonely              \t"<<surface.numberOfNewAndLonelyTracker<<endl;
+    cout << surface.approachName<<" New patches                 \t"<<surface.numberOfNewPatches<<endl;
+    cout << surface.approachName<<" Detached patches            \t"<<surface.numberOfDetachedPatches<<endl;
+    cout << surface.approachName<<" Patch with no primitives    \t"<<surface.numberOfLonelyTracker<<endl;
+    cout << surface.approachName<<" Number of degenerated grid  \t"<<surface.numberOfDegeneratedGrid<<endl;
+    //cout << surface.approachName<<" Concealed patches           \t"<<concealedPatches<<endl;
+
+    cout << surface.approachName<<" Total Number of patches     \t"<<surface.numberOfPatches<<endl;
+    cout << " equals to "<<sumOfPatches<<endl;
+
+    cout << "---------------------------------- Computation Time ----------------------------------------------"<<endl;
+
+    cout << surface.approachName<<" Poisson Disk Sampling       "<<surface.poissondisk<<endl;
+    cout << surface.approachName<<" Grid mesh on time           "<<surface.gridMeshCreation<<endl;
+    cout << surface.approachName<<" Uv flattening time          "<<surface.uvFlatteningTime<<" for "<<surface.nbOfFlattenedPatch<<" patches"<<endl;
+    cout << surface.approachName<<" Tracker advection time      "<<surface.markerAdvectionTime<<endl;
+    cout << surface.approachName<<" Grid advection time         "<<surface.gridAdvectionTime<<endl;
+    cout << surface.approachName<<" Patch creation time         "<<surface.patchCreationTime<<endl;
+    cout << surface.approachName<<" Clear and Destroy           "<<cleaningSurface<<endl;
+    cout << surface.approachName<<" Update distribution         "<<surface.updatePatchesTime<<endl;
+
+    float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+    cout << surface.approachName<< " TOTAL: "<<total<<endl;
+
+    std::ofstream outfile;
+    outfile.open("core.csv", std::ios_base::app);
+    outfile <<surface.poissondisk<<","<< surface.gridMeshCreation << ","<<surface.uvFlatteningTime << ","<<surface.markerAdvectionTime
+            <<","<<surface.gridAdvectionTime<<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
+
+    cout << "--------------------------------------------------------------------------------"<<endl;
+}
+
+void DeformableLappedTexture::UpdateByRasterization(PatchedSurfaceGagnon2020 &surface, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *surfaceLowResGdp, GU_Detail *deformableGridGdp,  ParametersDeformablePatches params)
+{
     //-------------------- texture synthesis to test concealed patches --------------------
     AtlasTestingConcealed atlas;
     if (params.outputName == "")
@@ -141,16 +216,10 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     }
     GA_Primitive *prim;
 
-    long nbOfPrimitive = surfaceGdp->getNumPrimitives();
     cout << "[AtlasAnimatedTextureInterface::Synthesis] with tbb "<< "Rasterizing an "<<params.atlasHeight << " x "<<params.atlasWidth<<" image."<<endl;
-
-    int *nullSurface;
-    //TestingConcealed_executor exec(atlas,params.atlasWidth,params.atlasHeight,params);
-    //tbb::parallel_for(tbb::blocked_range<size_t>(0,nbOfPrimitive),exec);
 
     //--------------------------------
     long i = 0;
-    int lastModulo = 0;
 
     vector<GA_Offset> newPointsOnSurface;
     GA_FOR_ALL_PRIMITIVES(surfaceGdp,prim)
@@ -160,28 +229,10 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
         //newPointsOnSurface.push_back(newPoints);
         newPointsOnSurface.insert(newPointsOnSurface.end(), newPoints.begin(), newPoints.end());
         i++;
-
-//        float pourcentage = ((float)i/(float)nbOfPrimitive)*100.0f;
-//        int p = pourcentage;
-//        int modulo = (p % 100);
-//        if (modulo != lastModulo)
-//        {
-//            lastModulo = modulo;
-//            cout << "done "<<modulo<<"%"<<endl;
-//        }
     }
     //--------------------------------
 
-
-//    vector<GA_Offset>::iterator itP;
-//    for (itP = newPointsOnSurface.begin(); itP != newPointsOnSurface.end(); itP++)
-//    {
-//        surface.CreateGridBasedOnMesh(*itP);
-//        surface.AddDeformablePatcheUsingBarycentricCoordinates(*itP);
-//    }
-
     map<int, bool> usedPatches = atlas.getUsedPatches();
-//    map<int, bool>::iterator itUsedPatches;
     int concealedPatches = 0;
     {
         GA_Offset ppt;
@@ -201,86 +252,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     }
     //cout <<surface.approachName<< " We have "<< concealedPatches << " flag as concealed patches."<<endl;
     //atlas.~AtlasTestingConcealed();
+    atlas.SaveAtlas();
     atlas.CleanRayMemory(deformableGridGdp);
 
-    //After ading particle and grids where rasterization didn't work, we need to add patches
-    //surface.AddDeformablePatchesUsingBarycentricCoordinates(gdp, surfaceGdp,trackersGdp, params,surfaceTree,ray);
-    //surface.DeleteUnusedPatches(gdp, trackersGdp,params);
-
-    //-------------------------------------------------------------------------------------
-
-    // Compute concealed patches
-
-    //=======================================================================
-
-    cout << surface.approachName<<" Done"<<endl;
-    //cout << "Clear surface tree"<<endl;
-//    surfaceTree.clear();
-
-    cout << surface.approachName<< " saving grids data"<<endl;
-    const char* filenameGrids = params.deformableGridsFilename.c_str();//"dlttest.bgeo";
-    deformableGridGdp->save(filenameGrids,options,errors);
-
-    cout << surface.approachName<< " saving trackers data"<<endl;
-    const char* filenameTrackers = params.trackersFilename.c_str();//"dlttest.bgeo";
-    trackersGdp->save(filenameTrackers,options,errors);
-
-    //================================================================
-    std::clock_t cleaningStart;
-    cleaningStart = std::clock();
-    //cout<< "Clear, Destroy and merge"<<endl;
-    deformableGridGdp->clearAndDestroy();
-    deformableGridGdp->copy(*surfaceGdp);
-
-    // ======================================== REPORT ========================================
-
-    int nbPatches = surface.GetNumberOfPatches();
-
-    float cleaningSurface = (std::clock() - cleaningStart) / (double) CLOCKS_PER_SEC;
-
-    surface.numberOfPatches -= concealedPatches;
-
-    int sumOfPatches = surface.numberOfInitialPatches;
-
-    sumOfPatches += surface.numberOfNewPatches;
-    sumOfPatches -= surface.numberOfInitialPatchFlagToDelete;
-    sumOfPatches -= surface.numberOfDetachedPatches;
-    sumOfPatches -= surface.numberOfNewAndLonelyTracker;
-    sumOfPatches -= surface.numberOfLonelyTracker;
-    sumOfPatches -= concealedPatches;
-
-    cout << "---------------------------------- Patches  ----------------------------------------------"<<endl;
-    cout << surface.approachName<<" Initial number of patches   \t"<<surface.numberOfInitialPatches<<endl;
-    cout << surface.approachName<<" Initial flaged to delete    \t"<<surface.numberOfInitialPatchFlagToDelete<<endl;
-    cout << surface.approachName<<" New And Lonely              \t"<<surface.numberOfNewAndLonelyTracker<<endl;
-    cout << surface.approachName<<" New patches                 \t"<<surface.numberOfNewPatches<<endl;
-    cout << surface.approachName<<" Detached patches            \t"<<surface.numberOfDetachedPatches<<endl;
-    cout << surface.approachName<<" Patch with no primitives    \t"<<surface.numberOfLonelyTracker<<endl;
-    cout << surface.approachName<<" Number of degenerated grid  \t"<<surface.numberOfDegeneratedGrid<<endl;
-    cout << surface.approachName<<" Concealed patches           \t"<<concealedPatches<<endl;
-
-    cout << surface.approachName<<" Total Number of patches     \t"<<surface.numberOfPatches<<endl;
-    cout << " equals to "<<sumOfPatches<<endl;
-
-    cout << "---------------------------------- Computation Time ----------------------------------------------"<<endl;
-
-    cout << surface.approachName<<" Poisson Disk Sampling       "<<surface.poissondisk<<endl;
-    cout << surface.approachName<<" Grid mesh on time           "<<surface.gridMeshCreation<<endl;
-    cout << surface.approachName<<" Uv flattening time          "<<surface.uvFlatteningTime<<" for "<<surface.nbOfFlattenedPatch<<" patches"<<endl;
-    cout << surface.approachName<<" Tracker advection time      "<<surface.markerAdvectionTime<<endl;
-    cout << surface.approachName<<" Grid advection time         "<<surface.gridAdvectionTime<<endl;
-    cout << surface.approachName<<" Patch creation time         "<<surface.patchCreationTime<<endl;
-    cout << surface.approachName<<" Clear and Destroy           "<<cleaningSurface<<endl;
-    cout << surface.approachName<<" Update distribution         "<<surface.updatePatchesTime<<endl;
-
-    float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-    cout << surface.approachName<< " TOTAL: "<<total<<endl;
-
-    std::ofstream outfile;
-    outfile.open("core.csv", std::ios_base::app);
-    outfile <<surface.poissondisk<<","<< surface.gridMeshCreation << ","<<surface.uvFlatteningTime << ","<<surface.markerAdvectionTime
-            <<","<<surface.gridAdvectionTime<<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
-
-    cout << "--------------------------------------------------------------------------------"<<endl;
 }
-

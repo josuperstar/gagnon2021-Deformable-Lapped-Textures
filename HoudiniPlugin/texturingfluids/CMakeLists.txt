@@ -127,6 +127,7 @@ target_include_directories( ${library_name} PRIVATE ${OpenCV_INCLUDE_DIRS} )
 
 # Configure several common target properties
 # We leave the default (Houdini's default dso directory)
-houdini_configure_target( ${library_name} )
+#houdini_configure_target( ${library_name} )
 # Otherwise, we can set the output directory (INSTDIR) manually
 #houdini_configure_target( ${library_name} INSTDIR ${CMAKE_CURRENT_LIST_DIR}/dso )
+houdini_configure_target(${library_name} INSTDIR ${CMAKE_CURRENT_LIST_DIR}/../../setup/rez/dso)

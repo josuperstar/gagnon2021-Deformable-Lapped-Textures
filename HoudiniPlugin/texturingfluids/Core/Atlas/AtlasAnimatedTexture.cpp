@@ -8,11 +8,7 @@
 #include <iostream>
 #include <iomanip>
 
-std::string format_account_number(int acct_no) {
-  ostringstream out;
-  out << std::internal << std::setfill('0') << std::setw(4) << acct_no;
-  return out.str();
-}
+
 
 AtlasAnimatedTexture::~AtlasAnimatedTexture()
 {
@@ -104,11 +100,6 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
         cout << "[AtlasAnimatedTexture::BuildAtlas] There is no texture exemplar name assigned"<<endl;
         return false;
     }
-    if (textureExemplar1MaskName.size() == 0)
-    {
-        cout << "[AtlasAnimatedTexture::BuildAtlas] There is no texture exemplar mask name assigned"<<endl;
-        return false;
-    }
 
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_PRIMITIVE,"border",1));
     if (attBorder.isInvalid())
@@ -140,11 +131,11 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
             // HACK !!!!
             // Does not work with padding, ex : 0001, 0002..
 
-            string paddedNumber = format_account_number(i+1);
+            string paddedNumber = HoudiniUtils::format_account_number(i+1);
             string noPaddedNumber = std::to_string(i+1);
 
             currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
-            //cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<noPaddedNumber<<endl;
+            cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<noPaddedNumber<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
             {
@@ -168,14 +159,14 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
     }
 
 
-    textureExemplar1ImageMask = new ImageCV();
-    cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
-    bool opened = textureExemplar1ImageMask->OpenImage(textureExemplar1MaskName,-1);
-    if (!opened)
-    {
-        cout << "[AtlasAnimatedTexture::BuildAtlas] Can't open "<< textureExemplar1MaskName<<endl;
-        return false;
-    }
+//    textureExemplar1ImageMask = new ImageCV();
+//    cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<textureExemplar1MaskName<<endl;
+//    bool opened = textureExemplar1ImageMask->OpenImage(textureExemplar1MaskName,-1);
+//    if (!opened)
+//    {
+//        cout << "[AtlasAnimatedTexture::BuildAtlas] Can't open "<< textureExemplar1MaskName<<endl;
+//        return false;
+//    }
 
     if (displacementMapImageName.size() != 0)
     {
@@ -501,6 +492,7 @@ void AtlasAnimatedTexture::RasterizePrimitive(GA_Offset primOffset, int w, int h
                                           displacementSumEq4,
                                           params);
 
+                R_eq4.A = 1.0f;
                 diffuseImageBlendingYu2011Equation4->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq4);
                 //diffuseImageBlendingYu2011Equation3->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq3);
                 //======================== End Test encapsulated function =====================

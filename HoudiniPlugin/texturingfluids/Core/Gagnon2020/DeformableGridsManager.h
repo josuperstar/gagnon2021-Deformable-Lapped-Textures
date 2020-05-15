@@ -37,6 +37,7 @@ public:
 protected :
 
     void FlagBoundaries();
+    void FlagBoundariesForPatch(GA_Offset ppt);
     bool UVFlattening(GU_Detail &tempGdp,
                       GA_Offset tracker, GA_Offset closestPoint,
                       GA_PointGroup *pointGroup, GA_PointGroup *tempPointGroup,

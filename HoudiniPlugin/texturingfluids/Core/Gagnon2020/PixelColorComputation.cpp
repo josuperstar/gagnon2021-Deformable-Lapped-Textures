@@ -1,9 +1,9 @@
-#include "BlendingAnimatedTexture.h"
+#include "PixelColorComputation.h"
 #include "../HoudiniUtils.h"
 
 //================================= RASTERIZE PRIMITIVE =================================
 
-Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, float w, float h,
+Pixel PixelColorComputation::Blend(GU_Detail* deformableGrids, int i, int j, float w, float h,
                                 int pixelPositionX, int pixelPositionY,
                                 vector<int> &sortedPatches,
                                 vector<UT_Vector3> &surfaceUv,
@@ -22,7 +22,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
                                 bool computeDisplacement,
                                 bool renderColoredPatches,
                                 Pixel &R_eq3,
-                                Pixel &displacementSumEq3,
+                                Pixel &displacementResult,
                                 Pixel &displacementSumEq4,
                                 ParametersDeformablePatches params)
 {
@@ -45,7 +45,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     Pixel displacement = Pixel(0,0,0);
 
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
-    //cout << "get border attribute"<<endl;
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
     if (attBorder.isInvalid())
         return Cf;
@@ -65,7 +64,6 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     int k = sortedPatches.size();
 
     vector<int>::iterator itPatch;
-    //cout << "For each patch"<<endl;
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
     {
         int patchId = *itPatch;
@@ -188,7 +186,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         if (Q_t < 0.001)
             continue;
-
+        //cout << "D_v "<<d_V<<endl;
         float Q_V = Q_t*d_V;
 
         //-----------------------------------------------------------------
@@ -217,27 +215,43 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         else if (K_s > 1.0f)
             K_s = 1.0f;
 
+        //cout << "K_s "<<K_s<<endl;
         if (K_s < epsilon)
             continue;
-
-        int seamCarvingIndex = ((1-K_s) * params.NumberOfTextureSampleFrame);
 
         if (renderColoredPatches)
             //set random colors per patch
             color = patchColors[patchId];
         else
         {
-            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+            textureExemplars[0]->GetColor(i2,j2,0,color);
         }
             //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
 
-        if (computeDisplacement)
-            displacementMapImage->GetColor(i2,j2,0,displacement);
 
-        // Flag that we use this patch during the synthesis.
-        // We could therefore delete unused patches in the future.
-        if (color.A > 0.0f)
+        displacementMapImage->GetColor(i2,j2,0,displacement);
+
+        float Dm = displacement.R;
+
+        float Cm = (C_s);
+
+        float Hm = Dm+sin(Cm)*2;
+        float e = (K_s * Hm*2);
+        float threshold = 0.5f;
+        //float e = Em + Hm;
+
+        //float e = Dm+K_s;
+
+        //float threshold = 0.7f;
+
+        //cout << "Dm "<<Dm<<" Cs "<<C_s<<" Em "<<Em<< " Hm "<<Hm<< " e "<< e<<endl;
+        //float threshold = 2.0f;
+        float alpha = 0;
+        if (e > threshold)
+        {
+            alpha = 1;
             usePatches[patchId] = true;
+        }
 
         //clamping color values ...
         if (color.B > 1.0f)
@@ -246,36 +260,27 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             color.G = 1.0f;
         if (color.R > 1.0f)
             color.R = 1.0f;
-        if (computeDisplacement)
-        {
-            if (displacement.B > 1.0f)
-                displacement.B = 1.0f;
-            if (displacement.G > 1.0f)
-                displacement.G = 1.0f;
-            if (displacement.R > 1.0f)
-                displacement.R = 1.0f;
-        }
-
         // We use the alpha from the animated images to influence the weight
 
-        float alpha = color.A;// * w_v;
+        //float alpha = color.A;// * w_v;
         Cf.R =  (alpha)*(color.R) + (1.0f-alpha)*(Cf.R);
         Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);
         Cf.B =  (alpha)*(color.B) + (1.0f-alpha)*(Cf.B);
-        Cf.A += color.A;
+        Cf.A += alpha;
+
+        displacementResult.R = (alpha)*(displacement.R) + (1.0f-alpha)*(displacementResult.R);
+        displacementResult.G = (alpha)*(displacement.G) + (1.0f-alpha)*(displacementResult.G);
+        displacementResult.B = (alpha)*(displacement.B) + (1.0f-alpha)*(displacementResult.B);;
+
+        Clamp(displacementResult);
+
         colorsList.push_back(color);
-        if (computeDisplacement)
-        {
-            displacementSumEq4.R =  (alpha)*(displacement.R) + (1.0f-alpha)*(displacementSumEq4.R);
-            displacementSumEq4.G =  (alpha)*(displacement.G) + (1.0f-alpha)*(displacementSumEq4.G);
-            displacementSumEq4.B =  (alpha)*(displacement.B) + (1.0f-alpha)*(displacementSumEq4.B);
-        }
+
         k--;
     }
-
-    //cout << "done"<<endl;
     //========================= END SUM ==================================
-
+    Clamp(Cf);
+    Cf.A = 1.0f;
     return Cf;
 }
 

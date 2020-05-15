@@ -14,6 +14,7 @@
 #include "DynamicLappedTexturePlugin.h"
 #include "AtlasGagnon2016Plugin.h"
 #include "DeformableLappedTexturePlugin.h"
+#include "AtlasDeformablePatchesPlugin.h"
 
 // -----------------------------------------------------------------------------
 // Add our plugins to Houdini's plugins list
@@ -81,6 +82,14 @@ void newSopOperator(OP_OperatorTable *table)
                                        "AtlasSeamCarving",
                                        AtlasSeamCarvingPlugin::myConstructor,
                                        AtlasSeamCarvingPlugin::myTemplateList,
+                                       3,
+                                       3,
+                                       0));
+
+    table->addOperator(new OP_Operator("hdk_AtlasDeformablePatches",
+                                       "AtlasDeformablePatches",
+                                       AtlasDeformablePatchesPlugin::myConstructor,
+                                       AtlasDeformablePatchesPlugin::myTemplateList,
                                        3,
                                        3,
                                        0));
