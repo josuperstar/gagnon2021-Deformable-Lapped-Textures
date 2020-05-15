@@ -45,6 +45,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     Pixel displacement = Pixel(0,0,0);
 
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
+    //cout << "get border attribute"<<endl;
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
     if (attBorder.isInvalid())
         return Cf;
@@ -64,6 +65,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     int k = sortedPatches.size();
 
     vector<int>::iterator itPatch;
+    //cout << "For each patch"<<endl;
     for(itPatch = --sortedPatches.end(); itPatch != --sortedPatches.begin(); itPatch--)
     {
         int patchId = *itPatch;
@@ -229,8 +231,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         }
             //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
 
-
-         displacementMapImage->GetColor(i2,j2,0,displacement);
+        if (computeDisplacement)
+            displacementMapImage->GetColor(i2,j2,0,displacement);
 
         // Flag that we use this patch during the synthesis.
         // We could therefore delete unused patches in the future.
@@ -244,13 +246,15 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             color.G = 1.0f;
         if (color.R > 1.0f)
             color.R = 1.0f;
-
-        if (displacement.B > 1.0f)
-            displacement.B = 1.0f;
-        if (displacement.G > 1.0f)
-            displacement.G = 1.0f;
-        if (displacement.R > 1.0f)
-            displacement.R = 1.0f;
+        if (computeDisplacement)
+        {
+            if (displacement.B > 1.0f)
+                displacement.B = 1.0f;
+            if (displacement.G > 1.0f)
+                displacement.G = 1.0f;
+            if (displacement.R > 1.0f)
+                displacement.R = 1.0f;
+        }
 
         // We use the alpha from the animated images to influence the weight
 
@@ -260,13 +264,16 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         Cf.B =  (alpha)*(color.B) + (1.0f-alpha)*(Cf.B);
         Cf.A += color.A;
         colorsList.push_back(color);
-
-        displacementSumEq4.R =  (alpha)*(displacement.R) + (1.0f-alpha)*(displacementSumEq4.R);
-        displacementSumEq4.G =  (alpha)*(displacement.G) + (1.0f-alpha)*(displacementSumEq4.G);
-        displacementSumEq4.B =  (alpha)*(displacement.B) + (1.0f-alpha)*(displacementSumEq4.B);
-
+        if (computeDisplacement)
+        {
+            displacementSumEq4.R =  (alpha)*(displacement.R) + (1.0f-alpha)*(displacementSumEq4.R);
+            displacementSumEq4.G =  (alpha)*(displacement.G) + (1.0f-alpha)*(displacementSumEq4.G);
+            displacementSumEq4.B =  (alpha)*(displacement.B) + (1.0f-alpha)*(displacementSumEq4.B);
+        }
         k--;
     }
+
+    //cout << "done"<<endl;
     //========================= END SUM ==================================
 
     return Cf;

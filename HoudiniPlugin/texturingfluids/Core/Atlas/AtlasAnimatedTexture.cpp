@@ -492,6 +492,7 @@ void AtlasAnimatedTexture::RasterizePrimitive(GA_Offset primOffset, int w, int h
                                           displacementSumEq4,
                                           params);
 
+                R_eq4.A = 1.0f;
                 diffuseImageBlendingYu2011Equation4->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq4);
                 //diffuseImageBlendingYu2011Equation3->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq3);
                 //======================== End Test encapsulated function =====================

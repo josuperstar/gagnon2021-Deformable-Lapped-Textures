@@ -186,7 +186,7 @@ Pixel PixelColorComputation::Blend(GU_Detail* deformableGrids, int i, int j, flo
 
         if (Q_t < 0.001)
             continue;
-
+        //cout << "D_v "<<d_V<<endl;
         float Q_V = Q_t*d_V;
 
         //-----------------------------------------------------------------
@@ -215,6 +215,7 @@ Pixel PixelColorComputation::Blend(GU_Detail* deformableGrids, int i, int j, flo
         else if (K_s > 1.0f)
             K_s = 1.0f;
 
+        //cout << "K_s "<<K_s<<endl;
         if (K_s < epsilon)
             continue;
 
@@ -232,13 +233,19 @@ Pixel PixelColorComputation::Blend(GU_Detail* deformableGrids, int i, int j, flo
 
         float Dm = displacement.R;
 
-        float Cm = exp(C_s)+2;
+        float Cm = (C_s);
 
-        float Em = (sqrt(K_s))*Cm;
-        float Hm = Dm/Cm;
-        float e = Em + Hm;
+        float Hm = Dm+sin(Cm)*2;
+        float e = (K_s * Hm*2);
+        float threshold = 0.5f;
+        //float e = Em + Hm;
 
-        float threshold = 2.5f;
+        //float e = Dm+K_s;
+
+        //float threshold = 0.7f;
+
+        //cout << "Dm "<<Dm<<" Cs "<<C_s<<" Em "<<Em<< " Hm "<<Hm<< " e "<< e<<endl;
+        //float threshold = 2.0f;
         float alpha = 0;
         if (e > threshold)
         {

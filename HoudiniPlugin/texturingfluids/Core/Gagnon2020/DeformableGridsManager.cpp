@@ -187,7 +187,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     GA_PointGroup *tempPointGroup = tempGdp.newPointGroup(groupName.c_str());
     GA_PrimitiveGroup *primGroup = this->deformableGridsGdp->newPrimitiveGroup(groupName.c_str());
 
-    cout << "[DeformableGridsManager] CreateGridBasedOnMesh  "<<groupName<<endl;
+    //cout << "[DeformableGridsManager] CreateGridBasedOnMesh  "<<groupName<<endl;
 
     trackerPositition = trackersGdp->getPos3(ppt);
     set<GA_Offset> primList;
@@ -577,7 +577,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     }
     if (params.testPatch == 1 && params.patchNumber == id)
     {
-        cout << " ok"<<endl;
+        //cout << " ok"<<endl;
     }
     if (toDelete)
     {
@@ -586,7 +586,8 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
         this->numberOfDegeneratedGrid++;
     }
     //cout << "Grid Creation done"<<endl;
-    //this->FlagBoundaries(this->deformableGridsGdp);
+    //this->FlagBoundaries();
+    this->FlagBoundariesForPatch(ppt);
 }
 
 
@@ -606,9 +607,10 @@ void DeformableGridsManager::CreateGridsBasedOnMesh( vector<GA_Offset> trackers)
         //GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
            this->CreateGridBasedOnMesh(ppt);
+           //this->FlagBoundariesForPatch(ppt);
         }
     }
-    this->FlagBoundaries();
+    //this->FlagBoundaries();
 }
 
 //================================================================================================
@@ -1116,7 +1118,7 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp,
             cout << "There are no uv coordiantes." << endl;
     }
     //----------------- Center UV --------------------
-    UT_Vector3 destCenter(0.5,0.5,0);
+    UT_Vector3 destCenter(0.0,0.0,0);
     if (nbUv != 0)
         uvCenter /= nbUv;
 
@@ -1150,10 +1152,101 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp,
     return true;
 }
 
+
+void DeformableGridsManager::FlagBoundariesForPatch(GA_Offset ppt)
+{
+
+    int id = this->attId.get(ppt);
+    //cout << "[DeformableGridsManager] add border attribute for patch"<<id<<endl;
+    string str = std::to_string(id);
+    string groupName = "grid"+str;
+    GA_PrimitiveGroup *primitiveGroup = (GA_PrimitiveGroup *)this->deformableGridsGdp->primitiveGroups().find(groupName);
+    if (primitiveGroup == 0x0)
+    {
+        cout << " Can't find prim group"<<endl;
+        return;
+    }
+    GA_Primitive *prim;
+    GA_RWHandleI    attBorder(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"border",1));
+    //cout << "For all primitives, add border attribute."<<endl;
+    GA_FOR_ALL_GROUP_PRIMITIVES(this->deformableGridsGdp, primitiveGroup, prim)
+    {
+        int nb = prim->getVertexCount();
+        if (nb != 3)
+            continue;
+        GA_Offset vertexA = prim->getVertexOffset(0);
+        GA_Offset vertexB = prim->getVertexOffset(1);
+        GA_Offset vertexC = prim->getVertexOffset(2);
+        GA_Offset pointA = this->deformableGridsGdp->vertexPoint(vertexA);
+        GA_Offset pointB = this->deformableGridsGdp->vertexPoint(vertexB);
+        GA_Offset pointC = this->deformableGridsGdp->vertexPoint(vertexC);
+        vector<GA_Offset> points;
+        points.push_back(pointA);
+        points.push_back(pointB);
+        points.push_back(pointC);
+        //int vertices[] = primvertices(0,@primnum);
+
+        //edges to check
+        int AB = 0;
+        int AC = 0;
+        int BC = 0;
+
+        for(int i=0;i<nb;i++)
+        {
+            GA_Offset point = points[i];
+            //int pointvertices[] = pointvertices(0,point);
+            GA_OffsetArray primitives;
+            this->deformableGridsGdp->getPrimitivesReferencingPoint(primitives,point);
+            for(GA_OffsetArray::const_iterator prims_it = primitives.begin(); prims_it != primitives.end(); ++prims_it)
+            {
+
+                GEO_Primitive* nprim = this->deformableGridsGdp->getGEOPrimitive(*prims_it);
+                if (nprim->getMapOffset() == prim->getMapOffset())
+                    continue;
+
+                //we are on a neighbour primitive
+                //check if we have the same edge
+                int nbn = nprim->getVertexCount();
+                int A = 0;
+                int B = 0;
+                int C = 0;
+                for(int k=0;k<nbn;k++)
+                {
+                    GA_Offset nvertex = nprim->getVertexOffset(k);
+                    GA_Offset npoint = this->deformableGridsGdp->vertexPoint(nvertex);
+                    if (npoint == pointA)
+                        A = 1;
+                    if (npoint == pointB)
+                        B = 1;
+                    if (npoint == pointC)
+                        C = 1;
+                }
+
+                if (A == 1 && B == 1)
+                    AB = 1;
+                if (A == 1 && C == 1)
+                    AC = 1;
+                if (C == 1 && B == 1)
+                    BC = 1;
+
+            }
+        }
+        if (AB == 0 || AC == 0 || BC == 0)
+        {
+            for(int i=0;i<nb;i++)
+            {
+                GA_Offset point = points[i];
+                attBorder.set(point,1);
+            }
+
+        }
+    }
+}
+
 void DeformableGridsManager::FlagBoundaries()
 {
 
-    cout << "[DeformableGridsManager] add border attribute."<<endl;
+    //cout << "[DeformableGridsManager] add border attribute."<<endl;
     GA_RWHandleI    attBorder(this->deformableGridsGdp->addIntTuple(GA_ATTRIB_POINT,"border",1));
 
     GA_Primitive *prim;

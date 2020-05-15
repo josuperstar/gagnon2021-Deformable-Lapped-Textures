@@ -62,7 +62,7 @@ bool AtlasTestingConcealed::initImages(int w, int h)
             string noPaddedNumber = std::to_string(i+1);
 
             currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
-            cout << "[AtlasTestingConcealed::BuildAtlas] Opening "<<currentName<<endl;
+            //cout << "[AtlasTestingConcealed::BuildAtlas] Opening "<<currentName<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
             {
@@ -463,6 +463,7 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
 //                                          temporalComponetKt,
 //                                          textureExemplars,
 //                                          params);
+                //cout << "Testing concealed patch"<<endl;
                 Pixel R_eq4 = BlendingAnimatedTexture::Blend(deformableGrids,i,j,w,h,
                                           pixelPositionX,pixelPositionY,
                                           sortedPatches,
@@ -479,7 +480,7 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
                                           temporalComponetKt,
                                           textureExemplars,
                                           displacementMapImage,
-                                          computeDisplacement,
+                                          false,
                                           renderColoredPatches,
                                           R_eq3,
                                           displacementSumEq3,
@@ -539,7 +540,7 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
                     trackerNormal[newPointId] = attN.get(newPoint);
                     trackersPosition[newPointId] = trackers->getPos3(newPoint);
                     usePatches[newPointId] = true;
-                    cout << "sorted patch "<<newPointId<<endl;
+                    //cout << "sorted patch "<<newPointId<<endl;
                 }
                 else
                 {
@@ -547,6 +548,7 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
                 }
                 if (inTriangle)
                     this->pixelUsed[pixelPositionX][pixelPositionY] = true;
+                diffuseImageBlendingYu2011Equation4->SetColor(pixelPositionX,h-pixelPositionY,0,R_eq4);
             }
         }
     }//------------------------ FIN RASTERISATION ---------------------
