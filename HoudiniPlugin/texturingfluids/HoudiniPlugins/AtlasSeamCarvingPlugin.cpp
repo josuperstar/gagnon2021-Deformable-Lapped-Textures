@@ -178,13 +178,20 @@
         int frame = context.getFrame();
         //int numberOfGaussianLevel = 2;
 
-        cout << "======================== GAGNON 2020 Deformable Lapped Texture ============================="<<endl;
+        string baseVariable = "REZ_DEFORMABLE_PATCHES_FLUID_BASE";
+        string rezVersion = "REZ_DEFORMABLE_PATCHES_FLUID_VERSION";
 
-        string baseVariable = "REZ_YU2011LAGRANGIANTEXTUREADVECTION_BASE";
+        char *version;
+        version = getenv (rezVersion.c_str());
+
         char* pPath;
         pPath = getenv (baseVariable.c_str());
+
+        if (version!=NULL)
+        cout << "======================== GAGNON 2020 Deformable Lapped Texture "<< version <<" ============================="<<endl;
         if (pPath!=NULL)
-        cout << "version "<<pPath<<endl;
+            cout << "rez package "<<pPath<<endl;
+
         //int startFrame = StartFrame();
         //int startNumber = 0;
         ParametersDeformablePatches params;

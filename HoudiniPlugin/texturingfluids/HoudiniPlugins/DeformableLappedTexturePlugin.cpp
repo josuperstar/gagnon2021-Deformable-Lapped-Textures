@@ -233,11 +233,15 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
 
 
 
-    string baseVariable = "REZ_YU2011LAGRANGIANTEXTUREADVECTION_BASE";
+    string baseVariable = "REZ_DEFORMABLE_PATCHES_FLUID_BASE";
+    string rezVersion = "REZ_DEFORMABLE_PATCHES_FLUID_VERSION";
     char* pPath;
     pPath = getenv (baseVariable.c_str());
-    if (pPath!=NULL)
-    cout << "version "<<pPath<<endl;
+
+    char *version;
+    version = getenv (rezVersion.c_str());
+    if (version!=NULL)
+        cout << "version "<<version<<endl;
 
     int startFrame = StartFrame();
     int startNumber = 0;
@@ -293,8 +297,10 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
     {
         params.atlasWidth = 100;
     }
-    cout << "======================== DeformableLappedTexturePlugin 2020 version {put version here}, frame  "<<frame<< "============================="<<endl;
-
+    if (version != NULL)
+        cout << "======================== DeformableLappedTexturePlugin 2020 version "<<version<<", frame  "<<frame<< "============================="<<endl;
+    if (pPath!=NULL)
+        cout << "rez package path "<<pPath<<endl;
 
 
     const GU_Detail * surface = inputGeo(1);
