@@ -541,7 +541,7 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
                     trackersPosition[newPointId] = trackers->getPos3(newPoint);
 
 
-                    Pixel R_eq4 = BlendingAnimatedTexture::Blend(deformableGrids,i,j,w,h,
+                    Pixel secondTestTexel = BlendingAnimatedTexture::Blend(deformableGrids,i,j,w,h,
                                               pixelPositionX,pixelPositionY,
                                               sortedPatches,
                                               surfaceUv,
@@ -565,7 +565,7 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
                                               params);
 
 
-                    if (R_eq4.A < 0.1 && addPatchOnRasterization)
+                    if (secondTestTexel.A < 0.1 && addPatchOnRasterization)
                     {
                         GA_RWHandleF attTLife(trackers->findFloatTuple(GA_ATTRIB_POINT,"life",1));
                         GA_RWHandleI attActive(trackers->findIntTuple(GA_ATTRIB_POINT,"active",1));
