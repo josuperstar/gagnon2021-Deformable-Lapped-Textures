@@ -539,7 +539,42 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
                     trackerUVPosition[newPointId] = attCenterUV.get(newPoint);
                     trackerNormal[newPointId] = attN.get(newPoint);
                     trackersPosition[newPointId] = trackers->getPos3(newPoint);
-                    usePatches[newPointId] = true;
+
+
+                    Pixel secondTestTexel = BlendingAnimatedTexture::Blend(deformableGrids,i,j,w,h,
+                                              pixelPositionX,pixelPositionY,
+                                              sortedPatches,
+                                              surfaceUv,
+                                              surfacePosition,
+                                              trackerNormal,
+                                              trackersPosition,
+                                              trackerUVPosition,
+                                              usePatches,
+                                              rays,
+                                              patchColors,
+                                              RM,
+                                              attPointUV,
+                                              temporalComponetKt,
+                                              textureExemplars,
+                                              displacementMapImage,
+                                              false,
+                                              renderColoredPatches,
+                                              R_eq3,
+                                              displacementSumEq3,
+                                              displacementSumEq4,
+                                              params);
+
+
+                    if (secondTestTexel.A < 0.1 && addPatchOnRasterization)
+                    {
+                        GA_RWHandleF attTLife(trackers->findFloatTuple(GA_ATTRIB_POINT,"life",1));
+                        GA_RWHandleI attActive(trackers->findIntTuple(GA_ATTRIB_POINT,"active",1));
+                        attActive.set(newPoint,0);
+                        attTLife.set(newPoint,0);
+
+                    }
+                    else
+                        usePatches[newPointId] = true;
                     //cout << "sorted patch "<<newPointId<<endl;
                 }
                 else

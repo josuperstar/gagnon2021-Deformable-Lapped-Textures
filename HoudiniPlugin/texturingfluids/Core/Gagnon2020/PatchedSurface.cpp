@@ -546,6 +546,7 @@ void PatchedSurfaceGagnon2020::DeleteUnusedPatches()
             int active = attActive.get(ppt);
             if (active == 0 && life <= 0.0f && params.frame != params.startFrame)
             {
+                // put this in a function
                 //cout << "Deleting deformable grid "<<id<<" mature "<<attIsMature.get(ppt)<<endl;
                 toDelete.insert(id);
                 //numberOfPatches--;
