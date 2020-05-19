@@ -175,16 +175,23 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         //Q_v quality of the vertex, value from 0 to 1
         //The weights are computed for each vertex. During reconstruction, weights at arbitrary locations are interpolated
         //from vertices values.
-        int   d_V1 = 1-attBorder.get(pointOffset0);
-        int   d_V2 = 1-attBorder.get(pointOffset1);
-        int   d_V3 = 1-attBorder.get(pointOffset2);
+
+        // If the patch has been created on a curved region, it is possible to have the center of the patch closed to a border.
+        // We want to avoid treating the polygon closed to the center as border has it can create holes on the surface.
+        float d_V = 1.0f;
+        if (d_P > gridwidth/4)
+        {
+            int   d_V1 = 1-attBorder.get(pointOffset0);
+            int   d_V2 = 1-attBorder.get(pointOffset1);
+            int   d_V3 = 1-attBorder.get(pointOffset2);
+            d_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
+        }
 
         float Q_t1 = attQv.get(pointOffset0);
         float Q_t2 = attQv.get(pointOffset1);
         float Q_t3 = attQv.get(pointOffset2);
 
         float Q_t = Q_t1+u*(Q_t2-Q_t1)+v*(Q_t3-Q_t1);
-        float d_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
 
         if (Q_t < 0.001)
             continue;
