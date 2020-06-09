@@ -84,8 +84,7 @@ vector<GA_Offset> ParticleAndTrackerManagerGagnon2016::InitializeTrackersAndTang
 void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonDisk(GU_Detail *surface, GU_Detail *trackersGdp, GA_PointGroup *surfaceGroup,  ParametersDeformablePatches params)
 {
 
-    bool useDynamicTau = params.useDynamicTau;
-    cout << "[ParticleAndTrackerManagerGagnon2016] CreateTrackersBasedOnPoissonDisk, with useDynamicTau at "<<useDynamicTau;
+    cout << "[ParticleAndTrackerManagerGagnon2016] CreateTrackersBasedOnPoissonDisk"<<endl;
 
     if (surfaceGroup == 0x0)
         return;
@@ -118,18 +117,12 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
         id = attId.get(ppt);
-        int active = attActive.get(ppt);
+        //int active = attActive.get(ppt);
         float currentLife = attLife.get(ppt);
         int currentSpawn = attSpawn.get(ppt);
 
         UT_Vector3 velocity;
         UT_Vector3 centerUV = attCenterUV.get(ppt);
-
-        //Dead patches are not updated
-        if (currentLife <= 0 && active == 0)
-        {
-            continue;
-        }
 
         //============================ PROJECTION ON MESH =======================
         UT_Vector3 p1 = trackersGdp->getPos3(ppt);
@@ -187,12 +180,7 @@ void ParticleAndTrackerManagerGagnon2016::CreateAndUpdateTrackersBasedOnPoissonD
             attActive.set(ppt,0);
         }
 
-        //========================= UPDATE ===============================
-        currentLife  += 1.0f;
-        currentSpawn += 1;
 
-        if (currentLife > (float)params.fadingTau)
-            currentLife = (float)params.fadingTau;
         if (currentLife < 0)
             currentLife = 0;
         //==============================================

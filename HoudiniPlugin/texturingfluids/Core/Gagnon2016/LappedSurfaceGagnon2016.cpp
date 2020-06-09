@@ -218,7 +218,7 @@ void LappedSurfaceGagnon2016::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail
 
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
-    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet, params.poissonAngleNormalThreshold, params);
 
     cout << "[LappedSurfaceGagnon2016] poisson disk sample "<<trackersGdp->getNumPoints()<< " point(s)"<<endl;
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;

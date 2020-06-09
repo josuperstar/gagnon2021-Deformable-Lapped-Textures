@@ -39,7 +39,7 @@ public:
         //backgroundGrid.~TreeDGrid();
 
     }
-    void PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params);
+    void PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float angleNormalThreshold, ParametersDeformablePatches params);
     void SetNumberOfPoint(int data){this->numberOfPoints = data;}
     void initializeGrid(GEO_PointTreeGAOffset &tree, GU_Detail *trackerGdp, float diskRadius,  float angleNormalThreshold);
     void CreateAPointDisk(GU_Detail* trackersGdp, UT_Vector3 position, UT_Vector3 N);

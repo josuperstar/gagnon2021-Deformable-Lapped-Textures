@@ -169,7 +169,7 @@ void PatchedSurface::PoissonDiskSampling(GU_Detail *levelSet, GU_Detail *tracker
     cout << this->approachName<<" initial number of point "<<numberOfInitialTrackers<< " "<<endl;
     //cout << "[Yu2011] we have "<<numberOfPoints << " existing point(s) in trackersGdp"<<endl;
     Bridson2012PoissonDiskDistribution poissonDiskDistribution;
-    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold, params);
+    poissonDiskDistribution.PoissonDiskSampling(trackersGdp, trackerTree, levelSet, params.poissonAngleNormalThreshold, params);
     this->numberOfNewPatches = poissonDiskDistribution.numberOfNewPoints;
     cout << this->approachName<<" poisson disk sample result: "<< this->numberOfNewPatches<< " new point(s)"<<endl;
     this->poissondisk += (std::clock() - addPoissonDisk) / (double) CLOCKS_PER_SEC;

@@ -135,7 +135,7 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
             string noPaddedNumber = std::to_string(i+1);
 
             currentName.replace(currentName.find("$F"), sizeof("$F") - 1, paddedNumber);
-            cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<noPaddedNumber<<endl;
+            //cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<noPaddedNumber<<endl;
             bool opened = textureExemplars[i]->OpenImage(currentName,-1);
             if (!opened)
             {

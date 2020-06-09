@@ -615,7 +615,7 @@ void DeformableGridsManager::CreateGridsBasedOnMesh( vector<GA_Offset> trackers)
 
 //================================================================================================
 
-//                                      ADVECT MARKERS
+//                                      ADVECT GRIDS
 
 //================================================================================================
 
@@ -655,7 +655,7 @@ void DeformableGridsManager::AdvectGrids()
         return;
     }
 
-    UT_Vector3 v;
+    UT_Vector3 velocity;
     UT_Vector3 p;
     UT_Vector3 p1;
     float dt = 1.0f/24.0f;
@@ -739,12 +739,12 @@ void DeformableGridsManager::AdvectGrids()
                             //cout << "Tracker with no primivites"<<endl;
                             continue;
                         }
-                        v = attVDeformable.get(ppt);
+                        velocity = attVDeformable.get(ppt);
                         N = attNSurface.get(ppt);
                         p = this->deformableGridsGdp->getPos3(ppt);
 
                         //advect
-                        UT_Vector3 d = v*dt;
+                        UT_Vector3 d = velocity*dt;
                         p1 = p+d;
                         this->deformableGridsGdp->setPos3(ppt,p1);
                         attGridId.set(ppt,id);
@@ -790,9 +790,6 @@ void DeformableGridsManager::AdvectGrids()
                                 float k        = (1-dp)*r*2;
                                 if (k < cs)
                                     k = cs;
-                                bool insideBigEllipse    = d < k;
-                                if (!insideBigEllipse)
-                                    continue;
 
                                 //------------------------------PARAMETRIC COORDINATE -----------------------------------
                                 GA_Offset primOffset = mininfo.prim->getMapOffset();
@@ -814,8 +811,8 @@ void DeformableGridsManager::AdvectGrids()
 
                                 GA_Offset vertexOffset2 = prim->getVertexOffset(2);
                                 GA_Offset pointOffset2  = this->surface->vertexPoint(vertexOffset2);
-                                UT_Vector3 n2 = refAttN.get(pointOffset2);//gdp->getPos3(pointOffset3);
-                                UT_Vector3 v2 = refAttV.get(pointOffset2);;//gdp->getPos3(pointOffset2);
+                                UT_Vector3 n2 = refAttN.get(pointOffset2);
+                                UT_Vector3 v2 = refAttV.get(pointOffset2);;
                                 //UT_Vector3 v2 = attUV.get(vertexOffset2);
 
                                 UT_Vector3 normal   = n0+u*(n1-n0)+v*(n2-n0);

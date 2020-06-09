@@ -58,9 +58,9 @@ and e = 1.085 worked well, but could be further tuned.
 */
 
 
-void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet, float diskRadius, float angleNormalThreshold, ParametersDeformablePatches params)
+void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackersGdp, GEO_PointTreeGAOffset &tree, GU_Detail *levelSet,  float angleNormalThreshold, ParametersDeformablePatches params)
 {
-    cout << "[Bridson2012PoissonDiskDistribution] on level set using a threshold of "<<angleNormalThreshold<<endl;
+    cout << "[Bridson2012PoissonDiskDistribution] on level set using a threshold of "<<angleNormalThreshold<<" with radius "<<params.poissondiskradius<<endl;
 
     GA_RWHandleV3   attN(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
@@ -90,8 +90,8 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
 //    cout << "JSON: " << phi->getJSON() << std::endl;
 
     float a = 0.25; //promote this variable to the user interface
-    this->poissonDiskRadius = diskRadius;
-    float killDistance = (1-a)*diskRadius/2;
+    this->poissonDiskRadius = params.poissondiskradius;
+    float killDistance = (1-a)*params.poissondiskradius/2;
 
     cout << "[Bridson2012PoissonDiskDistribution] We have a valid vdb"<<endl;
 
@@ -124,7 +124,7 @@ void Bridson2012PoissonDiskDistribution::PoissonDiskSampling(GU_Detail* trackers
         //If we have fading in, we are using 2019's approach
         //if (params.fadingIn == 1)
         {
-            attActive.set(ppt,meetPoissonDiskCriterion);
+            //attActive.set(ppt,meetPoissonDiskCriterion);
         }
         if (!meetPoissonDiskCriterion)
         {
@@ -344,7 +344,7 @@ GA_Offset Bridson2012PoissonDiskDistribution::CreateAParticle(GU_Detail *tracker
     {
         GA_RWHandleI    isTangeantTracker(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
         //---------- ADD TANGEANT TRACKER ----------
-        cout << "Add Tangeant Tracker"<<endl;
+        //cout << "Add Tangeant Tracker"<<endl;
         //put this in a function, and/or move this where we already add point
         S = cross(N,defaultDirection);
         S.normalize();
@@ -375,10 +375,8 @@ void Bridson2012PoissonDiskDistribution::CreateAPointDisk(GU_Detail* trackersGdp
 {
     GA_RWHandleV3   attN(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"N", 3));
     GA_RWHandleI    attActive(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"active", 1));
-    GA_RWHandleI    attDensity(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"density", 1));
     GA_RWHandleI    attId(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"id",1));
     GA_RWHandleF    attLife(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"life",1));
-    GA_RWHandleI    attSpawn(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"spawn",1));
     GA_RWHandleI    attIsMature(trackersGdp->addIntTuple(GA_ATTRIB_POINT,"isMature", 1));
     GA_RWHandleF    attMaxDeltaOnD(trackersGdp->addFloatTuple(GA_ATTRIB_POINT,"maxDeltaOnD",1));
     GA_RWHandleI    isTangeantTracker(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"isTrangeantTracker",1));
@@ -398,9 +396,7 @@ void Bridson2012PoissonDiskDistribution::CreateAPointDisk(GU_Detail* trackersGdp
     trackersGdp->setPos3(newPoint, position);
     attN.set(newPoint,N);
     attActive.set(newPoint,true);
-    attDensity.set(newPoint,0);
     attId.set(newPoint,id);
-    attSpawn.set(newPoint,0);
     attLife.set(newPoint,0.001f);
     attIsMature.set(newPoint,0);
     attMaxDeltaOnD.set(newPoint,0);
