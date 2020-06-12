@@ -1,0 +1,3 @@
+/home/jgagnon/rnd/yu2011lagrangiantextureadvection/HoudiniPlugin/texturingfluids/build/CMakeFiles/rebuild_cache.dir
+/home/jgagnon/rnd/yu2011lagrangiantextureadvection/HoudiniPlugin/texturingfluids/build/CMakeFiles/edit_cache.dir
+/home/jgagnon/rnd/yu2011lagrangiantextureadvection/HoudiniPlugin/texturingfluids/build/CMakeFiles/Gagnon2019.dir
