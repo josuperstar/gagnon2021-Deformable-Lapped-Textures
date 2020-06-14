@@ -21,13 +21,7 @@
 // -----------------------------------------------------------------------------
 void newSopOperator(OP_OperatorTable *table)
 {
-     table->addOperator(new OP_Operator("hdk_Yu2011",
-                                        "LagrangianTextureAdvection",
-                                        LagrangianTextureAdvectionPlugin::myConstructor,
-                                        LagrangianTextureAdvectionPlugin::myTemplateList,
-                                        5,
-                                        5,
-                                        0));
+
 
      table->addOperator(new OP_Operator("hdk_DeformableLappedTexture",
                                         "DeformableLappedTexture",
@@ -36,7 +30,6 @@ void newSopOperator(OP_OperatorTable *table)
                                         5,
                                         5,
                                         0));
-
 
 
      table->addOperator(new OP_Operator("hdk_Gagnon2016",
@@ -62,13 +55,6 @@ void newSopOperator(OP_OperatorTable *table)
                                         3,
                                         0));
 
-     table->addOperator(new OP_Operator("hdk_AtlasYu2011",
-                                       "AtlasYu2011",
-                                       AtlasYu2011Plugin::myConstructor,
-                                       AtlasYu2011Plugin::myTemplateList,
-                                       3,
-                                       3,
-                                       0));
 
      table->addOperator(new OP_Operator("hdk_AtlasGagnon2016",
                                        "AtlasGagnon2016",
