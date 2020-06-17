@@ -514,32 +514,32 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     //Take a random part of the input texture uv space
     //- compute a random translation
     //- scale up
-    float scaleup = params.UVScaling;
-    if (scaleup == 0)
-        scaleup = 1;
-    int seed = id;
-    float randomScale = scaleup/2.0f;
-    srand(seed);
-    float tx = (((double) rand()/(RAND_MAX)))*randomScale;
-    srand(seed+1);
-    float ty = (((double) rand()/(RAND_MAX)))*randomScale;
-    srand(seed+2);
-    float tz = (((double) rand()/(RAND_MAX)))*randomScale;
-    {
-        GA_Offset gppt;
-        GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,gppt)
-        {
-            UT_Vector3 uv = attUV.get(gppt);
-            if (uv.x() != uv.x())
-            {
-                //where have nan value
-                uv = UT_Vector3(0,0,0);
-            }
-            uv += UT_Vector3(tx,ty,tz);
-            uv /= scaleup;
-            attUV.set(gppt,uv);
-        }
-    }
+//    float scaleup = params.UVScaling;
+//    if (scaleup == 0)
+//        scaleup = 1;
+//    int seed = id;
+//    float randomScale = scaleup/2.0f;
+//    srand(seed);
+//    float tx = (((double) rand()/(RAND_MAX)))*randomScale;
+//    srand(seed+1);
+//    float ty = (((double) rand()/(RAND_MAX)))*randomScale;
+//    srand(seed+2);
+//    float tz = (((double) rand()/(RAND_MAX)))*randomScale;
+//    {
+//        GA_Offset gppt;
+//        GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,gppt)
+//        {
+//            UT_Vector3 uv = attUV.get(gppt);
+//            if (uv.x() != uv.x())
+//            {
+//                //where have nan value
+//                uv = UT_Vector3(0,0,0);
+//            }
+//            uv += UT_Vector3(tx,ty,tz);
+//            uv /= scaleup;
+//            attUV.set(gppt,uv);
+//        }
+//    }
     UT_Vector3 centerUV = UT_Vector3(0,0,0);
     int i = 0;
     {
@@ -547,6 +547,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
         GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,gppt)
         {
             UT_Vector3 uv = attUV.get(gppt);
+            uv.z() = 0;
             centerUV += uv;
             i++;
         }

@@ -153,24 +153,38 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         UT_Vector3 v1 = attPointUV.get(pointOffset1);
         UT_Vector3 v2 = attPointUV.get(pointOffset2);
 
-        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
-
+        //UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
+        UT_Vector3 centerUV(0,0,0);
+        //UT_Vector3 centerUV(0.5,0.5,0.0);
         float s = params.UVScaling;
 
         v0 = UT_Vector3(v0.x()-centerUV.x(),v0.y()-centerUV.y(),v0.z()-centerUV.z());
         v1 = UT_Vector3(v1.x()-centerUV.x(),v1.y()-centerUV.y(),v1.z()-centerUV.z());
         v2 = UT_Vector3(v2.x()-centerUV.x(),v2.y()-centerUV.y(),v2.z()-centerUV.z());
 
-        v0 *= s;
-        v1 *= s;
-        v2 *= s;
+//        v0 *= s;
+//        v1 *= s;
+//        v2 *= s;
 
         v0 = UT_Vector3(v0.x()+centerUV.x(),v0.y()+centerUV.y(),v0.z()+centerUV.z());
         v1 = UT_Vector3(v1.x()+centerUV.x(),v1.y()+centerUV.y(),v1.z()+centerUV.z());
         v2 = UT_Vector3(v2.x()+centerUV.x(),v2.y()+centerUV.y(),v2.z()+centerUV.z());
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
+        float d_V = 1.0f;
+        UT_Vector3 centerUV2(0.5,0.5,0.0);
+        float uv_distance = distance3d(positionInPolygon,centerUV2);
+        float minD = 0.25;
+        float maxD = 0.5; //edge region
+        if (uv_distance > maxD)
+            d_V = 0.0f;
+        float C_s = 0.0f;
+        if (uv_distance > minD && uv_distance <= maxD)
+            C_s = 1-((uv_distance-minD)/(maxD-minD));
+        if (uv_distance <= minD)
+            C_s = 1.0f;
 
+        //cout << "UV Distance = "<<uv_distance<<endl;
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
         //The weights are computed for each vertex. During reconstruction, weights at arbitrary locations are interpolated
@@ -178,7 +192,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         // If the patch has been created on a curved region, it is possible to have the center of the patch closed to a border.
         // We want to avoid treating the polygon closed to the center as border has it can create holes on the surface.
-        float d_V = 1.0f;
+        //float d_V = 1.0f;
         if (d_P > gridwidth/10)
         {
             int   d_V1 = 1-attBorder.get(pointOffset0);
@@ -203,18 +217,18 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
 
-        float minD = d;
-        float maxD = gridwidth; //edge region
+//        float minD = d;
+//        float maxD = gridwidth; //edge region
 
         //d_V =0 if V ∈ grid boundary 1 otherwise
-        if (d_P > maxD)
-            d_V = 0.0f;
+//        if (d_P > maxD)
+//            d_V = 0.0f;
 
-        float C_s = 0.0f;
-        if (d_P > minD && d_P <= maxD)
-            C_s = 1-((d_P-minD)/(maxD-minD));
-        if (d_P <= minD)
-            C_s = 1.0f;
+//        float C_s = 0.0f;
+//        if (d_P > minD && d_P <= maxD)
+//            C_s = 1-((d_P-minD)/(maxD-minD));
+//        if (d_P <= minD)
+//            C_s = 1.0f;
 
         float K_s = C_s*d_V*Q_V;
 
