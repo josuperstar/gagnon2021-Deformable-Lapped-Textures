@@ -593,9 +593,9 @@ bool ParticleTrackerManager::ProjectTrackerOnSurface(GA_Offset ppt)
         {
             if (currentSpawn <= 1) // we just had it
             {
-                attLife.set(ppt,0);
-                attActive.set(ppt,0);
-                return false;
+//                attLife.set(ppt,0);
+//                attActive.set(ppt,0);
+//                return false;
             }
         }
         N = GetParamtrericCoordinate(prim, refAttN, u, v);
@@ -634,33 +634,33 @@ bool ParticleTrackerManager::UpdateTracker(GA_Offset ppt)
     {
         return false;
     }
-    bool isMature = (currentSpawn >= params.fadingTau);
-    if (params.fadingIn == 0)
-        isMature = true;
-    if (params.fadingIn == 0 and currentSpawn != 0)
-    {
-        currentSpawn++;
-    }
+//    bool isMature = (currentSpawn >= params.fadingTau);
+//    if (params.fadingIn == 0)
+//        isMature = true;
+//    if (params.fadingIn == 0 and currentSpawn != 0)
+//    {
+//        currentSpawn++;
+//    }
 
-    if (isMature)
-        attIsMature.set(ppt,1);
+//    if (isMature)
+//        attIsMature.set(ppt,1);
 
-    //fade in
-    if (currentSpawn < params.fadingTau)
-    {
-        currentLife += 1.0f;
-        if (currentSpawn == 0)
-            currentSpawn+= 1;
-        else
-            currentSpawn+= 1;
+//    //fade in
+//    if (currentSpawn < params.fadingTau)
+//    {
+//        currentLife += 1.0f;
+//        if (currentSpawn == 0)
+//            currentSpawn+= 1;
+//        else
+//            currentSpawn+= 1;
 
-        currentLife = params.fadingTau;
+//        currentLife = params.fadingTau;
 
-    }
-    if (currentLife > (float)params.fadingTau)
-        currentLife = (float)params.fadingTau;
-    if (currentLife < 0)
-        currentLife = 0;
+//    }
+//    if (currentLife > (float)params.fadingTau)
+//        currentLife = (float)params.fadingTau;
+//    if (currentLife < 0)
+//        currentLife = 0;
 
 
     float life = currentLife;

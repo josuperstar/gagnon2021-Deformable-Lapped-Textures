@@ -66,10 +66,20 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     if(params.startFrame == params.frame)
     {
         newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
-        surface.ProjectAllTrackersOnSurface();
-        surface.UpdateAllTrackers();
-        surface.CreateGridsBasedOnMesh(newPatchesPoints);
-        surface.AddDeformablePatchesUsingBarycentricCoordinates();
+
+        vector<GA_Offset>::iterator itPoint;
+        for (itPoint = newPatchesPoints.begin(); itPoint != newPatchesPoints.end(); itPoint++)
+        {
+            GA_Offset newPoint = *itPoint;
+//            cout << "Project Trancker on surface"<<endl;
+            bool canProject = surface.ProjectTrackerOnSurface(newPoint);
+            if (!canProject)
+                continue;
+            surface.UpdateTracker(newPoint);
+            //cout << "Create grid "<<endl;
+            surface.CreateGridBasedOnMesh(newPoint);
+            surface.AddDeformablePatcheUsingBarycentricCoordinates(newPoint);
+        }
     }
     else
     {
