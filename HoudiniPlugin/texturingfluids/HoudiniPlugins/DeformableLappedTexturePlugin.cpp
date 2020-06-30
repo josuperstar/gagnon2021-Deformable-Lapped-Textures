@@ -274,6 +274,8 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
     TextureExemplarList(textureExemplar1Name,now);
     params.textureExemplar1Name = textureExemplar1Name;
 
+    TextureExemplarMaskList(textureExemplarMaskName,now);
+    params.displacementMap1Name = textureExemplarMaskName;
 
     OutputName(outputName,now);
     params.outputName = outputName;

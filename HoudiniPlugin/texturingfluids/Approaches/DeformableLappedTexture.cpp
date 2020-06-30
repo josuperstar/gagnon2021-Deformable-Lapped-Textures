@@ -103,8 +103,10 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     cout << "------------------- Patch Creation ---------------------"<<endl;
     surface.AddDeformablePatchesUsingBarycentricCoordinates();
 
+    cout << "Updating distribution: "<<params.updateDistribution<<endl;
 
-    this->UpdateByRasterization(surface, surfaceGdp,trackersGdp, surfaceLowResGdp, deformableGridGdp, params);
+    if (params.updateDistribution)
+        this->UpdateByRasterization(surface, surfaceGdp,trackersGdp, surfaceLowResGdp, deformableGridGdp, params);
 
     //=======================================================================
 
@@ -190,7 +192,9 @@ void DeformableLappedTexture::UpdateByRasterization(PatchedSurfaceGagnon2020 &su
     atlas.SetDeformableGrids(deformableGridGdp);
     atlas.SetTrackers(trackersGdp);
     atlas.SetTextureExemplar1(params.textureExemplar1Name);
-    atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
+    cout << "Using displacement map "<<params.displacementMap1Name<<endl;
+    //atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
+    atlas.SetDisplacementMap1(params.displacementMap1Name);
     atlas.SetNumberOfTextureSampleFrame(params.NumberOfTextureSampleFrame);
 
 

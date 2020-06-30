@@ -154,8 +154,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         UT_Vector3 v2 = attPointUV.get(pointOffset2);
 
         //UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
-        UT_Vector3 centerUV(0,0,0);
-        //UT_Vector3 centerUV(0.5,0.5,0.0);
+        //UT_Vector3 centerUV(0,0,0);
+        UT_Vector3 centerUV(0.5,0.5,0.0);
         float s = params.UVScaling;
 
         v0 = UT_Vector3(v0.x()-centerUV.x(),v0.y()-centerUV.y(),v0.z()-centerUV.z());
@@ -171,18 +171,22 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         v2 = UT_Vector3(v2.x()+centerUV.x(),v2.y()+centerUV.y(),v2.z()+centerUV.z());
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
-        float d_V = 1.0f;
+        float B_V = 1.0f;
         UT_Vector3 centerUV2(0.5,0.5,0.0);
         float uv_distance = distance3d(positionInPolygon,centerUV2);
         float minD = 0.25;
         float maxD = 0.5; //edge region
         if (uv_distance > maxD)
-            d_V = 0.0f;
-        float C_s = 0.0f;
+        {
+            B_V = 0.0f;
+
+            //cout << "uv distance > maxD"<<endl;
+        }
+        float D_v = 0.0f;
         if (uv_distance > minD && uv_distance <= maxD)
-            C_s = 1-((uv_distance-minD)/(maxD-minD));
+            D_v = 1-((uv_distance-minD)/(maxD-minD));
         if (uv_distance <= minD)
-            C_s = 1.0f;
+            D_v = 1.0f;
 
         //cout << "UV Distance = "<<uv_distance<<endl;
         //-----------------------------------
@@ -193,12 +197,19 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         // If the patch has been created on a curved region, it is possible to have the center of the patch closed to a border.
         // We want to avoid treating the polygon closed to the center as border has it can create holes on the surface.
         //float d_V = 1.0f;
-        if (d_P > gridwidth/10)
+        if (uv_distance <= maxD && d_P > gridwidth/10)
         {
-            int   d_V1 = 1-attBorder.get(pointOffset0);
-            int   d_V2 = 1-attBorder.get(pointOffset1);
-            int   d_V3 = 1-attBorder.get(pointOffset2);
-            d_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
+            float bv1 = attBorder.get(pointOffset0);
+            float bv2 = attBorder.get(pointOffset1);
+            float bv3 = attBorder.get(pointOffset2);
+
+            float   d_V1 = 1.0f - bv1;
+            float   d_V2 = 1.0f - bv2;
+            float   d_V3 = 1.0f - bv3;
+
+            B_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
+//            if (B_V != 1)
+//                cout << B_V<<endl;
         }
 
         float Q_t1 = attQv.get(pointOffset0);
@@ -210,55 +221,59 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (Q_t < 0.001)
             continue;
 
-        float Q_V = Q_t*d_V;
 
         //-----------------------------------------------------------------
         //getting the color from the texture exemplar
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
 
-//        float minD = d;
-//        float maxD = gridwidth; //edge region
 
-        //d_V =0 if V ∈ grid boundary 1 otherwise
-//        if (d_P > maxD)
-//            d_V = 0.0f;
+        //float K_s = C_s*d_V*Q_V;
+        //float w_pt = Q_V_B_v;
+        //float w_pt = Q_t*B_V*D_v;
+        //float w_pt = Q_t*B_V;
+        //float w_pt = Q_t*D_v;
+        float w_pt = Q_t*B_V;
+        //w_pt should be between 0 and 1
+        if (w_pt < 0)
+            w_pt = 0;
+        else if (w_pt > 1.0f)
+            w_pt = 1.0f;
 
-//        float C_s = 0.0f;
-//        if (d_P > minD && d_P <= maxD)
-//            C_s = 1-((d_P-minD)/(maxD-minD));
-//        if (d_P <= minD)
-//            C_s = 1.0f;
-
-        float K_s = C_s*d_V*Q_V;
-
-        //K_s should be between 0 and 1
-        if (K_s < 0)
-            K_s = 0;
-        else if (K_s > 1.0f)
-            K_s = 1.0f;
-
-        if (K_s < epsilon)
+        if (w_pt < epsilon)
             continue;
 
-        int seamCarvingIndex = ((1-K_s) * params.NumberOfTextureSampleFrame);
+        int seamCarvingIndex = ((1-w_pt) * params.NumberOfTextureSampleFrame);
+        //int seamCarvingIndex = 0;
 
         if (renderColoredPatches)
+        {
             //set random colors per patch
             color = patchColors[patchId];
+        }
         else
         {
             textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
         }
             //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
 
-        if (computeDisplacement)
-            displacementMapImage->GetColor(i2,j2,0,displacement);
+        displacementMapImage->GetColor(i2,j2,0,displacement);
+
+//        float F = displacement.R;
+//        float D = (D_v);
+//        float E = F*D + D*D;
+//        float threshold = 1-w_pt;
 
         // Flag that we use this patch during the synthesis.
         // We could therefore delete unused patches in the future.
+
+        float alpha = 0;
         if (color.A > 0.0f)
+        //if (E > threshold)
+        {
+            alpha = 1;
             usePatches[patchId] = true;
+        }
 
         //clamping color values ...
         if (color.B > 1.0f)
@@ -279,7 +294,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         // We use the alpha from the animated images to influence the weight
 
-        float alpha = color.A;// * w_v;
+        //float alpha = color.A;// * w_v;
         Cf.R =  (alpha)*(color.R) + (1.0f-alpha)*(Cf.R);
         Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);
         Cf.B =  (alpha)*(color.B) + (1.0f-alpha)*(Cf.B);

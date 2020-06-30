@@ -84,6 +84,24 @@ bool AtlasTestingConcealed::initImages(int w, int h)
             return false;
         }
     }
+    if (displacementMapImageName.size() != 0)
+    {
+        displacementMapImage = new ImageCV();
+        //cout << "[AtlasAnimatedTexture::BuildAtlas] Opening "<<displacementMapImageName<<endl;
+        computeDisplacement = displacementMapImage->OpenImage(displacementMapImageName,-1);
+        cout << "[AtlasAnimatedTexture::BuildAtlas] Done"<<endl;
+        if (computeDisplacement)
+        {
+            displacementMapEquation3 = new ImageCV();
+            displacementMapEquation3->CreateImage(w,h,-1);
+            displacementMapEquation4 = new ImageCV();
+            displacementMapEquation4->CreateImage(w,h,-1);
+        }
+        else
+        {
+            cout << "[AtlasAnimatedTexture::BuildAtlas] Can't open displacement map file "<<displacementMapImageName<<endl;
+        }
+    }
     imageInitied = true;
 }
 
