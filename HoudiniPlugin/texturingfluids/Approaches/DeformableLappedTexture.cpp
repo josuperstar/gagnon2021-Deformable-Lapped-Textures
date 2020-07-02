@@ -67,6 +67,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     {
         newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
 
+        //TODO: shuffle list point id;
         vector<GA_Offset>::iterator itPoint;
         for (itPoint = newPatchesPoints.begin(); itPoint != newPatchesPoints.end(); itPoint++)
         {
