@@ -27,6 +27,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
                                 ParametersDeformablePatches params)
 {
 
+
+    bool debug = false;
     float d = params.poissondiskradius;
 
     int tw = textureExemplars[0]->GetWidth();
@@ -103,7 +105,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         UT_Vector3 primN = prim->computeNormal();
 //        if (dot(primN, trackersNormal[patchId]) < 0.7)
 //            continue;
-
+        if(debug)
+            cout << "dealing with prim "<<prim->getMapOffset()<<endl;
         //We don't work with primitive that don't have at least 3 vertices
         if (prim->getVertexCount() < 3)
             continue;
@@ -155,6 +158,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
 
         //UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
         //UT_Vector3 centerUV(0,0,0);
+        if(debug)
+            cout << "Computing uv coordinates "<<endl;
         UT_Vector3 centerUV(0.5,0.5,0.0);
         float s = params.UVScaling;
 
@@ -241,7 +246,11 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             w_pt = 1.0f;
 
         if (w_pt < epsilon)
+        {
+            if(debug)
+                cout << "w_pt too small: "<<w_pt<<endl;
             continue;
+        }
 
         int seamCarvingIndex = ((1-w_pt) * params.NumberOfTextureSampleFrame);
         //int seamCarvingIndex = 0;
@@ -253,11 +262,14 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         }
         else
         {
+            if(debug)
+                cout << "getting texel at index "<<seamCarvingIndex<<endl;
             textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
         }
             //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
 
-        displacementMapImage->GetColor(i2,j2,0,displacement);
+        if(computeDisplacement)
+            displacementMapImage->GetColor(i2,j2,0,displacement);
 
 //        float F = displacement.R;
 //        float D = (D_v);
@@ -307,6 +319,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
             displacementSumEq4.B =  (alpha)*(displacement.B) + (1.0f-alpha)*(displacementSumEq4.B);
         }
         k--;
+        if(debug)
+            cout << "color computed "<<endl;
     }
 
     //cout << "done"<<endl;
