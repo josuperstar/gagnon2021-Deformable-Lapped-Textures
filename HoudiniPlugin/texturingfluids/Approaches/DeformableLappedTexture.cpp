@@ -23,11 +23,15 @@
 
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
-
+#include <cstdlib>      // std::rand, std::srand
 
 
 #include <Core/Atlas/AtlasTestingConcealed.h>
 #include <Core/Atlas/TBBAtlasTestingConcealed.h>
+
+
+// random generator function:
+int myrandom (GA_Offset i) { return std::rand()%i;}
 
 DeformableLappedTexture::DeformableLappedTexture()
 {
@@ -42,7 +46,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     PatchedSurfaceGagnon2020 surface(surfaceGdp, surfaceLowResGdp, trackersGdp,deformableGridGdp, params);
     cout << "[DeformableLappedTexture::Synthesis] Version: (put version here) frame: "<<params.frame<<endl;
     //params.useDynamicTau = false;
-
+    GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     std::clock_t start;
     start = std::clock();
     vector<GA_Offset> newPatchesPoints;
@@ -68,10 +72,16 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
         newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
 
         //TODO: shuffle list point id;
+        std::srand ( unsigned ( std::time(0) ) );
         vector<GA_Offset>::iterator itPoint;
+        cout << "random shuffle offset values"<<endl;
+        std::random_shuffle ( newPatchesPoints.begin(), newPatchesPoints.end(), myrandom);
+        int index = 0;
         for (itPoint = newPatchesPoints.begin(); itPoint != newPatchesPoints.end(); itPoint++)
         {
+            index++;
             GA_Offset newPoint = *itPoint;
+            attId.set(newPoint,index);
 //            cout << "Project Trancker on surface"<<endl;
             bool canProject = surface.ProjectTrackerOnSurface(newPoint);
             if (!canProject)
