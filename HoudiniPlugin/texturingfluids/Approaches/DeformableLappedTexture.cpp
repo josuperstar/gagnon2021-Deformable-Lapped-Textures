@@ -82,6 +82,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
             index++;
             GA_Offset newPoint = *itPoint;
             attId.set(newPoint,index);
+            cout << "create tracker "<< index << " with offset "<< newPoint<< endl;
 //            cout << "Project Trancker on surface"<<endl;
             bool canProject = surface.ProjectTrackerOnSurface(newPoint);
             if (!canProject)
@@ -106,7 +107,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
         surface.ProjectAllTrackersOnSurface();
         surface.UpdateAllTrackers();
         //surface.CreateGridsBasedOnMesh(newPatchesPoints);
-        cout << "------------------- Delete Dead Patches ---------------------"<<endl;
+        cout << "------------------- Delete Dea*/d Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches();
     }
 

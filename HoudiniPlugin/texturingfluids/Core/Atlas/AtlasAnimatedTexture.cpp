@@ -60,7 +60,7 @@ bool AtlasAnimatedTexture::BuildAtlas(int w, int h, int life)
     if (surface == 0x0 || (deformableGrids == 0x0 && useDeformableGrids) || trackers == 0x0)
         return false;
 
-    cout << "[AtlasAnimatedTexture::BuildAtlas]("<<w<<","<< h <<")"<<endl;
+    cout << "[AtlasAnimatedTexture::BuildAtlas]("<<w<<","<< h <<")" << " with render colored patch to "<<renderColoredPatches<<endl;
 
     cout << "[AtlasAnimatedTexture::BuildAtlas] setting varialbes"<<endl;
     //-------------------------------------------------------

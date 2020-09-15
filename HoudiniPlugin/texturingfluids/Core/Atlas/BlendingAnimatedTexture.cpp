@@ -41,6 +41,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     Pixel color = Pixel(0,0,0);
     color.A = 1;
 
+    Pixel patchColor = Pixel(0,0,0);
+
     Pixel Cf = Pixel(0,0,0);
     Cf.A = 0;
 
@@ -258,7 +260,11 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         if (renderColoredPatches)
         {
             //set random colors per patch
-            color = patchColors[patchId];
+            patchColor = patchColors[patchId];
+            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+            float tempAlpha = color.A;
+            color = patchColor;
+            color.A = tempAlpha;
         }
         else
         {

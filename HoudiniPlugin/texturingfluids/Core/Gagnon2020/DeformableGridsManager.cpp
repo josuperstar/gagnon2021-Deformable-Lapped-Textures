@@ -158,7 +158,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     bool toDelete = false;
     id = attId.get(ppt);
 
-    //cout << "tracker "<<id<<" spawn "<<spawn << endl;
+    cout << "tracker "<<id<< endl;
     if (params.testPatch == 1 && params.patchNumber != id)
         return;
 
