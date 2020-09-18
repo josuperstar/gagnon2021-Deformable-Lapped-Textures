@@ -158,7 +158,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     bool toDelete = false;
     id = attId.get(ppt);
 
-    cout << "tracker "<<id<< endl;
+    //cout << "tracker "<<id<< endl;
     if (params.testPatch == 1 && params.patchNumber != id)
         return;
 
@@ -261,7 +261,9 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
             attLife.set(newPoint,params.fadingTau);
             attV.set(newPoint,v);
             attIsTreated.set(newPoint,0);
-            attCd.set(newPoint,UT_Vector3(1,1,1));
+            UT_Vector3 patchColor = AttCd.get(ppt);
+
+            attCd.set(newPoint,patchColor);
             attGridId.set(newPoint,id);
             attQv.set(newPoint,1.0f);
             pointList.push_back(newPoint);
@@ -827,7 +829,7 @@ void DeformableGridsManager::AdvectGrids()
                             {
                                 this->deformableGridsGdp->setPos3(ppt,p1);
                                 //for debuging purposes
-                                attCd.set(ppt,UT_Vector3(1,0,0));
+                                //attCd.set(ppt,UT_Vector3(1,0,0));
                                 attAlpha.set(ppt,gridAlpha);
                                 grpToDestroy->addOffset(ppt);
                             }

@@ -127,7 +127,6 @@ vector<GA_Offset> ParticleTrackerManager::PoissonDiskSamplingDistribution(GU_Det
 {
     cout << "[Bridson2012PoissonDiskDistributionGagnon2020] on level set using a threshold of "<<angleNormalThreshold<<endl;
 
-
     std::clock_t addPoissonDisk;
     addPoissonDisk = std::clock();
 
@@ -354,7 +353,8 @@ GA_Offset ParticleTrackerManager::CreateAParticle(UT_Vector3 p, UT_Vector3 N)
     attNumberOfPrimitives.set(newPoint,0);
     attIsMature.set(newPoint,0);
     attMaxDeltaOnD.set(newPoint,0);
-
+    UT_Vector3 patchColor = this->SetRandomColor(id);
+    AttCd.set(newPoint,patchColor);
     if(params.startFrame == params.frame)
     {
         attLife.set(newPoint,params.fadingTau);
@@ -501,6 +501,20 @@ int ParticleTrackerManager::NumberOfPatchesToDelete()
     }
 
     return toDelete;
+}
+
+UT_Vector3 ParticleTrackerManager::SetRandomColor(int patchNumber)
+{
+    //initialize random seed
+    srand(patchNumber);
+    float r = ((double) rand()/(RAND_MAX));
+    srand(patchNumber+1);
+    float g = ((double) rand()/(RAND_MAX));
+    srand(patchNumber+2);
+    float b = ((double) rand()/(RAND_MAX));
+    UT_Vector3 patchColor(r,g,b);
+
+    return patchColor;
 }
 
 void ParticleTrackerManager::CreateDebugRasterizationPoint(UT_Vector3 position, UT_Vector3 color, float alpha, int needNewPatch)
@@ -806,7 +820,6 @@ void ParticleTrackerManager::AdvectSingleTrackers()
             {
                 p1 = hitPos;
                 trackersGdp->setPos3(ppt,p1);
-                AttCd.set(ppt,UT_Vector3(0,1,0));
 
                 //------------------------------PARAMETRIC COORDINATE -----------------------------------
                 GA_Offset primOffset = mininfo.prim->getMapOffset();
@@ -827,7 +840,6 @@ void ParticleTrackerManager::AdvectSingleTrackers()
             {
                 //delete this point because we can't project it, probably because of a sudden topological change.
                 //cout << "delete "<<id<<" because we can't project it, probably because of a sudden topological change."<<endl;
-                AttCd.set(ppt,UT_Vector3(1,0,0));
 
                 //detached poisson disks have to be deleted directly, not fading out.
                 attLife.set(ppt,0);

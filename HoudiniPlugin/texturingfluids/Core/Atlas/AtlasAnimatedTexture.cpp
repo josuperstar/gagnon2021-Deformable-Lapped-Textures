@@ -605,33 +605,21 @@ bool AtlasAnimatedTexture::IsPointInTriangle(UT_Vector3  p, UT_Vector3 a,UT_Vect
 }
 
 
-Pixel AtlasAnimatedTexture::SetRandomColor(int patchNumber)
-{
-    //initialize random seed
-    srand(patchNumber);
-    float r = ((double) rand()/(RAND_MAX));
-    srand(patchNumber+1);
-    float g = ((double) rand()/(RAND_MAX));
-    srand(patchNumber+2);
-    float b = ((double) rand()/(RAND_MAX));
-    Pixel patchColor;
-    patchColor.A = 1;
-    patchColor.R = r;
-    patchColor.G = g;
-    patchColor.B = b;
-
-    return patchColor;
-}
-
 void AtlasAnimatedTexture::initPatchColors(GU_Detail *trackersGdp)
 {
 
     GA_ROHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
+    GA_RWHandleV3   attCd = GA_RWHandleV3(trackersGdp->findFloatTuple(GA_ATTRIB_POINT,"Cd", 3));
     GA_Offset ppt;
     GA_FOR_ALL_PTOFF(trackersGdp,ppt)
     {
         int patchId = attId.get(ppt);
-        patchColors[patchId] = SetRandomColor(patchId);
+        Pixel color;
+        UT_Vector3 trackerColor = attCd.get(ppt);
+        color.R = trackerColor.x();
+        color.G = trackerColor.y();
+        color.B = trackerColor.z();
+        patchColors[patchId] = color;
     }
 
 }

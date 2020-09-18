@@ -48,7 +48,7 @@ private:
    bool IsPointInTriangle(UT_Vector3  p, UT_Vector3 a,UT_Vector3 b,UT_Vector3 c);
 
    void CreateListGUDetails();
-   Pixel SetRandomColor(int patchNumber);
+
    map<int,Pixel> patchColors;
    void initPatchColors(GU_Detail *trackersGdp);
 
