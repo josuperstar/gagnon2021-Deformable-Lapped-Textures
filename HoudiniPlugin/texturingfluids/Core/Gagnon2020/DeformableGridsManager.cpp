@@ -541,7 +541,49 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
 //            attUV.set(gppt,uv);
 //        }
 //    }
-    UT_Vector3 centerUV = UT_Vector3(0,0,0);
+
+    //----------------- Compute uv coordinate of the patch position p ----------------
+    GU_RayIntersect *ray = new GU_RayIntersect(this->deformableGridsGdp,primGroup);
+    GU_MinInfo mininfo;
+    mininfo.init(params.maximumProjectionDistance,0.0001f);
+
+    ray->minimumPoint(p,mininfo);
+    if (!mininfo.prim)
+        return;
+    const GEO_Primitive *primProjection = mininfo.prim;
+
+    UT_Vector3 primN = primProjection->computeNormal();
+    //We don't work with primitive that don't have at least 3 vertices
+    if (primProjection->getVertexCount() < 3)
+        return;
+
+    //------------------------------ PARAMETRIC COORDINATE -----------------------------------
+    float pu = mininfo.u1;
+    float pv = mininfo.v1;
+
+    //get pos of hit
+    UT_Vector4 hitPos;
+    mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+    GA_Offset vertexOffset0 = primProjection->getVertexOffset(0);
+    GA_Offset vertexOffset1 = primProjection->getVertexOffset(1);
+    GA_Offset vertexOffset2 = primProjection->getVertexOffset(2);
+
+    if (attUV.isInvalid())
+        return;
+
+    GA_Offset pointOffset0  = this->deformableGridsGdp->vertexPoint(vertexOffset0);
+    GA_Offset pointOffset1  = this->deformableGridsGdp->vertexPoint(vertexOffset1);
+    GA_Offset pointOffset2  = this->deformableGridsGdp->vertexPoint(vertexOffset2);
+
+    UT_Vector3 v0 = attUV.get(pointOffset0);
+    UT_Vector3 v1 = attUV.get(pointOffset1);
+    UT_Vector3 v2 = attUV.get(pointOffset2);
+
+    UT_Vector3 centerUV = v0+pu*(v1-v0)+pv*(v2-v0);
+    attCenterUV.set(ppt,centerUV);
+    UT_Vector3 center(0.5,0.5,0.0);
+    UT_Vector3 translation = centerUV-center;
+
     int i = 0;
     {
         GA_Offset gppt;
@@ -549,7 +591,8 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
         {
             UT_Vector3 uv = attUV.get(gppt);
             uv.z() = 0;
-            centerUV += uv;
+            uv -= translation;
+            attUV.set(gppt, uv);
             i++;
         }
     }
@@ -558,6 +601,27 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
         centerUV /= i;
         attCenterUV.set(ppt,centerUV);
     }
+
+    //--------------------------------------------------------------------------------
+
+
+//    UT_Vector3 centerUV = UT_Vector3(0,0,0);
+//    int i = 0;
+//    {
+//        GA_Offset gppt;
+//        GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,gppt)
+//        {
+//            UT_Vector3 uv = attUV.get(gppt);
+//            uv.z() = 0;
+//            centerUV += uv;
+//            i++;
+//        }
+//    }
+//    if (i > 0)
+//    {
+//        centerUV /= i;
+//        attCenterUV.set(ppt,centerUV);
+//    }
     //-----------------------------------------------------
     GEO_Primitive *prim;
     float area;
