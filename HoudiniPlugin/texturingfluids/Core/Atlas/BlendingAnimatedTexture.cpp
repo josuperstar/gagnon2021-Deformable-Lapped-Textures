@@ -51,7 +51,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     //cout << "get border attribute"<<endl;
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
-    GA_RWHandleI    attUsedIn(deformableGrids->addIntTuple(GA_ATTRIB_PRIMITIVE,"usedIn",1));
+//    GA_RWHandleI    attUsedIn(deformableGrids->addIntTuple(GA_ATTRIB_PRIMITIVE,"usedIn",1));
     if (attBorder.isInvalid())
         return Cf;
     UT_Vector3 pixelPositionOnSurface;
@@ -205,7 +205,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         // If the patch has been created on a curved region, it is possible to have the center of the patch closed to a border.
         // We want to avoid treating the polygon closed to the center as border has it can create holes on the surface.
         //float d_V = 1.0f;
-        if (uv_distance <= maxD && d_P > gridwidth/10)
+        if (uv_distance <= maxD && d_P > gridwidth/5)
         //if (uv_distance <= maxD)
         {
             float bv1 = attBorder.get(pointOffset0);
@@ -293,8 +293,9 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         {
             alpha = 1;
             usePatches[patchId] = true;
-            GA_Offset primOffset = prim->getMapOffset();
-            attUsedIn.set(primOffset, params.frame);
+//            GA_Offset primOffset = prim->getMapOffset();
+//            if (attUsedIn.get(primOffset) < params.frame)
+//                attUsedIn.set(primOffset, params.frame);
         }
 
         //clamping color values ...
