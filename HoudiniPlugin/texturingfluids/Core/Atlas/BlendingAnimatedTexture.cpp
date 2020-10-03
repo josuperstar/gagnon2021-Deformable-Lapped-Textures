@@ -51,6 +51,7 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     //cout << "get border attribute"<<endl;
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
+    GA_RWHandleI    attUsedIn(deformableGrids->addIntTuple(GA_ATTRIB_PRIMITIVE,"usedIn",1));
     if (attBorder.isInvalid())
         return Cf;
     UT_Vector3 pixelPositionOnSurface;
@@ -292,6 +293,8 @@ Pixel BlendingAnimatedTexture::Blend(GU_Detail* deformableGrids, int i, int j, f
         {
             alpha = 1;
             usePatches[patchId] = true;
+            GA_Offset primOffset = prim->getMapOffset();
+            attUsedIn.set(primOffset, params.frame);
         }
 
         //clamping color values ...

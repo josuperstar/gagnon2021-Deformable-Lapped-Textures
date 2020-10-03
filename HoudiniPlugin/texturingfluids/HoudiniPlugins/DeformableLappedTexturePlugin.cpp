@@ -242,6 +242,13 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
     version = getenv (rezVersion.c_str());
     if (version!=NULL)
         cout << "version "<<version<<endl;
+    else
+    {
+        rezVersion = "DEAD"+rezVersion;
+        version = getenv (rezVersion.c_str());
+        if (version!=NULL)
+            cout << "version "<<version<<endl;
+    }
 
     int startFrame = StartFrame();
     int startNumber = 0;

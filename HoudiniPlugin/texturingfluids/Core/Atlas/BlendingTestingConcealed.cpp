@@ -51,6 +51,7 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
     GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
+    GA_RWHandleI    attUsedIn(deformableGrids->addIntTuple(GA_ATTRIB_PRIMITIVE,"usedIn",1));
 
     UT_Vector3 pixelPositionOnSurface;
 
@@ -275,6 +276,8 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         {
             alpha = 1;
             usePatches[patchId] = true;
+            GA_Offset primOffset = prim->getMapOffset();
+            attUsedIn.set(primOffset, params.frame);
         }
 
         //clamping color values ...
