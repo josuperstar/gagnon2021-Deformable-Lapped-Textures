@@ -183,16 +183,26 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout << surface.approachName<< " TOTAL: "<<total<<endl;
 
-    std::ofstream outfile;
-    outfile.open("core.csv", std::ios_base::app);
-    outfile <<surface.poissondisk<<","<< surface.gridMeshCreation << ","<<surface.uvFlatteningTime << ","<<surface.markerAdvectionTime
-            <<","<<surface.gridAdvectionTime<<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
-
+    string jobPathEnv = "JOB";
+    char* pPath;
+    pPath = getenv (jobPathEnv.c_str());
+    if (pPath != NULL)
+    {
+        std::ofstream outfile;
+        string logFile = string(pPath)+"/core.csv";
+        cout << "Opening "<<logFile <<endl;
+        outfile.open(logFile, std::ios_base::app);
+        outfile <<surface.poissondisk<<","<< surface.gridMeshCreation << ","<<surface.uvFlatteningTime << ","<<surface.markerAdvectionTime
+                <<","<<surface.gridAdvectionTime<<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
+    }
     cout << "--------------------------------------------------------------------------------"<<endl;
 }
 
 void DeformableLappedTexture::UpdateByRasterization(PatchedSurfaceGagnon2020 &surface, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *surfaceLowResGdp, GU_Detail *deformableGridGdp,  ParametersDeformablePatches params)
 {
+
+    std::clock_t updateStart;
+    updateStart = std::clock();
     //-------------------- texture synthesis to test concealed patches --------------------
     AtlasTestingConcealed atlas;
     if (params.outputName == "")
@@ -280,5 +290,7 @@ void DeformableLappedTexture::UpdateByRasterization(PatchedSurfaceGagnon2020 &su
     //atlas.~AtlasTestingConcealed();
     atlas.SaveAtlas();
     atlas.CleanRayMemory(deformableGridGdp);
+
+    surface.updatePatchesTime = (std::clock() - updateStart) / (double) CLOCKS_PER_SEC;
 
 }

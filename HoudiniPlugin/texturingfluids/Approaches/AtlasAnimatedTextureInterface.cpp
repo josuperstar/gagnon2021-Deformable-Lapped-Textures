@@ -121,9 +121,19 @@ bool AtlasAnimatedTextureInterface::Synthesis(GU_Detail *gdp,  GU_Detail *surfac
 
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout <<" TOTAL: "<<total<<endl;
-    std::ofstream outfile;
-    outfile.open("atlas.csv", std::ios_base::app);
-    outfile <<total<<","<<params.atlasHeight<<","<<nbOfPrimitive<<endl;
+
+
+    string jobPathEnv = "JOB";
+    char* pPath;
+    pPath = getenv (jobPathEnv.c_str());
+    if (pPath != NULL)
+    {
+        std::ofstream outfile;
+        string logFile = string(pPath)+"/atlas.csv";
+        cout << "Opening "<<logFile <<endl;
+        outfile.open(logFile, std::ios_base::app);
+        outfile <<total<<","<<params.atlasHeight<<","<<nbOfPrimitive<<endl;
+    }
     return true;
 
 }
