@@ -34,6 +34,7 @@ public:
 
     int GetNumberOfPatches(){return numberOfPatches;}
     int NumberOfPatchesToDelete();
+    UT_Vector3 SetRandomColor(int patchNumber);
 
     const string markerGroupName = "markers";
     const string surfaceGroupName = "surface";

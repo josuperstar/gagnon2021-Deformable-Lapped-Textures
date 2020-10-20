@@ -51,6 +51,7 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
     GA_RWHandleF    attQt(deformableGrids->findFloatTuple(GA_ATTRIB_PRIMITIVE,"Qt",1));
     GA_RWHandleF    attQv(deformableGrids->findFloatTuple(GA_ATTRIB_POINT,"Qv",1));
     GA_RWHandleI    attBorder(deformableGrids->findIntTuple(GA_ATTRIB_POINT,"border",1));
+    GA_RWHandleI    attUsedIn(deformableGrids->addIntTuple(GA_ATTRIB_PRIMITIVE,"usedIn",1));
 
     UT_Vector3 pixelPositionOnSurface;
 
@@ -125,18 +126,19 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         //get pos of hit
         UT_Vector4 hitPos;
         mininfo.prim->evaluateInteriorPoint(hitPos,mininfo.u1,mininfo.v1);
+
+        //------------------------------ Test Hit Distance --------------------------
         float dist = distance3d(positionOnSurface,hitPos);
         if (dist > thresholdProjectionDistance)
             continue;
 
         if (dist > d/10.0f)
-
         {
             UT_Vector3 AB = (positionOnSurface - hitPos);
             AB = AB.normalize();
-
+            // This can flicker
             float angle = dot(AB,primN);
-            if (abs(angle) < 0.8)
+            if (abs(angle) < 0.2)
                 continue;
         }
 
@@ -147,15 +149,10 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         if (d_P > gridwidth)
             continue;
 
-        //cout << "Hit pos "<<hitPos<<endl;
-
         GA_Offset vertexOffset0 = prim->getVertexOffset(0);
         GA_Offset vertexOffset1 = prim->getVertexOffset(1);
         GA_Offset vertexOffset2 = prim->getVertexOffset(2);
 
-        //------------------- secion 3.3.3 Estimating Grid Distortion --------------
-
-        //------- position in polygon of the deformable grid --------
         if (attPointUV.isInvalid())
             continue;
 
@@ -167,22 +164,9 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         UT_Vector3 v1 = attPointUV.get(pointOffset1);
         UT_Vector3 v2 = attPointUV.get(pointOffset2);
 
-
-        //--------------------------Equation 6--------------------
-        //temporal componet
-
-        //from the Rapport de Chercher: https://hal.inria.fr/inria-00355827v4/document
-        //Also available in the doc directory of this project: doc/yu2009SPTA.pdf
-
-        //Temporal weights Finally we fade particles in and out at their creation and destruction,
-        //using two weights Fin(t) and Fout(t). The fading period τ can be long (in our
-        //implementation we used τ = 5 seconds). Fout is mainly used to force the fading out
-        //of grids whose distortion would stop increasing. And if τ is longer than the particles
-        //lifetime, Fin and Fout rule the weights of all particles and are thus renormalized at the end
-
-
-        UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
-
+        //UT_Vector3 centerUV = trackersUVPosition[patchId];//UT_Vector3(0.5,0.5,0.0);
+        //UT_Vector3 centerUV(0,0,0);
+        UT_Vector3 centerUV(0.5,0.5,0.0);
         float s = params.UVScaling;
 
         v0 = UT_Vector3(v0.x()-centerUV.x(),v0.y()-centerUV.y(),v0.z()-centerUV.z());
@@ -198,78 +182,127 @@ Pixel BlendingTestingConcealed::Blend(GU_Detail* deformableGrids, int i, int j, 
         v2 = UT_Vector3(v2.x()+centerUV.x(),v2.y()+centerUV.y(),v2.z()+centerUV.z());
 
         UT_Vector3 positionInPolygon = v0+u*(v1-v0)+v*(v2-v0);
+        float B_V = 1.0f;
+        UT_Vector3 centerUV2(0.5,0.5,0.0);
+        float uv_distance = distance3d(positionInPolygon,centerUV2);
+        float minD = 0.25;
+        float maxD = 0.5; //edge region
+        if (uv_distance > maxD)
+        {
+            B_V = 0.0f;
 
+            //cout << "uv distance > maxD"<<endl;
+        }
+        float D_v = 0.0f;
+        if (uv_distance > minD && uv_distance <= maxD)
+            D_v = 1-((uv_distance-minD)/(maxD-minD));
+        if (uv_distance <= minD)
+            D_v = 1.0f;
+
+        //cout << "UV Distance = "<<uv_distance<<endl;
         //-----------------------------------
         //Q_v quality of the vertex, value from 0 to 1
         //The weights are computed for each vertex. During reconstruction, weights at arbitrary locations are interpolated
         //from vertices values.
-        int   d_V1 = 1-attBorder.get(pointOffset0);
-        int   d_V2 = 1-attBorder.get(pointOffset1);
-        int   d_V3 = 1-attBorder.get(pointOffset2);
+
+        // If the patch has been created on a curved region, it is possible to have the center of the patch closed to a border.
+        // We want to avoid treating the polygon closed to the center as border has it can create holes on the surface.
+        //float d_V = 1.0f;
+        if (uv_distance <= maxD && d_P > gridwidth/10)
+        {
+            float bv1 = attBorder.get(pointOffset0);
+            float bv2 = attBorder.get(pointOffset1);
+            float bv3 = attBorder.get(pointOffset2);
+
+            float   d_V1 = 1.0f - bv1;
+            float   d_V2 = 1.0f - bv2;
+            float   d_V3 = 1.0f - bv3;
+
+            B_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
+//            if (B_V != 1)
+//                cout << B_V<<endl;
+        }
 
         float Q_t1 = attQv.get(pointOffset0);
         float Q_t2 = attQv.get(pointOffset1);
         float Q_t3 = attQv.get(pointOffset2);
 
         float Q_t = Q_t1+u*(Q_t2-Q_t1)+v*(Q_t3-Q_t1);
-        float d_V = d_V1+u*(d_V2-d_V1)+v*(d_V3-d_V1);
 
         if (Q_t < 0.001)
             continue;
 
-        float   Q_V = Q_t*d_V;
-
-        // ------------------------ EUCLEDIAN DISTANCE ------------------------
-
-        float minD = d;
-        float maxD = gridwidth; //edge region
-
-        //d_V =0 if V ∈ grid boundary 1 otherwise
-
-        if (d_P > maxD)
-            d_V = 0.0f;
-
-        float C_s = 0.0f;
-        if (d_P > minD && d_P <= maxD)
-            C_s = 1-((d_P-minD)/(maxD-minD));
-        if (d_P <= minD)
-            C_s = 1.0f;
-
-        //----------------------------------------------------------------
-
-        float K_s = C_s*d_V*Q_V;
-
-        //K_s should be between 0 and 1
-        if (K_s < 0)
-            K_s = 0;
-        else if (K_s > 1.0f)
-            K_s = 1.0f;
-
-        //--------------------------Equation 5--------------------
-        // section 3.4.1 Vertex Weights
-        //The weight for each vertex is defined as the product of a spatial component and a temporal component
-
-        if (K_s < epsilon)
-            continue;
 
         //-----------------------------------------------------------------
         //getting the color from the texture exemplar
         int i2 = static_cast<int>(floor(positionInPolygon.x()*tw));
         int j2 = ((int)th-1)-static_cast<int>(floor((positionInPolygon.y())*th));
-        int seamCarvingIndex = ((1-K_s) * params.NumberOfTextureSampleFrame);
 
-        textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
-        sumAlpha += color.A;
-        if (color.A == 0)
+
+        //float K_s = C_s*d_V*Q_V;
+        //float w_pt = Q_V_B_v;
+        //float w_pt = Q_t*B_V*D_v;
+        //float w_pt = Q_t*B_V;
+        //float w_pt = Q_t*D_v;
+        float w_pt = Q_t*B_V;
+        //w_pt should be between 0 and 1
+        if (w_pt < 0)
+            w_pt = 0;
+        else if (w_pt > 1.0f)
+            w_pt = 1.0f;
+
+        if (w_pt < epsilon)
             continue;
 
-        //cout << "Using this one !!"<<endl;
-        usePatches[patchId] = true;
-        numberOfHit++;
-        if (K_s == 1)
-            break;
+        int seamCarvingIndex = ((1-w_pt) * params.NumberOfTextureSampleFrame);
+        //int seamCarvingIndex = 0;
 
+
+            textureExemplars[seamCarvingIndex]->GetColor(i2,j2,0,color);
+
+            //cout << "Animated Color "<<color.R<<" "<<color.G<<" "<<color.B<<endl;
+
+//        float F = displacement.R;
+//        float D = (D_v);
+//        float E = F*D + D*D;
+//        float threshold = 1-w_pt;
+
+        // Flag that we use this patch during the synthesis.
+        // We could therefore delete unused patches in the future.
+
+        float alpha = 0;
+        if (color.A > 0.0f)
+        //if (E > threshold)
+        {
+            alpha = 1;
+            usePatches[patchId] = true;
+            GA_Offset primOffset = prim->getMapOffset();
+            attUsedIn.set(primOffset, params.frame);
+        }
+
+        //clamping color values ...
+        if (color.B > 1.0f)
+            color.B = 1.0f;
+        if (color.G > 1.0f)
+            color.G = 1.0f;
+        if (color.R > 1.0f)
+            color.R = 1.0f;
+
+
+
+        // We use the alpha from the animated images to influence the weight
+
+        //float alpha = color.A;// * w_v;
+        Cf.R =  (alpha)*(color.R) + (1.0f-alpha)*(Cf.R);
+        Cf.G =  (alpha)*(color.G) + (1.0f-alpha)*(Cf.G);
+        Cf.B =  (alpha)*(color.B) + (1.0f-alpha)*(Cf.B);
+        Cf.A += color.A;
+
+
+        k--;
     }
+
+
     //========================= END SUM ==================================
 
     if (numberOfHit == 0)

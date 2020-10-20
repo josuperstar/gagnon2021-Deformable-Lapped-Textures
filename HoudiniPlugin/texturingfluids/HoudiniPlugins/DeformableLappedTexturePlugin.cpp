@@ -242,6 +242,13 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
     version = getenv (rezVersion.c_str());
     if (version!=NULL)
         cout << "version "<<version<<endl;
+    else
+    {
+        rezVersion = "DEAD"+rezVersion;
+        version = getenv (rezVersion.c_str());
+        if (version!=NULL)
+            cout << "version "<<version<<endl;
+    }
 
     int startFrame = StartFrame();
     int startNumber = 0;
@@ -274,6 +281,8 @@ DeformableLappedTexturePlugin::cookMySop(OP_Context &context)
     TextureExemplarList(textureExemplar1Name,now);
     params.textureExemplar1Name = textureExemplar1Name;
 
+    TextureExemplarMaskList(textureExemplarMaskName,now);
+    params.displacementMap1Name = textureExemplarMaskName;
 
     OutputName(outputName,now);
     params.outputName = outputName;

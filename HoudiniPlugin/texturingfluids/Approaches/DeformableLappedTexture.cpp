@@ -23,11 +23,15 @@
 
 #include <GU/GU_Flatten.h>
 #include <GU/GU_RayIntersect.h>
-
+#include <cstdlib>      // std::rand, std::srand
 
 
 #include <Core/Atlas/AtlasTestingConcealed.h>
 #include <Core/Atlas/TBBAtlasTestingConcealed.h>
+
+
+// random generator function:
+int myrandom (GA_Offset i) { return std::rand()%i;}
 
 DeformableLappedTexture::DeformableLappedTexture()
 {
@@ -42,7 +46,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     PatchedSurfaceGagnon2020 surface(surfaceGdp, surfaceLowResGdp, trackersGdp,deformableGridGdp, params);
     cout << "[DeformableLappedTexture::Synthesis] Version: (put version here) frame: "<<params.frame<<endl;
     //params.useDynamicTau = false;
-
+    GA_RWHandleI    attId(trackersGdp->findIntTuple(GA_ATTRIB_POINT,"id",1));
     std::clock_t start;
     start = std::clock();
     vector<GA_Offset> newPatchesPoints;
@@ -66,10 +70,28 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     if(params.startFrame == params.frame)
     {
         newPatchesPoints = surface.PoissonDiskSamplingDistribution(levelSet,params.poissondiskradius, params.poissonAngleNormalThreshold);
-        surface.ProjectAllTrackersOnSurface();
-        surface.UpdateAllTrackers();
-        surface.CreateGridsBasedOnMesh(newPatchesPoints);
-        surface.AddDeformablePatchesUsingBarycentricCoordinates();
+
+        //TODO: shuffle list point id;
+        std::srand ( unsigned ( std::time(0) ) );
+        vector<GA_Offset>::iterator itPoint;
+        cout << "random shuffle offset values"<<endl;
+        std::random_shuffle ( newPatchesPoints.begin(), newPatchesPoints.end(), myrandom);
+        int index = 0;
+        for (itPoint = newPatchesPoints.begin(); itPoint != newPatchesPoints.end(); itPoint++)
+        {
+            index++;
+            GA_Offset newPoint = *itPoint;
+            attId.set(newPoint,index);
+            cout << "create tracker "<< index << " with offset "<< newPoint<< endl;
+//            cout << "Project Trancker on surface"<<endl;
+            bool canProject = surface.ProjectTrackerOnSurface(newPoint);
+            if (!canProject)
+                continue;
+            surface.UpdateTracker(newPoint);
+            //cout << "Create grid "<<endl;
+            surface.CreateGridBasedOnMesh(newPoint);
+            surface.AddDeformablePatcheUsingBarycentricCoordinates(newPoint);
+        }
     }
     else
     {
@@ -85,7 +107,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
         surface.ProjectAllTrackersOnSurface();
         surface.UpdateAllTrackers();
         //surface.CreateGridsBasedOnMesh(newPatchesPoints);
-        cout << "------------------- Delete Dead Patches ---------------------"<<endl;
+        cout << "------------------- Delete Dea*/d Patches ---------------------"<<endl;
         surface.DeleteUnusedPatches();
     }
 
@@ -93,8 +115,10 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     cout << "------------------- Patch Creation ---------------------"<<endl;
     surface.AddDeformablePatchesUsingBarycentricCoordinates();
 
+    cout << "Updating distribution: "<<params.updateDistribution<<endl;
 
-    this->UpdateByRasterization(surface, surfaceGdp,trackersGdp, surfaceLowResGdp, deformableGridGdp, params);
+    if (params.updateDistribution)
+        this->UpdateByRasterization(surface, surfaceGdp,trackersGdp, surfaceLowResGdp, deformableGridGdp, params);
 
     //=======================================================================
 
@@ -159,16 +183,26 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     float total = (std::clock() - start) / (double) CLOCKS_PER_SEC;
     cout << surface.approachName<< " TOTAL: "<<total<<endl;
 
-    std::ofstream outfile;
-    outfile.open("core.csv", std::ios_base::app);
-    outfile <<surface.poissondisk<<","<< surface.gridMeshCreation << ","<<surface.uvFlatteningTime << ","<<surface.markerAdvectionTime
-            <<","<<surface.gridAdvectionTime<<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
-
+    string jobPathEnv = "JOB";
+    char* pPath;
+    pPath = getenv (jobPathEnv.c_str());
+    if (pPath != NULL)
+    {
+        std::ofstream outfile;
+        string logFile = string(pPath)+"/core.csv";
+        cout << "Opening "<<logFile <<endl;
+        outfile.open(logFile, std::ios_base::app);
+        outfile <<surface.poissondisk<<","<< surface.gridMeshCreation << ","<<surface.uvFlatteningTime << ","<<surface.markerAdvectionTime
+                <<","<<surface.gridAdvectionTime<<","<<surface.patchCreationTime << ","<<surface.updatePatchesTime<<","<<nbPatches<<endl;
+    }
     cout << "--------------------------------------------------------------------------------"<<endl;
 }
 
 void DeformableLappedTexture::UpdateByRasterization(PatchedSurfaceGagnon2020 &surface, GU_Detail *surfaceGdp, GU_Detail *trackersGdp, GU_Detail *surfaceLowResGdp, GU_Detail *deformableGridGdp,  ParametersDeformablePatches params)
 {
+
+    std::clock_t updateStart;
+    updateStart = std::clock();
     //-------------------- texture synthesis to test concealed patches --------------------
     AtlasTestingConcealed atlas;
     if (params.outputName == "")
@@ -180,7 +214,9 @@ void DeformableLappedTexture::UpdateByRasterization(PatchedSurfaceGagnon2020 &su
     atlas.SetDeformableGrids(deformableGridGdp);
     atlas.SetTrackers(trackersGdp);
     atlas.SetTextureExemplar1(params.textureExemplar1Name);
-    atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
+    cout << "Using displacement map "<<params.displacementMap1Name<<endl;
+    //atlas.SetTextureExemplar1Mask(params.textureExemplar1MaskName);
+    atlas.SetDisplacementMap1(params.displacementMap1Name);
     atlas.SetNumberOfTextureSampleFrame(params.NumberOfTextureSampleFrame);
 
 
@@ -254,5 +290,7 @@ void DeformableLappedTexture::UpdateByRasterization(PatchedSurfaceGagnon2020 &su
     //atlas.~AtlasTestingConcealed();
     atlas.SaveAtlas();
     atlas.CleanRayMemory(deformableGridGdp);
+
+    surface.updatePatchesTime = (std::clock() - updateStart) / (double) CLOCKS_PER_SEC;
 
 }

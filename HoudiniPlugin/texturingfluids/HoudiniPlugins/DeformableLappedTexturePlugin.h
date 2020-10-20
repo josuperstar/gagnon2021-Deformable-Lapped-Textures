@@ -72,6 +72,8 @@ public:
 
     void  TextureExemplarList(UT_String &str, fpreal t)
     { RSTR_PARM("TextureExemplarList",  0, t) }
+    void  TextureExemplarMaskList(UT_String &str, fpreal t)
+    { RSTR_PARM("TextureExemplarMaskList",  0, t) }
 
 
     void  OutputName(UT_String &str, fpreal t)
@@ -104,6 +106,7 @@ private:
     UT_String trackersFilename;
     UT_String deformableGridsFilename;
     UT_String textureExemplar1Name;
+    UT_String textureExemplarMaskName;
 
     UT_String outputName;
 

@@ -387,11 +387,28 @@ void PatchedSurfaceGagnon2020::AddDeformablePatchesUsingBarycentricCoordinates()
     GA_Offset surfacePointOffset;
     int patchNumber = 0;
 
-    //Create PatchID array
+    map<int,GA_Offset> sortedPatches;
     {
+        // Create a sorted map for ids
+        int index = 0;
         GA_FOR_ALL_PTOFF(trackersGdp, ppt)
         {
             patchNumber = attId.get(ppt);
+
+            sortedPatches[patchNumber] = ppt;
+
+        }
+    }
+
+    //Create PatchID array
+    {
+        // We need to go through this list following the order of the id attribute
+        //GA_FOR_ALL_PTOFF(trackersGdp, ppt)
+        map<int, GA_Offset>::iterator itPoint;
+        for (itPoint = sortedPatches.begin(); itPoint != sortedPatches.end(); itPoint++)
+        {
+            patchNumber = (*itPoint).first;
+            ppt = sortedPatches[patchNumber];
             int active = attActive.get(ppt);
             float life = attLife.get(ppt);
             if (active == 0 && life <= 0 )
