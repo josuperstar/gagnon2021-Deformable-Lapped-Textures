@@ -11,8 +11,6 @@
 #include "AtlasSeamCarvingPlugin.h"
 #include "PoissonDiskPlugin.h"
 #include "SinglePatchTest.h"
-#include "DynamicLappedTexturePlugin.h"
-#include "AtlasGagnon2016Plugin.h"
 #include "DeformableLappedTexturePlugin.h"
 #include "AtlasDeformablePatchesPlugin.h"
 
@@ -32,14 +30,6 @@ void newSopOperator(OP_OperatorTable *table)
                                         0));
 
 
-     table->addOperator(new OP_Operator("hdk_Gagnon2016",
-                                        "DynamicLappedTexture",
-                                        DynamicLappedTexturePlugin::myConstructor,
-                                        DynamicLappedTexturePlugin::myTemplateList,
-                                        3,
-                                        3,
-                                        0));
-
      table->addOperator(new OP_Operator("hdk_SinglePatch",
                                         "SinglePatch",
                                         SinglePatchTest::myConstructor,
@@ -56,13 +46,6 @@ void newSopOperator(OP_OperatorTable *table)
                                         0));
 
 
-     table->addOperator(new OP_Operator("hdk_AtlasGagnon2016",
-                                       "AtlasGagnon2016",
-                                       AtlasGagnon2016Plugin::myConstructor,
-                                       AtlasGagnon2016Plugin::myTemplateList,
-                                       2,
-                                       2,
-                                       0));
 
     table->addOperator(new OP_Operator("hdk_AtlasSeamCarving",
                                        "AtlasSeamCarving",
