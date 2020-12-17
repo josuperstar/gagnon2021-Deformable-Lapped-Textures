@@ -1,10 +1,10 @@
-name = "deformable_patches_fluid"
+name = "gagnon2016_dynamic_lapped_texture"
 
-uuid = "1ff24639-1abb-48b6-b64e-12e7ee8c9a07"
+uuid = "ba65a0c2-b993-4212-a965-4a701d1be618"
 
-description = "Texturing Fluid with deformable patches"
+description = "Texturing Fluid with rigid patches"
 
-version = "1.3.4"
+version = "1.0.0"
 
 
 authors = [ "Jonathan Gagnon" ]

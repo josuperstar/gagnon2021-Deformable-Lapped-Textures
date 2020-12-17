@@ -21,7 +21,7 @@
 #include <Core/HoudiniUtils.h>
 #include <Strategies/StrategyPatchSurfaceSynthesis.h>
 #include "DynamicLappedTexturePlugin.h"
-
+#include <UT/UT_DSOVersion.h>
 
 #include <stdlib.h> /* getenv */
 #include <omp.h>

@@ -4,7 +4,7 @@
 cmake_minimum_required( VERSION 3.0 )
 
 # Set the project name
-project( Gagnon2019 )
+project( Gagnon2016 )
 
 ##########################
 # Initialize the sources #
