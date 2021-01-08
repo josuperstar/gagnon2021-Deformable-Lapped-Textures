@@ -148,7 +148,8 @@ PatchedSurfaceGagnon2020::PatchedSurfaceGagnon2020(GU_Detail *surface, GU_Detail
 
 PatchedSurfaceGagnon2020::~PatchedSurfaceGagnon2020()
 {
-
+    cout << "[PatchedSurfaceGagnon2020] clear trackers tree."<<endl;
+    this->trackerTree.clear();
 }
 
 set<int> PatchedSurfaceGagnon2020::GetSortedPatches(GA_Offset primOffset)
@@ -559,9 +560,8 @@ void PatchedSurfaceGagnon2020::DeleteUnusedPatches()
         GA_FOR_ALL_PTOFF(trackersGdp,ppt)
         {
             int id = attId.get(ppt);
-            float life = attLife.get(ppt);
             int active = attActive.get(ppt);
-            if (active == 0 && life <= 0.0f && params.frame != params.startFrame)
+            if (active == 0 && params.frame != params.startFrame)
             {
                 // put this in a function
                 //cout << "Deleting deformable grid "<<id<<" mature "<<attIsMature.get(ppt)<<endl;

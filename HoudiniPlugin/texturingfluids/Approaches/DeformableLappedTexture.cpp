@@ -135,7 +135,7 @@ void DeformableLappedTexture::Synthesis(GU_Detail *deformableGridGdp, GU_Detail 
     //================================================================
     std::clock_t cleaningStart;
     cleaningStart = std::clock();
-    //cout<< "Clear, Destroy and merge"<<endl;
+    cout<< "Clear, Destroy and merge"<<endl;
     deformableGridGdp->clearAndDestroy();
     deformableGridGdp->copy(*surfaceGdp);
 

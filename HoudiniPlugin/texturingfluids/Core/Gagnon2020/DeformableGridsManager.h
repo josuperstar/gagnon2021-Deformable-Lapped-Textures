@@ -36,6 +36,8 @@ public:
 
 protected :
 
+    UT_Vector2 RotateUV(UT_Vector2 uv, float rotation, float mid);
+
     void FlagBoundaries();
     void FlagBoundariesForPatch(GA_Offset ppt);
     bool UVFlattening(GU_Detail &tempGdp,
