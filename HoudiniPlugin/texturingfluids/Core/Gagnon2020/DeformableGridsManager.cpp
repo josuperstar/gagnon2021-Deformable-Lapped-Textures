@@ -1111,7 +1111,7 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp,
         UT_Vector2 rotatedUV= RotateUV(UT_Vector2(uv.x(),uv.y()),randomRotation, 0.5);
 
         attUV.set(ppt,UT_Vector3(rotatedUV.x(), rotatedUV.y(),0.0f));
-
+        //attUV.set(ppt, uv);
     }
     this->deformableGridsGdp->deletePoints(*toDestroy,mode);
 
