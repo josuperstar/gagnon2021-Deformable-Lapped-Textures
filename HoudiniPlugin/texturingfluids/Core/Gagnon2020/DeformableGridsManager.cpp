@@ -14,6 +14,7 @@
 #include <SOP/SOP_Guide.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstdlib>
 #include <string.h>
 #include <GA/GA_ElementWrangler.h>
 #include <algorithm>
@@ -1100,7 +1101,8 @@ bool DeformableGridsManager::UVFlattening(GU_Detail &tempGdp,
 
     GA_PointGroup *toDestroy = this->deformableGridsGdp->newPointGroup("ToDestroy");
     GA_Offset ppt;
-    float randomRotation = (((double) rand()/(RAND_MAX)))*1.0f;
+    srand(id);
+    float randomRotation = (((double) rand()/(RAND_MAX)))*360.0f;
     GA_FOR_ALL_GROUP_PTOFF(this->deformableGridsGdp,pointGroup,ppt)
     {
 
