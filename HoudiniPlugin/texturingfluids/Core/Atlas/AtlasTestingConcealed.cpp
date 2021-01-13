@@ -27,9 +27,9 @@ AtlasTestingConcealed::~AtlasTestingConcealed()
         //cout << "delete texture examplar memory "<<i<<endl;
         delete this->textureExemplars[i];
     }
-
-    delete diffuseImageBlendingYu2011Equation4;
-    delete displacementMapImage;
+    cout << "[AtlasTestingConcealed] texture list has been deleted"<<endl;
+//    delete diffuseImageBlendingYu2011Equation4;
+//    delete displacementMapImage;
 
     trackerNormal.clear();
 
@@ -729,7 +729,7 @@ void AtlasTestingConcealed::initPatchColors(GU_Detail *trackersGdp)
 
 void AtlasTestingConcealed::CleanRayMemory(GU_Detail *deformableGrids)
 {
-
+    cout << "[AtlasTestingConcealed] Clear Ray Memory"<<endl;
     map<string,GU_RayIntersect*>::iterator itRays;
     for(itRays=rays.begin(); itRays != rays.end(); itRays++)
     {

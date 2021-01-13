@@ -555,12 +555,11 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
 //    }
 
     //----------------- Compute uv coordinate of the patch position p ----------------
-    GU_RayIntersect *ray = new GU_RayIntersect(this->deformableGridsGdp,primGroup);
+    GU_RayIntersect ray(this->deformableGridsGdp,primGroup);
     GU_MinInfo mininfo;
     mininfo.init(params.maximumProjectionDistance,0.0001f);
 
-    ray->minimumPoint(p,mininfo);
-    delete ray;
+    ray.minimumPoint(p,mininfo);
     if (!mininfo.prim)
         return;
     const GEO_Primitive *primProjection = mininfo.prim;
