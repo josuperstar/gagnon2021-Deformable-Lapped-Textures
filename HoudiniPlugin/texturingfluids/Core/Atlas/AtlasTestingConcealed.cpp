@@ -738,13 +738,16 @@ void AtlasTestingConcealed::initPatchColors(GU_Detail *trackersGdp)
 void AtlasTestingConcealed::CleanRayMemory(GU_Detail *deformableGrids)
 {
 
-        GA_PrimitiveGroup *primGroup;
-        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
-        {
-             string name = primGroup->getName().toStdString();
-             delete rays[name];
-             //delete patchesGeo[name];
-             //delete details[name];
-        }
-    //    //patchesG
+    map<string,GU_RayIntersect*>::iterator itRays;
+    for(itRays=rays.begin(); itRays != rays.end(); itRays++)
+//        GA_PrimitiveGroup *primGroup;
+//        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
+    {
+         string name = (itRays)->first;
+         //string name = primGroup->getName().toStdString();
+         delete rays[name];
+         //delete patchesGeo[name];
+         //delete details[name];
+    }
+//    //patchesG
 }
