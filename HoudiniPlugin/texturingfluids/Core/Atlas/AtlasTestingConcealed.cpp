@@ -28,17 +28,15 @@ AtlasTestingConcealed::~AtlasTestingConcealed()
         delete this->textureExemplars[i];
     }
 
+    delete diffuseImageBlendingYu2011Equation4;
+    delete displacementMapImage;
+
     trackerNormal.clear();
 
 }
 
 bool AtlasTestingConcealed::initImages(int w, int h)
 {
-    diffuseImageBlendingGagnon = new ImageCV();
-    diffuseImageBlendingGagnon->CreateImage(w,h,-1);
-
-    diffuseImageBlendingYu2011Equation3 = new ImageCV();
-    diffuseImageBlendingYu2011Equation3->CreateImage(w,h,-1);
 
     diffuseImageBlendingYu2011Equation4 = new ImageCV();
     diffuseImageBlendingYu2011Equation4->CreateImage(w,h,-1);
@@ -612,21 +610,15 @@ vector<GA_Offset> AtlasTestingConcealed::RasterizePrimitive(PatchedSurfaceGagnon
 void AtlasTestingConcealed::SaveAtlas()
 {
     //write the image to the disk
-    //diffuseImageBlendingGagnon->SaveImageAs(outputFilename);
-    //diffuseImageBlendingYu2011Equation3->SaveImageAs(outputFilename+".yu2011equationtree.png");
-    //diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.png");
     diffuseImageBlendingYu2011Equation4->growRegions(diffuseImageBlendingYu2011Equation4->image,diffuseImageBlendingYu2011Equation4->image,1); //
     diffuseImageBlendingYu2011Equation4->SaveImageAs(outputFilename+".yu2011equationfour.padded.png");
     cout << "Save texture atlas"<<outputFilename<<endl;
     if (computeDisplacement)
     {
         //write the image to the disk
-        //displacementMapEquation4->SaveImageAs(outputFilename+"displacementequationfour.png"); //HARDCODED NAME !!!
         displacementMapEquation4->growRegions(displacementMapEquation4->image,displacementMapEquation4->image,1); //
         displacementMapEquation4->SaveImageAs(outputFilename+".displacementequationfour.padded.png");
-        //displacementMapEquation3->SaveImageAs(outputFilename+"displacementequationtree.png"); //HARDCODED NAME !!!
-        //displacementMapEquation3->growRegions(displacementMapEquation3->image,displacementMapEquation3->image,1); //
-        //displacementMapEquation3->SaveImageAs(outputFilename+".displacementequationtree.padded.png");
+
         cout << "Save texture atlas"<<outputFilename+"displacement.png"<<endl;
     }
 }
@@ -740,14 +732,9 @@ void AtlasTestingConcealed::CleanRayMemory(GU_Detail *deformableGrids)
 
     map<string,GU_RayIntersect*>::iterator itRays;
     for(itRays=rays.begin(); itRays != rays.end(); itRays++)
-//        GA_PrimitiveGroup *primGroup;
-//        GA_FOR_ALL_PRIMGROUPS(deformableGrids,primGroup)
     {
          string name = (itRays)->first;
-         //string name = primGroup->getName().toStdString();
          delete rays[name];
-         //delete patchesGeo[name];
-         //delete details[name];
     }
-//    //patchesG
+
 }

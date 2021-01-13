@@ -560,6 +560,7 @@ void DeformableGridsManager::CreateGridBasedOnMesh(GA_Offset ppt)
     mininfo.init(params.maximumProjectionDistance,0.0001f);
 
     ray->minimumPoint(p,mininfo);
+    delete ray;
     if (!mininfo.prim)
         return;
     const GEO_Primitive *primProjection = mininfo.prim;
